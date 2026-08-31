@@ -4,3 +4,4 @@ artifacts/
 .img2threejs/
 tmp/
 .vercel/
+.env*
