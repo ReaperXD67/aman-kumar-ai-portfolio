@@ -14,7 +14,6 @@ import {
   ArrowSquareOut,
   Brain,
   Check,
-  Copy,
   Database,
   GithubLogo,
   List,
@@ -22,6 +21,7 @@ import {
   Stack,
   X,
 } from "@phosphor-icons/react";
+import { Contact, IdentityVault } from "./IdentityVault.jsx";
 const SignalCore = lazy(() => import("./SignalCore.jsx").then((module) => ({ default: module.SignalCore })));
 const CognitiveDescent = lazy(() => import("./CognitiveDescent.jsx").then((module) => ({ default: module.CognitiveDescent })));
 
@@ -211,7 +211,8 @@ function AppHeader({ menuOpen, setMenuOpen }) {
       <nav className={menuOpen ? "site-nav is-open" : "site-nav"} aria-label="Primary navigation">
         <a href="#work" onClick={() => setMenuOpen(false)}>Selected work</a>
         <a href="#method" onClick={() => setMenuOpen(false)}>Method</a>
-        <a href="#about" onClick={() => setMenuOpen(false)}>About</a>
+        <a href="#experience" onClick={() => setMenuOpen(false)}>Experience</a>
+        <a href="#resume" onClick={() => setMenuOpen(false)}>Résumé</a>
         <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
       </nav>
       <a className="header-cta" href="mailto:amankumr3254u@gmail.com">
@@ -265,17 +266,18 @@ function Hero() {
           <em>before they act.</em>
         </h1>
         <div className="hero-roleline" role="group" aria-label="Professional focus">
-          <span>AI/ML SOLUTION ARCHITECT</span>
-          <span>STUDENT / BUILDER</span>
+          <span>AI ENGINEER</span>
+          <span>FULL-STACK DEVELOPER</span>
+          <span>BENGALURU / AVAILABLE</span>
         </div>
         <p className="hero-lede">
-          I’m Aman — an AI/ML builder creating explainable agents, financial intelligence,
-          retrieval systems, and products engineered for real failure modes.
+          I turn ambitious AI ideas into production-ready products—across model behavior,
+          APIs, databases, integrations, infrastructure, and the interface people trust.
         </p>
         <div className="hero-actions">
           <a className="button button-solid" href="#work">Inspect selected work <ArrowDown size={17} weight="bold" /></a>
-          <a className="button button-outline" href="https://github.com/ReaperXD67" target="_blank" rel="noreferrer">
-            GitHub dossier <GithubLogo size={18} />
+          <a className="button button-outline" href="#resume">
+            Open living résumé <ArrowSquareOut size={18} />
           </a>
         </div>
       </motion.div>
@@ -504,48 +506,6 @@ function Method() {
   );
 }
 
-function About() {
-  return (
-    <section className="about-section section" id="about">
-      <div className="about-portrait">
-        <img src="/assets/aman-avatar.png" alt="Aman Kumar" loading="lazy" />
-        <div><span>SUBJECT / AK-01</span><strong>AMAN KUMAR</strong></div>
-      </div>
-      <div className="about-copy">
-        <h2>Learning in public. Building like it ships.</h2>
-        <p>I’m an AI/ML solution architect and student working across intelligent systems, finance, agents, retrieval, and full-stack product engineering. My projects start with a real constraint: trust, cost, evidence, failure recovery, or the human who has to operate the system after the demo ends.</p>
-        <div className="about-facts">
-          <div><span>BASE</span><strong>INDIA / IST</strong></div>
-          <div><span>FOCUS</span><strong>AI · DEFI · SYSTEMS</strong></div>
-          <div><span>MODE</span><strong>OPEN TO WORK</strong></div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Contact() {
-  const [copied, setCopied] = useState(false);
-  const email = "amankumr3254u@gmail.com";
-  const copyEmail = async () => {
-    await navigator.clipboard.writeText(email);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  };
-  return (
-    <section className="contact-section section" id="contact">
-      <h2>Bring me the problem that<br />doesn’t fit in a tutorial.</h2>
-      <p>Internships, collaborations, product engineering, agent systems, and high-conviction experiments.</p>
-      <div className="contact-actions">
-        <a className="button button-solid button-large" href={`mailto:${email}`}>Start a conversation <ArrowSquareOut size={19} /></a>
-        <button className="button button-outline button-large" type="button" onClick={copyEmail}>
-          {copied ? <Check size={19} weight="bold" /> : <Copy size={19} />}{copied ? "Email copied" : "Copy email"}
-        </button>
-      </div>
-    </section>
-  );
-}
-
 export function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { scrollYProgress } = useScroll();
@@ -565,7 +525,7 @@ export function App() {
         <Suspense fallback={<div className="descent-loading">CALIBRATING SCROLL FIELD</div>}><CognitiveDescent /></Suspense>
         <Work />
         <Method />
-        <About />
+        <IdentityVault />
         <Contact />
       </main>
       <footer className="site-footer"><span>© 2026 AMAN KUMAR</span><span>DESIGNED AS A LIVING SYSTEM</span><a href="#top">RETURN TO ORIGIN</a></footer>

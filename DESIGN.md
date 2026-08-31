@@ -20,6 +20,10 @@ Cinematic intelligence interface: near-black canvas, white/graphite typography, 
 - Proof moves into a gapless 12-column band below the hero (`3 + 3 + 3 + 3`) with a restrained continuous signal ticker.
 - Selected work is a full-width project-transmission console: a six-channel selector controls a large real product preview, an Interface/System switch, architecture flow, failure mode, verified proof, technology, and source links. KarixMC leads with a capture from the live production site and its game-to-web trust boundary.
 - Method uses a horizontal accordion so the strongest engineering principles reveal themselves through interaction rather than a generic equal-card grid.
+- Identity uses a generated editorial portrait with an explicit generative label. A staggered pixel-column curtain decrypts the portrait once; the motion is removed under reduced-motion preferences.
+- Experience is a horizontal three-signal career selector feeding one large operating-evidence stage, followed by a separate education signal. It must not reuse the selected-work console’s left-index anatomy.
+- Résumé and micro1 certification live in a two-artifact proof vault. Both open their original source in a focused native dialog, and the résumé reads its URL/version from `/profile/resume.json` at runtime.
+- Contact is a light editorial split with a real validated form that hands a pre-filled brief directly to Aman’s email client, plus visible email and phone fallbacks.
 - Mobile collapses to one deliberate column with 44px minimum touch targets and no horizontal page overflow.
 
 ## Motion
@@ -28,14 +32,16 @@ Cinematic intelligence interface: near-black canvas, white/graphite typography, 
 - The 3D core responds to pointer position, can be clicked directly, and exposes three explicit spatially distinct states.
 - The primary authored moment is the scroll-controlled cognitive descent between proof and work: the hero core fractures, the camera passes through signal/reason/action gates and real project artifacts, then the sequence releases into evidence inspection.
 - The project-transmission console is the analytical counterpoint to that descent. Channel changes use a single signal wipe, image scale/focus transition, and card replacement; the interface/system switch reveals the build without adding another pinned spectacle.
+- The identity portrait decryption is the only new authored reveal. Career and artifact changes use short focus/blur transitions so they remain subordinate to the cognitive descent.
 - WebGL scenes mount only when near the viewport so the hero and descent do not compete for GPU resources.
 - Continuous ticker and WebGL rendering pause or become static under reduced-motion/offscreen conditions.
 - `prefers-reduced-motion` disables continuous movement, bloom, and decorative transitions while preserving the final readable state.
 
 ## Content Rules
 
-- Claims must come from Aman’s public GitHub profile or repository documentation.
+- Claims may come from Aman’s supplied résumé and certificate as well as his public GitHub profile or repository documentation.
 - Always label prototype/local-alpha/research work honestly.
 - Prefer proof (tests, architecture, constraints, deployed links) over generic adjectives.
 - Treat KarixMC as a production system: `karixmc.pl`, two loopback app replicas behind Nginx, PostgreSQL, Redis, encrypted recurring backups, and HMAC-signed Paper-plugin traffic are grounded in the local project documentation.
 - Do not invent employers, degrees, client outcomes, awards, or personal metrics.
+- Verified personal source facts include SIP Organization (Project Lead Developer Intern, Jul 2026-present), micro1 (AI Engineer Intern, Aug 2025-Jul 2026), independent AI/ML development (2025-present), and Scaler School of Technology in collaboration with BITS Pilani (BSc Computer Science, Aug 2024-Sep 2028).
