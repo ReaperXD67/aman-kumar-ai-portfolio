@@ -24,6 +24,7 @@ import {
 import { Contact, IdentityVault } from "./IdentityVault.jsx";
 const SignalCore = lazy(() => import("./SignalCore.jsx").then((module) => ({ default: module.SignalCore })));
 const CognitiveDescent = lazy(() => import("./CognitiveDescent.jsx").then((module) => ({ default: module.CognitiveDescent })));
+const MethodField = lazy(() => import("./MethodField.jsx").then((module) => ({ default: module.MethodField })));
 
 const PROJECTS = [
   {
@@ -157,24 +158,32 @@ const CAPABILITIES = [
     label: "INTELLIGENCE",
     title: "Evidence-first AI",
     body: "Hybrid retrieval, evaluation loops, model routing, citations, and abstention before confident-looking nonsense.",
+    law: "A claim does not leave the system without its evidence.",
+    trace: ["RETRIEVE", "CITE", "ABSTAIN"],
   },
   {
     icon: ShieldCheck,
     label: "CONTROL",
     title: "Safe agent systems",
     body: "Approval gates, least privilege, durable state, idempotency, audit proof, and human override by construction.",
+    law: "Autonomy ends exactly where the permission boundary begins.",
+    trace: ["GATE", "LOG", "OVERRIDE"],
   },
   {
     icon: Database,
     label: "INFRASTRUCTURE",
     title: "Production foundations",
     body: "FastAPI, PostgreSQL, Redis, Docker, queues, observability, strict schemas, and failure-aware workflows.",
+    law: "Failure is handled as a state—not discovered as a surprise.",
+    trace: ["QUEUE", "RETRY", "OBSERVE"],
   },
   {
     icon: Stack,
     label: "INTERFACE",
     title: "Systems you can feel",
     body: "Interactive products that expose what the system is doing instead of hiding complexity behind decorative chrome.",
+    law: "The interface reveals what the system knows, does, and cannot do.",
+    trace: ["STATUS", "CONTEXT", "RECOVERY"],
   },
 ];
 
@@ -294,7 +303,7 @@ function Hero() {
             onCycle={() => setSceneMode((value) => (value + 1) % modes.length)}
           />
         </Suspense>
-        <div className="scene-corner scene-corner-left"><span>COGNITIVE CORE / A-01</span><strong>{modes[sceneMode]}</strong></div>
+        <div className="scene-corner scene-corner-left"><span>DECISION LOOM / D-01</span><strong>{modes[sceneMode]}</strong></div>
         <div className="scene-corner scene-corner-right"><span>IST / {time || "--:--:--"}</span><span>POINTER REACTIVE</span></div>
         <div className="scene-mode-copy" aria-live="polite">
           <span>{String(sceneMode + 1).padStart(2, "0")}</span>
@@ -472,35 +481,64 @@ function Work() {
 }
 
 function Method() {
+  const reducedMotion = useReducedMotion();
   const [activeCapability, setActiveCapability] = useState(0);
+  const current = CAPABILITIES[activeCapability];
+  const CurrentIcon = current.icon;
   return (
     <section className="method-section section" id="method">
       <div className="method-heading">
-        <h2>Clarity before magic.</h2>
-        <p>The visual layer can be cinematic. The engineering underneath should be inspectable, measurable, reversible, and difficult to misuse.</p>
+        <h2><span>Magic is cheap.</span><em>Proof is the product.</em></h2>
+        <p>Move through the chamber. Every principle changes the live system—not just the caption—because trustworthy engineering should be visible under pressure.</p>
       </div>
-      <div className="capability-accordion">
-        {CAPABILITIES.map((capability, index) => {
-          const Icon = capability.icon;
-          return (
-            <button
-              key={capability.label}
-              className={activeCapability === index ? "capability-panel is-active" : "capability-panel"}
-              type="button"
-              onClick={() => setActiveCapability(index)}
-              onPointerEnter={() => setActiveCapability(index)}
-              onFocus={() => setActiveCapability(index)}
-              aria-expanded={activeCapability === index}
-              aria-controls={`capability-${index}`}
+      <div className="method-chamber" style={{ "--method-accent": ["#ff5f38", "#d8ff4f", "#7ea8ff", "#f2f2ec"][activeCapability] }}>
+        <div className="method-visual" role="img" aria-label={`Live system view: ${current.title}`}>
+          <Suspense fallback={<div className="method-field-fallback">ROUTING SYSTEM SIGNAL</div>}>
+            <MethodField activeIndex={activeCapability} reducedMotion={reducedMotion} />
+          </Suspense>
+          <span className="method-visual-index">0{activeCapability + 1}</span>
+          <div className="method-visual-hud"><span>VALIDATION CHAMBER / LIVE</span><strong><i /> SIGNAL ROUTED</strong></div>
+          <div className="method-visual-axis" aria-hidden="true"><span>CHAOS</span><i /><span>CONTROL</span></div>
+        </div>
+        <div className="method-readout">
+          <AnimatePresence mode="wait">
+            <motion.article
+              key={current.label}
+              id="capability-readout"
+              role="tabpanel"
+              initial={reducedMotion ? false : { opacity: 0, y: 22, filter: "blur(8px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={reducedMotion ? undefined : { opacity: 0, y: -12, filter: "blur(5px)" }}
+              transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="capability-top"><span>{capability.label}</span><Icon size={27} weight="thin" /></span>
-              <span className="capability-copy" id={`capability-${index}`}>
-                <strong>{capability.title}</strong>
-                <span>{capability.body}</span>
-              </span>
-            </button>
-          );
-        })}
+              <header><span>{current.label} / SYSTEM LAW</span><CurrentIcon size={27} weight="thin" /></header>
+              <h3>{current.title}</h3>
+              <blockquote>{current.law}</blockquote>
+              <p>{current.body}</p>
+              <div className="method-trace">{current.trace.map((item, index) => <span key={item}><i>{String(index + 1).padStart(2, "0")}</i>{item}</span>)}</div>
+            </motion.article>
+          </AnimatePresence>
+        </div>
+        <div className="method-stage-rail" role="tablist" aria-label="Engineering principles">
+          {CAPABILITIES.map((capability, index) => {
+            const Icon = capability.icon;
+            return (
+              <button
+                key={capability.label}
+                type="button"
+                role="tab"
+                className={activeCapability === index ? "is-active" : ""}
+                aria-selected={activeCapability === index}
+                aria-controls="capability-readout"
+                onClick={() => setActiveCapability(index)}
+                onPointerEnter={() => setActiveCapability(index)}
+                onFocus={() => setActiveCapability(index)}
+              >
+                <span>0{index + 1}</span><Icon size={18} weight="thin" /><strong>{capability.label}</strong>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

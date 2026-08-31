@@ -126,6 +126,42 @@ No actionable P0, P1, or P2 findings remain. The only automated incomplete items
 
 final result: passed
 
+## Decision Loom, Validation Chamber, and accountable thesis — latest QA
+
+### Evidence
+
+- Method weak-state source: `C:\Users\Aman\AppData\Local\Temp\codex-clipboard-77c733a4-7d27-4f4f-98af-a231d6bcf2ff.png`
+- Repeated-geometry source: `C:\Users\Aman\AppData\Local\Temp\codex-clipboard-6d859e12-412a-4eea-b475-d89e7a41a2ac.png`
+- Hero OBSERVE implementation: `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\decision-loom-desktop-final.png`
+- Hero REASON implementation: `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\decision-loom-reason-final.png`
+- Method implementation: `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\validation-chamber-desktop-final.png`
+- Identity implementation: `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\accountable-identity-desktop-final.png`
+- Mobile evidence: `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\decision-loom-mobile-final.png`, `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\validation-chamber-mobile-final.png`, and `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\accountable-identity-mobile-final.png`
+- Desktop viewport/pixels: 1920 × 1080 at density 1. Mobile viewport/pixels: 390 × 844 at density 1.
+
+### Comparison and findings
+
+The two source screenshots and the final hero, Method, and identity captures were reviewed together in one comparison input. The original hero and identity both centered orbital geometry, while Method was a mostly empty equal-panel accordion. The final implementation assigns each region a separate visual and conceptual job: the hero is a directional forty-shard Decision Loom, Method is a live particle-convergence Validation Chamber, and identity remains the personal Systems Kernel while its thesis compiles from rejected “ARTIFICIAL” language into “ACCOUNTABLE intelligence.”
+
+- P2 — repeated hero/identity geometry: fixed. The hero has no central globe or orbital rings; OBSERVE, REASON, and EXECUTE now morph between sensor array, reasoning braid, and execution vector.
+- P2 — Method lacked visual authority: fixed. The live canvas, dedicated engineering-law readout, stage trace, and four semantic tabs create a single high-density instrument instead of four stretched cards.
+- P2 — generic identity positioning: fixed. The new one-time glyph build makes “Accountable intelligence” the authored thesis and leaves a readable final state.
+- P1 — initial compiled word remained hidden because each clipped glyph observed itself independently: fixed by moving in-view control to the parent word compiler.
+- P1 — automated contrast findings on the new Method rail and identity telemetry: fixed. Final axe runs report 0 violations at desktop, mobile, and reduced-motion states.
+
+### Interaction and responsive checks
+
+- Hero mode buttons and direct-figure click morph real WebGL geometry; pointer response and offscreen unmounting remain active.
+- Method tabs change the canvas structure, accent, title, system law, narrative, and three-step trace. Keyboard focus uses the same state path; the CONTROL tab was exercised and returned “Safe agent systems.”
+- Reduced motion presents composed static WebGL/canvas states and a fully visible `ACCOUNTABLE` final word.
+- Mobile has no horizontal overflow at 390 px. The full accountable word, kernel frame, Method chamber, and hero panel stay within the viewport.
+- Browser console returned no application errors. The existing Three.js clock deprecation and expected context-disposal messages remain development-only renderer notices.
+- Automated contrast remains incomplete only where axe cannot infer existing WebGL/gradient/overlap backgrounds; those controlled surfaces were visually reviewed.
+
+No actionable P0, P1, or P2 findings remain.
+
+final result: passed
+
 ## Identity Systems Kernel — latest QA
 
 ### Evidence

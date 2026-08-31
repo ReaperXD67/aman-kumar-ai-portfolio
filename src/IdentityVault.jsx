@@ -81,6 +81,62 @@ const IdentityKernel = lazy(() =>
   import("./IdentityKernel.jsx").then((module) => ({ default: module.IdentityKernel })),
 );
 
+function CompiledIdentityHeading({ reducedMotion }) {
+  const letters = "ACCOUNTABLE".split("");
+  const glyphVariants = {
+    hidden: { opacity: 0, y: 28, clipPath: "inset(100% 0 0 0)" },
+    visible: (index) => ({
+      opacity: 1,
+      y: 0,
+      clipPath: "inset(0% 0 0 0)",
+      transition: { duration: 0.48, delay: 0.35 + index * 0.045, ease: [0.16, 1, 0.3, 1] },
+    }),
+  };
+  return (
+    <h2 className="identity-thesis">
+      <span className="sr-only">Not artificial intelligence. Accountable intelligence.</span>
+      <span className="identity-thesis-visual" aria-hidden="true">
+        <span className="identity-thesis-reject">
+          <motion.i
+            initial={reducedMotion ? false : { scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, amount: 0.8 }}
+            transition={{ duration: 0.5, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          />
+          <span>ARTIFICIAL</span>
+          <small>NOT THE THESIS</small>
+        </span>
+        <motion.span
+          className="identity-thesis-build"
+          aria-label="Accountable"
+          initial={reducedMotion ? false : "hidden"}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.35 }}
+        >
+          {letters.map((letter, index) => (
+            <motion.span
+              key={`${letter}-${index}`}
+              custom={index}
+              variants={glyphVariants}
+            >
+              {letter}
+            </motion.span>
+          ))}
+        </motion.span>
+        <motion.span
+          className="identity-thesis-object"
+          initial={reducedMotion ? false : { opacity: 0, x: -18 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.8 }}
+          transition={{ duration: 0.55, delay: 1.05, ease: [0.16, 1, 0.3, 1] }}
+        >
+          intelligence.
+        </motion.span>
+      </span>
+    </h2>
+  );
+}
+
 function ArtifactDialog({ artifact, resume, onClose }) {
   const dialogRef = useRef(null);
 
@@ -158,9 +214,9 @@ export function IdentityVault() {
         </motion.div>
 
         <div className="identity-copy">
-          <h2>AI ideas are easy. I build the part that survives production.</h2>
+          <CompiledIdentityHeading reducedMotion={reducedMotion} />
           <p>
-            I’m an AI Engineer and Full-Stack Developer focused on turning ambitious AI ideas into reliable products. I work across model behavior, backend systems, APIs, databases, integrations, infrastructure, and the interface people actually have to trust.
+            I build AI products that can explain their state, survive failure, and earn trust after the demo ends—from model behavior and backend systems to infrastructure and the interface people actually use.
           </p>
           <div className="identity-facts">
             <div><span>BASE</span><strong>BENGALURU / INDIA</strong></div>

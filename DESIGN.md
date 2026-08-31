@@ -16,10 +16,10 @@ Cinematic intelligence interface: near-black canvas, white/graphite typography, 
 
 ## Layout
 
-- Desktop hero is a wide editorial split: a three-line statement with a real project image embedded in the typography, and the interactive signal core on the right.
+- Desktop hero is a wide editorial split: a three-line statement with a real project image embedded in the typography, and an interactive directional Decision Loom on the right. Its sensor array, reasoning braid, and execution vector must never resemble the identity kernel's orbital reactor.
 - Proof moves into a gapless 12-column band below the hero (`3 + 3 + 3 + 3`) with a restrained continuous signal ticker.
 - Selected work is a full-width project-transmission console: a six-channel selector controls a large real product preview, an Interface/System switch, architecture flow, failure mode, verified proof, technology, and source links. KarixMC leads with a capture from the live production site and its game-to-web trust boundary.
-- Method uses a horizontal accordion so the strongest engineering principles reveal themselves through interaction rather than a generic equal-card grid.
+- Method is a black Validation Chamber embedded in the light editorial surface. Its live canvas convergence field changes with four semantic stages while a dedicated readout explains the engineering law and trace.
 - Identity uses no portrait. A procedural WebGL Systems Kernel combines a neural reactor, agent-routing topology, and compiler monolith inside the original editorial frame, with real system telemetry surrounding the artifact.
 - Experience is a horizontal three-signal career selector feeding one large operating-evidence stage, followed by a separate education signal. It must not reuse the selected-work console’s left-index anatomy.
 - Résumé and micro1 certification live in a two-artifact proof vault. Both open their original source in a focused native dialog, and the résumé reads its URL/version from `/profile/resume.json` at runtime.
@@ -29,7 +29,7 @@ Cinematic intelligence interface: near-black canvas, white/graphite typography, 
 ## Motion
 
 - Entrance and hover motion uses short directional movement with exponential easing.
-- The 3D core responds to pointer position, can be clicked directly, and exposes three explicit spatially distinct states.
+- The hero Decision Loom responds to pointer position, can be clicked directly, and morphs forty directional shards through three spatially distinct states without using a central globe or orbital rings.
 - The primary authored moment is the scroll-controlled cognitive descent between proof and work: the hero core fractures, the camera passes through signal/reason/action gates and real project artifacts, then the sequence releases into evidence inspection.
 - The project-transmission console is the analytical counterpoint to that descent. Channel changes use a single signal wipe, image scale/focus transition, and card replacement; the interface/system switch reveals the build without adding another pinned spectacle.
 - The identity kernel boots in four authored acts: signal corruption, voxel convergence, topology mapping, and stack compilation. The assembled system responds magnetically to the pointer and exposes a user-triggered overclock state. Career and artifact changes remain subordinate.
