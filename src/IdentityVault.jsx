@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
@@ -77,6 +77,10 @@ const PROFILE_LINKS = [
   { label: "X / Twitter", href: "https://x.com/Aman1181", icon: XLogo },
 ];
 
+const IdentityKernel = lazy(() =>
+  import("./IdentityKernel.jsx").then((module) => ({ default: module.IdentityKernel })),
+);
+
 function ArtifactDialog({ artifact, resume, onClose }) {
   const dialogRef = useRef(null);
 
@@ -142,42 +146,15 @@ export function IdentityVault() {
     <>
       <section className="identity-section section" id="about">
         <motion.div
-          className="identity-portrait"
+          className="identity-kernel-frame"
           initial={reducedMotion ? false : { opacity: 0.72, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.28 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <img
-            src="/assets/aman-editorial-portrait.png"
-            alt="AI-generated editorial portrait representing Aman Kumar's professional identity"
-            loading="lazy"
-          />
-          {!reducedMotion && (
-            <div className="portrait-decrypt" aria-hidden="true">
-              {Array.from({ length: 16 }, (_, index) => (
-                <motion.span
-                  key={index}
-                  initial={{ y: "0%" }}
-                  whileInView={{ y: "104%" }}
-                  viewport={{ once: true, amount: 0.42 }}
-                  transition={{ duration: 0.86, delay: index * 0.045, ease: [0.77, 0, 0.18, 1] }}
-                />
-              ))}
-            </div>
-          )}
-          <motion.div
-            className="portrait-scan"
-            aria-hidden="true"
-            initial={reducedMotion ? false : { top: "0%", opacity: 0 }}
-            whileInView={reducedMotion ? undefined : { top: "100%", opacity: [0, 1, 0] }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 1.45, delay: 0.28, ease: "easeInOut" }}
-          />
-          <div className="identity-portrait-meta">
-            <span>GENERATIVE PORTRAIT / USER-DIRECTED</span>
-            <strong>IDENTITY DECRYPTED</strong>
-          </div>
+          <Suspense fallback={<div className="identity-kernel-fallback"><span>COMPILING SYSTEMS KERNEL</span></div>}>
+            <IdentityKernel reducedMotion={reducedMotion} />
+          </Suspense>
         </motion.div>
 
         <div className="identity-copy">

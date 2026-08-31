@@ -126,6 +126,47 @@ No actionable P0, P1, or P2 findings remain. The only automated incomplete items
 
 final result: passed
 
+## Identity Systems Kernel — latest QA
+
+### Evidence
+
+- Source visual truth: `C:\Users\Aman\AppData\Local\Temp\codex-clipboard-280f6643-dd6f-4998-908e-d56f5666a035.png`
+- Desktop implementation: `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\identity-kernel-desktop-pass1.png`
+- Boot-state implementation: `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\identity-kernel-boot-pass1.png`
+- Overclock implementation: `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\identity-kernel-overclock-pass1.png`
+- Mobile implementation: `C:\Users\Aman\OneDrive\Desktop\Portfolio\artifacts\identity-kernel-mobile-pass1.png`
+- Source pixels: 1920 × 1080, including Chrome UI. Desktop implementation pixels/CSS viewport: 1920 × 1080 at density 1. Mobile pixels/CSS viewport: 390 × 844 at density 1.
+- Normalization: the comparison excludes the source browser chrome and aligns page-content landmarks: identity frame, headline, body, facts, and profile links.
+- State: identity section at viewport start; fully compiled kernel. Separate captures cover boot and overclock.
+
+### Full-view and focused comparison
+
+The original two-column anatomy, black editorial surface, headline hierarchy, copy, facts, profile links, square frame, and section rhythm are preserved. The requested human portrait is completely removed. Its replacement is a purpose-built procedural artifact with enough internal density to hold the same visual weight without changing the right-hand content hierarchy.
+
+The left frame was inspected separately across compiled, boot, overclock, reduced-motion, and 390 px mobile states. The WebGL reactor remains crisp at both sizes; telemetry stays legible; the lower control does not collide with the phase readout; and the visual frame creates no horizontal overflow.
+
+### Required fidelity surfaces
+
+- Fonts and typography: passed. Cabinet Grotesk/Space Grotesk hierarchy and JetBrains Mono telemetry remain consistent, with no unintended truncation.
+- Spacing and layout rhythm: passed. The original frame proportion and two-column relationship are preserved; mobile collapses deliberately with an 18 px page gutter.
+- Colors and tokens: passed. The kernel uses the existing vermilion, acid, blue, graphite, and hairline tokens. Overclock uses acid as a semantic state.
+- Image and asset fidelity: passed. The removed portrait is not replaced with CSS illustration or a placeholder; the new artifact is live procedural WebGL geometry, particle topology, routing arcs, and compiler panels.
+- Copy and content: passed. Supplied positioning and verified facts are unchanged. Kernel telemetry describes the visualization rather than inventing professional claims.
+
+### Interaction, accessibility, and comparison history
+
+- Pointer/click toggles normal and overclock states. Keyboard focus + Enter triggers the same state, retains focus, and updates the accessible label.
+- Reduced motion removes the 120-cell reconstruction curtain, disables continuous rendering effects, and presents the assembled `100 / SYSTEMS KERNEL ONLINE` state.
+- Axe reports 0 violations. Remaining automated contrast items are indeterminate on existing WebGL/overlap surfaces and were visually inspected. The browser console reports no application errors.
+- Pass 1 found no target-scope P0/P1/P2 issue. The selected hybrid replaced the portrait while preserving the incumbent layout across desktop and mobile.
+- Adjacent hardening: career-stage CSS selectors were updated from the obsolete `article` selector to the accessible `role="tabpanel"` selector so the existing experience layout remains intact.
+
+### Findings
+
+No actionable P0, P1, or P2 findings remain. P3: a static screenshot cannot demonstrate the complete reconstruction cadence, so the live-browser interaction is the verification source for its timing.
+
+final result: passed
+
 ## Project-transmission refinement — latest QA
 
 ### Evidence
