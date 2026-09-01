@@ -22,6 +22,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { Contact, IdentityVault } from "./IdentityVault.jsx";
+import { SignalOperatingSystem } from "./SignalOperatingSystem.jsx";
 const SignalCore = lazy(() => import("./SignalCore.jsx").then((module) => ({ default: module.SignalCore })));
 const CognitiveDescent = lazy(() => import("./CognitiveDescent.jsx").then((module) => ({ default: module.CognitiveDescent })));
 const MethodField = lazy(() => import("./MethodField.jsx").then((module) => ({ default: module.MethodField })));
@@ -207,7 +208,7 @@ function useIstClock() {
   return time;
 }
 
-function AppHeader({ menuOpen, setMenuOpen }) {
+function AppHeader({ menuOpen, setMenuOpen, onOpenSignal }) {
   return (
     <header className="site-header">
       <a className="brand" href="#top" aria-label="Aman Kumar — home">
@@ -223,10 +224,19 @@ function AppHeader({ menuOpen, setMenuOpen }) {
         <a href="#experience" onClick={() => setMenuOpen(false)}>Experience</a>
         <a href="#resume" onClick={() => setMenuOpen(false)}>Résumé</a>
         <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
+        <div className="mobile-nav-professional" aria-label="Professional profiles">
+          <a href="https://github.com/ReaperXD67" target="_blank" rel="noreferrer"><GithubLogo size={18} /> GitHub</a>
+          <a href="https://www.linkedin.com/in/aman-kumar-494601329/" target="_blank" rel="noreferrer">LinkedIn <ArrowSquareOut size={16} /></a>
+          <a href="https://x.com/Aman1181" target="_blank" rel="noreferrer">X / Twitter <ArrowSquareOut size={16} /></a>
+        </div>
+        <button className="mobile-nav-signal" type="button" onClick={() => { setMenuOpen(false); onOpenSignal(); }}>Open Signal OS <span>/</span></button>
       </nav>
-      <a className="header-cta" href="mailto:amankumr3254u@gmail.com">
-        <span className="status-dot" aria-hidden="true" /> Available for ambitious builds
-      </a>
+      <div className="header-actions">
+        <a className="header-cta" href="mailto:amankumr3254u@gmail.com">
+          <span className="status-dot" aria-hidden="true" /> Available for ambitious builds
+        </a>
+        <button className="header-signal" type="button" onClick={onOpenSignal}>Signal OS <kbd>/</kbd></button>
+      </div>
       <button
         className="menu-button"
         type="button"
@@ -546,6 +556,7 @@ function Method() {
 
 export function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signalPanel, setSignalPanel] = useState(null);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 130, damping: 24, mass: 0.2 });
   useEffect(() => {
@@ -556,7 +567,8 @@ export function App() {
   return (
     <MotionConfig reducedMotion="user">
       <motion.div className="scroll-progress" style={{ scaleX }} aria-hidden="true" />
-      <AppHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <AppHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} onOpenSignal={() => setSignalPanel("command")} />
+      <SignalOperatingSystem panel={signalPanel} onPanelChange={setSignalPanel} />
       <main>
         <Hero />
         <SignalBand />
@@ -566,7 +578,16 @@ export function App() {
         <IdentityVault />
         <Contact />
       </main>
-      <footer className="site-footer"><span>© 2026 AMAN KUMAR</span><span>DESIGNED AS A LIVING SYSTEM</span><a href="#top">RETURN TO ORIGIN</a></footer>
+      <footer className="site-footer">
+        <span>© 2026 AMAN KUMAR</span>
+        <nav aria-label="Footer professional profiles">
+          <a href="https://github.com/ReaperXD67" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://www.linkedin.com/in/aman-kumar-494601329/" target="_blank" rel="noreferrer">LinkedIn</a>
+          <a href="https://x.com/Aman1181" target="_blank" rel="noreferrer">X / Twitter</a>
+          <a href="/profile/aman-kumar-resume.pdf" target="_blank" rel="noreferrer">Résumé</a>
+        </nav>
+        <a href="#top">RETURN TO ORIGIN</a>
+      </footer>
     </MotionConfig>
   );
 }

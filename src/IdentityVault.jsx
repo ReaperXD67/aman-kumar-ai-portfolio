@@ -72,9 +72,9 @@ const DEFAULT_RESUME = {
 };
 
 const PROFILE_LINKS = [
-  { label: "GitHub", href: "https://github.com/ReaperXD67", icon: GithubLogo },
-  { label: "LinkedIn", href: "https://linkedin.com/in/aman-kumar-494601329", icon: LinkedinLogo },
-  { label: "X / Twitter", href: "https://x.com/Aman1181", icon: XLogo },
+  { label: "GitHub", detail: "SYSTEMS / SOURCE / PROOF", href: "https://github.com/ReaperXD67", icon: GithubLogo },
+  { label: "LinkedIn", detail: "EXPERIENCE / PROFESSIONAL", href: "https://www.linkedin.com/in/aman-kumar-494601329/", icon: LinkedinLogo },
+  { label: "X / Twitter", detail: "NOTES / BUILDS / UPDATES", href: "https://x.com/Aman1181", icon: XLogo },
 ];
 
 const IdentityKernel = lazy(() =>
@@ -224,9 +224,11 @@ export function IdentityVault() {
             <div><span>AVAILABILITY</span><strong>OPEN / ANY MODE</strong></div>
           </div>
           <nav className="identity-links" aria-label="Professional profiles">
-            {PROFILE_LINKS.map(({ label, href, icon: Icon }) => (
+            {PROFILE_LINKS.map(({ label, detail, href, icon: Icon }) => (
               <a key={label} href={href} target="_blank" rel="noreferrer">
-                <Icon size={18} /> {label} <ArrowSquareOut size={14} />
+                <Icon size={22} />
+                <span><strong>{label}</strong><small>{detail}</small></span>
+                <ArrowSquareOut size={16} />
               </a>
             ))}
           </nav>
@@ -371,6 +373,15 @@ export function Contact() {
           <a href="tel:+917667116926"><Phone size={18} />+91 76671 16926</a>
           <button type="button" onClick={copyEmail}>{copied ? <Check size={18} weight="bold" /> : <Copy size={18} />}{copied ? "Copied" : "Copy email"}</button>
         </div>
+        <nav className="contact-channels" aria-label="Professional profiles">
+          {PROFILE_LINKS.map(({ label, detail, href, icon: Icon }) => (
+            <a key={label} href={href} target="_blank" rel="noreferrer">
+              <Icon size={21} />
+              <span><strong>{label}</strong><small>{detail}</small></span>
+              <ArrowSquareOut size={16} />
+            </a>
+          ))}
+        </nav>
       </div>
 
       <form className="contact-form" onSubmit={submit}>

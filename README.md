@@ -27,6 +27,7 @@ The experience is organized as a controlled descent through the work: a procedur
 | **Validation Chamber** | Evidence, control, infrastructure, and interface constraints reshape one live signal field. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
 | **Living résumé** | One stable runtime manifest keeps the canonical ATS résumé replaceable without rewriting interface code. |
+| **Signal Operating System** | Persistent GitHub, LinkedIn, X, and résumé access plus `/` command search, a recruiter quick-read, native sharing, and a mobile action tray. |
 
 ## Selected systems inside the portfolio
 
