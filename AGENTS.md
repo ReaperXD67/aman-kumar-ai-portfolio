@@ -24,3 +24,4 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Experience, education, dates, links, and credential claims must remain grounded in `Aman_Kumar_Resume_ATS.pdf` and the supplied micro1 certificate. Strong writing is welcome; fabricated employers, dates, outcomes, or metrics are not.
 - Keep the résumé at one canonical stable route with a small runtime manifest so Aman can replace the PDF or point the portfolio to a permanent external source without editing interface code.
 - The preferred public deployment target is Vercel. Sites may remain a secondary preview, but future production handoffs should return the Vercel URL unless Aman says otherwise.
+- GitHub profile and repository surfaces should mirror the portfolio's evidence-first positioning, use the canonical Vercel and résumé URLs, and favor authored system graphics plus verifiable proof over generic badge walls.
