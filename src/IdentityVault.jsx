@@ -66,11 +66,9 @@ const CAREER = [
 const DEFAULT_RESUME = {
   url: "/profile/aman-kumar-resume.pdf",
   preview: "/profile/aman-kumar-resume-preview.png",
-  dossierUrl: "/profile/aman-kumar-systems-dossier.pdf",
-  dossierPreview: "/profile/aman-kumar-dossier-preview.png",
   version: "2026.09",
   updated: "01 SEP 2026",
-  source: "ATS + SYSTEMS DOSSIER",
+  source: "CANONICAL ATS PDF",
 };
 
 const PROFILE_LINKS = [
@@ -296,7 +294,7 @@ export function IdentityVault() {
 
       <section className="proof-vault-section" id="resume">
         <div className="proof-vault-heading">
-          <h2>The source file is alive.</h2>
+          <h2>The career source stays current.</h2>
           <p>Résumé and certification are presented as inspectable artifacts. No decorative badge wall, no claims without a document behind them.</p>
         </div>
 
@@ -307,9 +305,9 @@ export function IdentityVault() {
               <span><FilePdf size={20} /> INSPECT SOURCE</span>
             </button>
             <div className="artifact-copy">
-              <h3>One career source. Two recruiter modes.</h3>
+              <h3>One canonical résumé. Built for recruiters and parsers.</h3>
               <header><span>RÉSUMÉ / {resume.version}</span><strong>LIVE SOURCE</strong></header>
-              <p>The ATS edition is tuned for applications and parsing. The cinematic systems dossier exposes the same verified experience as a designed proof artifact. Both stay synchronized through one runtime manifest.</p>
+              <p>A single-column, machine-readable PDF with standard section headings, selectable text, factual project evidence, and direct links to the systems behind every major claim. A small runtime manifest keeps the route stable when the file changes.</p>
               <dl>
                 <div><dt>LAST VERIFIED</dt><dd>{resume.updated}</dd></div>
                 <div><dt>SOURCE MODE</dt><dd>{resume.source}</dd></div>
@@ -318,7 +316,6 @@ export function IdentityVault() {
               <div className="artifact-actions">
                 <button type="button" onClick={() => setArtifact("resume")}>Open résumé <ArrowSquareOut size={17} /></button>
                 <a href={resume.url} download>Download PDF <DownloadSimple size={17} /></a>
-                <a href={resume.dossierUrl} target="_blank" rel="noreferrer">Systems dossier <ArrowSquareOut size={17} /></a>
               </div>
             </div>
           </article>
