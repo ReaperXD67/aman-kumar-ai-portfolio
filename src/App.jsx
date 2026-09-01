@@ -566,10 +566,11 @@ export function App() {
   }, []);
   return (
     <MotionConfig reducedMotion="user">
+      <a className="skip-link" href="#main-content">Skip to portfolio content</a>
       <motion.div className="scroll-progress" style={{ scaleX }} aria-hidden="true" />
       <AppHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} onOpenSignal={() => setSignalPanel("command")} />
       <SignalOperatingSystem panel={signalPanel} onPanelChange={setSignalPanel} />
-      <main>
+      <main id="main-content">
         <Hero />
         <SignalBand />
         <Suspense fallback={<div className="descent-loading">CALIBRATING SCROLL FIELD</div>}><CognitiveDescent /></Suspense>
