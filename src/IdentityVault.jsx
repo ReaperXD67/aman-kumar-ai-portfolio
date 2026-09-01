@@ -66,9 +66,11 @@ const CAREER = [
 const DEFAULT_RESUME = {
   url: "/profile/aman-kumar-resume.pdf",
   preview: "/profile/aman-kumar-resume-preview.png",
-  version: "2026.07",
-  updated: "28 JUL 2026",
-  source: "CANONICAL / PORTFOLIO",
+  dossierUrl: "/profile/aman-kumar-systems-dossier.pdf",
+  dossierPreview: "/profile/aman-kumar-dossier-preview.png",
+  version: "2026.09",
+  updated: "01 SEP 2026",
+  source: "ATS + SYSTEMS DOSSIER",
 };
 
 const PROFILE_LINKS = [
@@ -305,9 +307,9 @@ export function IdentityVault() {
               <span><FilePdf size={20} /> INSPECT SOURCE</span>
             </button>
             <div className="artifact-copy">
-              <h3>One canonical career document. Zero stale buttons.</h3>
+              <h3>One career source. Two recruiter modes.</h3>
               <header><span>RÉSUMÉ / {resume.version}</span><strong>LIVE SOURCE</strong></header>
-              <p>The portfolio reads a small version manifest at runtime. Replace the canonical PDF—or point the manifest at a permanent external file—and every résumé action follows the same source.</p>
+              <p>The ATS edition is tuned for applications and parsing. The cinematic systems dossier exposes the same verified experience as a designed proof artifact. Both stay synchronized through one runtime manifest.</p>
               <dl>
                 <div><dt>LAST VERIFIED</dt><dd>{resume.updated}</dd></div>
                 <div><dt>SOURCE MODE</dt><dd>{resume.source}</dd></div>
@@ -316,6 +318,7 @@ export function IdentityVault() {
               <div className="artifact-actions">
                 <button type="button" onClick={() => setArtifact("resume")}>Open résumé <ArrowSquareOut size={17} /></button>
                 <a href={resume.url} download>Download PDF <DownloadSimple size={17} /></a>
+                <a href={resume.dossierUrl} target="_blank" rel="noreferrer">Systems dossier <ArrowSquareOut size={17} /></a>
               </div>
             </div>
           </article>

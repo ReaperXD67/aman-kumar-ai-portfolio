@@ -7,7 +7,7 @@
 [![React 19](https://img.shields.io/badge/React-19-7ea8ff?style=flat-square&logo=react&logoColor=white&labelColor=090909)](https://react.dev/)
 [![Three.js](https://img.shields.io/badge/Three.js-Procedural_WebGL-ff5f38?style=flat-square&logo=threedotjs&logoColor=white&labelColor=090909)](https://threejs.org/)
 
-[Live experience](https://aman-kumar-ai-portfolio.vercel.app) · [Résumé PDF](https://aman-kumar-ai-portfolio.vercel.app/profile/aman-kumar-resume.pdf) · [LinkedIn](https://www.linkedin.com/in/aman-kumar-494601329/) · [GitHub profile](https://github.com/ReaperXD67)
+[Live experience](https://aman-kumar-ai-portfolio.vercel.app) · [ATS résumé](https://aman-kumar-ai-portfolio.vercel.app/profile/aman-kumar-resume.pdf) · [Systems dossier](https://aman-kumar-ai-portfolio.vercel.app/profile/aman-kumar-systems-dossier.pdf) · [LinkedIn](https://www.linkedin.com/in/aman-kumar-494601329/) · [GitHub profile](https://github.com/ReaperXD67)
 
 ![Aman Kumar's cinematic AI engineering portfolio](docs/portfolio-preview.png)
 
@@ -26,7 +26,7 @@ The experience is organized as a controlled descent through the work: a procedur
 | **Project transmissions** | Live product previews, system anatomy, failure modes, verified proof, source, and deployment state. |
 | **Validation Chamber** | Evidence, control, infrastructure, and interface constraints reshape one live signal field. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
-| **Living résumé** | A canonical runtime route allows the PDF source to change without rewriting interface code. |
+| **Living résumé** | One runtime manifest synchronizes an ATS edition and a cinematic systems dossier without rewriting interface code. |
 
 ## Selected systems inside the portfolio
 
@@ -74,4 +74,3 @@ docs/portfolio-preview.png
 ## Status
 
 Actively maintained. The deployed experience is the canonical version; this repository is its inspectable source and verification trail.
-
