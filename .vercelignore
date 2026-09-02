@@ -1,0 +1,14 @@
+.git
+.github
+.github-profile-work
+.img2threejs
+.vercel
+.env*
+AGENTS.md
+artifacts
+design-system
+dist
+docs
+node_modules
+tests
+tmp
