@@ -61,6 +61,10 @@ npm run test:sites
 
 The build must emit `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
 
+## Release integrity
+
+Production changes pass the Vite build and Sites worker contract before deployment. The public résumé uses one stable route and a versioned runtime manifest; releases verify that the deployed PDF is byte-identical to the canonical local artifact, so portfolio, GitHub, and recruiter links cannot silently drift apart.
+
 ## Project structure
 
 ```text
