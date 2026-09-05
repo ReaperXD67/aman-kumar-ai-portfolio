@@ -68,8 +68,8 @@ const CAREER = [
 const DEFAULT_RESUME = {
   url: "/profile/aman-kumar-resume.pdf",
   preview: "/profile/aman-kumar-resume-preview.png",
-  version: "2026.09",
-  updated: "01 SEP 2026",
+  version: "2026.09.5",
+  updated: "05 SEP 2026",
   source: "CANONICAL ATS PDF",
 };
 

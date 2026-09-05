@@ -391,7 +391,7 @@ export function CognitiveDescent() {
         </div>
 
         <div className="descent-hud" aria-hidden="true">
-          <div className="descent-hud-top"><span>SCROLL OWNS TIME</span><span>LIVE SYSTEM / NO AUTOPLAY</span></div>
+          <div className="descent-hud-top"><span>SCROLL OWNS TIME</span><span>SCROLL-CONTROLLED SCENE</span></div>
           <div className="descent-velocity"><i className="descent-velocity-line" /></div>
           <div className="descent-hud-bottom"><span>DEPTH / <b>53.7</b></span><span>WEBGL / ACTIVE</span></div>
         </div>

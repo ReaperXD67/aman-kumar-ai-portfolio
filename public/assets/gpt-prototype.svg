@@ -41,7 +41,7 @@
   <path d="M0 8H1200" stroke="url(#signal)" stroke-width="8"/>
   <circle cx="1100" cy="74" r="104" fill="#A855F7" opacity=".055"/>
   <circle cx="1028" cy="40" r="54" fill="#F97316" opacity=".06"/>
-  <text x="48" y="45" class="eyebrow">125M TRANSFORMER FROM FIRST PRINCIPLES</text>
+  <text x="48" y="45" class="eyebrow">12-LAYER TRANSFORMER FROM FIRST PRINCIPLES</text>
   <text x="48" y="94" class="title">GPT Prototype</text>
   <text x="48" y="118" class="tagline">A decoder-only language model built to expose the details frameworks usually hide.</text>
   <path d="M72 246 C190 160 288 330 405 246 S620 162 742 246 S952 330 1128 246" fill="none" stroke="url(#signal)" stroke-width="2" opacity=".36" class="flow"/>
@@ -94,7 +94,7 @@
           </circle>
         </g>
   <rect x="48" y="338" width="1104" height="1" fill="#334155"/>
-  <text x="48" y="366" class="footer">PYTORCH  /  APPROX. 125M PARAMETERS  /  1024 CONTEXT  /  REPRODUCIBLE RUNS</text>
+  <text x="48" y="366" class="footer">PYTORCH  /  12 DECODER LAYERS  /  1024 CONTEXT  /  REPRODUCIBLE RUNS</text>
   <g transform="translate(1093 350)">
     <circle cx="0" cy="0" r="5" fill="#F97316"/>
     <circle cx="18" cy="0" r="5" fill="#A855F7"/>

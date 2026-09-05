@@ -48,22 +48,22 @@ const SOCIALS = [
 const FLAGSHIPS = [
   {
     name: "Autonomous Personal Agent",
-    status: "62 TESTS / LOCAL ALPHA",
-    summary: "A self-hosted control plane for durable agents, human approvals, containerized workers, audit trails, and constrained tool access.",
+    status: "DURABLE EXECUTION / LOCAL ALPHA",
+    summary: "A self-hosted agent control plane with leased workers, exact-payload approval gates, isolated execution, and persisted receipts for duplicate-action refusal.",
     proof: "APPROVE → EXECUTE → AUDIT",
     href: "https://github.com/ReaperXD67/autonomous-personal-agent",
   },
   {
     name: "AtlasLM",
-    status: "11 TESTS / LIVE",
-    summary: "An evidence-first RAG workbench with hybrid retrieval, reranking, abstention, citation audits, evaluation, and visible traces.",
+    status: "EVIDENCE-GROUNDED RAG / LIVE",
+    summary: "A live RAG workbench with hybrid retrieval, pre-generation evidence checks, post-generation citation audits, evaluation, and inspectable traces.",
     proof: "RETRIEVE → RERANK → CITE",
     href: "https://notebooklm-rag-five.vercel.app",
   },
   {
     name: "MinePulse / KarixMC",
     status: "PRODUCTION / VPS",
-    summary: "A live Minecraft reward network with signed Paper-plugin traffic, PostgreSQL, Redis, Nginx replicas, and recurring encrypted backups.",
+    summary: "A deployed Minecraft marketplace with signed game traffic, transactional ledgers, expiring delivery claims, durable plugin receipts, and encrypted backups.",
     proof: "PLAY → SIGN → VERIFY → REWARD",
     href: "https://karixmc.pl",
   },
@@ -71,8 +71,8 @@ const FLAGSHIPS = [
 
 const DEFAULT_RESUME = {
   url: "/profile/aman-kumar-resume.pdf",
-  version: "2026.09",
-  updated: "01 SEP 2026",
+  version: "2026.09.5",
+  updated: "05 SEP 2026",
   source: "CANONICAL ATS PDF",
 };
 

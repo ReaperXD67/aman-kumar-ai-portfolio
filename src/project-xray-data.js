@@ -1,0 +1,81 @@
+// These are inspection notes, not a simulation of a running deployment.
+// Every decision points to its public implementation or architecture record.
+export const PROJECT_XRAY = {
+  karixmc: {
+    surface: "A Minecraft marketplace is the visible part. The harder work is deciding which game events deserve real wallet value.",
+    boundary: "The browser does not get to invent playtime.",
+    note: "Live product · diagrams describe checked-in implementation, not live telemetry.",
+    layers: [
+      { label: "Game signal", component: "Paper bridge", contract: "Server-observed activity", failure: "Client-reported activity can be forged; delivery can be retried after a disconnect.", decision: "The Java bridge reports game activity and keeps a durable receipt journal for delivered commands.", tradeoff: "A server-side plugin is required. The web UI is not an authority for gameplay.", source: "minecraft-plugin/src/main/java/com/minepulse/bridge/MinePulseBridgePlugin.java", sourceLabel: "Paper bridge implementation" },
+      { label: "Trust boundary", component: "Signed protocol", contract: "HMAC + timestamp + nonce", failure: "A valid message can still be replayed, or its payload altered in transit.", decision: "Bind the method, path, server, timestamp, nonce and body hash into HMAC-SHA256; consume nonces and sign responses.", tradeoff: "Each server needs a protected shared secret. Stale requests are rejected rather than accepted optimistically.", source: "lib/plugin-auth.ts", sourceLabel: "Request and response authentication" },
+      { label: "Value ledger", component: "Purchase lifecycle", contract: "Claim → deliver → acknowledge", failure: "A player pays, but the destination server never completes delivery.", decision: "Expire abandoned delivery claims and refund eligible purchases inside a database transaction with a ledger entry.", tradeoff: "Delivery has a bounded lifetime. Refunds preserve the accounting record instead of silently deleting the purchase.", source: "lib/purchase-lifecycle.ts", sourceLabel: "Transactional expiry and refund path" },
+      { label: "Deployment", component: "VPS / Nginx", contract: "Operate beyond the happy path", failure: "A running website is not enough if its state cannot be recovered.", decision: "Keep deployment, health checks, backups and restore steps in the production runbook beside the application.", tradeoff: "Self-hosting makes operational ownership explicit; deployment and recovery remain maintained responsibilities.", source: "PRODUCTION_RUNBOOK.md", sourceLabel: "Production operations runbook" },
+    ],
+  },
+  revive: {
+    surface: "An interactive recovery prototype where every proposed move is constrained by policy—and can explain why it was allowed or blocked.",
+    boundary: "A recommendation is not permission to move money.",
+    note: "Live prototype · outcomes are illustrative; no merchant payment actions execute here.",
+    layers: [
+      { label: "Event boundary", component: "Webhook verification", contract: "Authenticate the original bytes", failure: "An untrusted or replayed payment event reaches the recovery flow.", decision: "Verify a Razorpay-shaped raw-body HMAC and reject malformed input before policy evaluation.", tradeoff: "This is an implemented webhook boundary, not evidence of an active merchant payment integration.", source: "lib/webhook-security.ts", sourceLabel: "Webhook security implementation" },
+      { label: "Policy", component: "Recovery engine", contract: "Allow / approve / block", failure: "The highest-scoring recovery action may violate consent, timing or approval constraints.", decision: "Evaluate deterministic rules after action scoring; expose the reasons behind permitted, held and blocked decisions.", tradeoff: "The public experience simulates proposed recovery. Production action adapters remain outside the shipped slice.", source: "lib/recovery-engine.ts", sourceLabel: "Deterministic policy and scoring engine" },
+      { label: "Audit record", component: "Immutable storage", contract: "Preserve the decision", failure: "Repeated delivery creates duplicate processing, or later changes obscure what was decided.", decision: "Persist event and decision records with storage-enforced duplicate suppression in the private audit store.", tradeoff: "Audit storage proves what the prototype recorded, not a real-world recovery or revenue lift.", source: "lib/server/audit-store.ts", sourceLabel: "Immutable audit store" },
+      { label: "Verification", component: "Engine tests", contract: "Challenge the rules", failure: "A convincing demo conceals an untested policy edge case.", decision: "Exercise the recovery engine with checked-in tests and document the boundary between the working prototype and target architecture.", tradeoff: "Test and coverage results describe this core implementation; demo outcomes are not customer results.", source: "lib/recovery-engine.test.ts", sourceLabel: "Recovery policy tests" },
+    ],
+  },
+  agent: {
+    surface: "A local-first agent control plane built around a less glamorous question: who is allowed to do what when the worker crashes halfway through?",
+    boundary: "Useful autonomy must survive loss of ownership.",
+    note: "Self-hosted local alpha · an architecture capture, not a hosted customer deployment.",
+    layers: [
+      { label: "Permission", component: "Policy boundary", contract: "Explicit approval before action", failure: "A model request crosses a boundary the operator never authorized.", decision: "Separate requested work from permission to execute through approval gates and constrained tool policies.", tradeoff: "Some useful actions must wait for a human. Unrestricted autonomy is deliberately not the objective.", source: "docs/decisions/ADR-0004-approval-and-audit.md", sourceLabel: "Approval and audit decision record" },
+      { label: "Ownership", component: "Leased worker", contract: "Only the current owner completes", failure: "A stalled worker returns after another worker has reclaimed its task.", decision: "Use leased ownership, heartbeats, stale-completion refusal, cooperative cancellation and bounded retry backoff.", tradeoff: "Recovery needs persisted lifecycle state and lease coordination, rather than an in-memory task queue alone.", source: "docs/decisions/ADR-0007-durable-execution-lifecycle.md", sourceLabel: "Durable execution lifecycle decision" },
+      { label: "Side effects", component: "Exact action claims", contract: "Bind approval to the action", failure: "The action payload changes after approval, or a retry repeats an external effect.", decision: "Compare the approved context and action digest at claim time, then consult recorded side-effect receipts.", tradeoff: "This narrows duplicate-action risk; it does not promise universal exactly-once execution across arbitrary external services.", source: "services/control-api/app/action_store.py", sourceLabel: "Action claims and side-effect receipts" },
+      { label: "Execution", component: "Worker lifecycle", contract: "Recover from interrupted work", failure: "A worker is cancelled or loses its lease during a long-running task.", decision: "Keep ownership and lifecycle checks in the worker path instead of assuming that a started job will finish safely.", tradeoff: "The project remains a local alpha. Source-level controls are not a claim of large-scale production operation.", source: "services/control-api/app/worker.py", sourceLabel: "Worker execution implementation" },
+    ],
+  },
+  atlaslm: {
+    surface: "A document intelligence workbench that lets the reader challenge the answer—right down to retrieval, evidence sufficiency and citation integrity.",
+    boundary: "No evidence is a valid reason not to answer.",
+    note: "Live workbench · document-scoped retrieval; not a multi-tenant production service.",
+    layers: [
+      { label: "Ingestion", component: "Contextual chunks", contract: "Stable identity, original evidence", failure: "Repeated uploads or fragmented passages weaken retrieval and make citations unreliable.", decision: "Create deterministic document and chunk identities, remove exact duplicates, and keep original citation text separate from retrieval context.", tradeoff: "Scanned documents need OCR; the current parser is not a general visual-document understanding system.", source: "src/lib/chunking.ts", sourceLabel: "Contextual chunking and stable identity" },
+      { label: "Retrieval", component: "Dense + lexical", contract: "Fuse rank, not incompatible scores", failure: "Semantic similarity misses an exact identifier; keyword matching misses the meaning.", decision: "Combine dense and BM25 ranks with Reciprocal Rank Fusion, rerank candidates, then select non-redundant evidence with MMR.", tradeoff: "Lexical retrieval scans document payloads. A dedicated sparse index is a future extension for very large corpora.", source: "src/lib/scoring.ts", sourceLabel: "BM25, RRF, reranking and MMR" },
+      { label: "Grounding", component: "Two independent brakes", contract: "Abstain before / audit after", failure: "The model generates a fluent answer from insufficient evidence or cites a source that was never retrieved.", decision: "Gate evidence sufficiency before generation, then check source IDs and claim coverage after the answer is produced.", tradeoff: "Confidence is an inspectable heuristic, not a calibrated probability that the answer is true.", source: "src/lib/grounding.ts", sourceLabel: "Sufficiency, abstention and citation audit" },
+      { label: "Orchestration", component: "Inspectable RAG", contract: "Keep the retrieval path visible", failure: "A correct-looking answer hides which retrieval decision made it possible.", decision: "Return evidence objects, retrieval counters, evaluation checks and a timed trace with the generated answer.", tradeoff: "The current cache is instance-local. Authentication, tenant isolation and persistent shared caching are production extensions.", source: "src/lib/rag.ts", sourceLabel: "End-to-end RAG orchestration" },
+    ],
+  },
+  atlasforge: {
+    surface: "A media production pipeline designed for a real workstation and a finite budget—not an architecture diagram pretending every box is already built.",
+    boundary: "A failed provider should not erase completed work.",
+    note: "Local-first open source · publishing and premium generation are disabled by default.",
+    layers: [
+      { label: "Editorial gate", component: "Script policy", contract: "Generate does not mean publish", failure: "Generated material contains unsupported claims or misses required disclosures.", decision: "Apply script-policy checks and media-quality gates before the optional publishing path.", tradeoff: "Automated checks catch defined failures, not every factual or licensing problem. Editorial responsibility stays with the operator.", source: "src/daily_video_factory/quality.py", sourceLabel: "Editorial and media quality gates" },
+      { label: "Cost boundary", component: "Budgeted scenes", contract: "Premium only where allocated", failure: "Cloud video generation turns one episode into an unpredictable bill.", decision: "Allocate a bounded number of premium scenes and use deterministic local FFmpeg motion for the rest.", tradeoff: "The baseline is authored image motion, not unrestricted text-to-video generation for every scene.", source: "src/daily_video_factory/scheduler.py", sourceLabel: "Scene scheduling and budget allocation" },
+      { label: "Durable state", component: "SQLite + artifacts", contract: "Resume instead of restart", failure: "A provider failure discards already-rendered work, or two scheduled runs overlap.", decision: "Keep checkpoints, filesystem artifacts and SQLite state with an overlap lock for the single-workstation runtime.", tradeoff: "This is intentionally simpler than a distributed queue. PostgreSQL and Redis remain target-architecture extensions.", source: "src/daily_video_factory/state.py", sourceLabel: "Checkpointed run state and locking" },
+      { label: "Assembly", component: "Production pipeline", contract: "Package first, publish by choice", failure: "A partly completed render is mistaken for a ready-to-publish episode.", decision: "Orchestrate narration, scenes, captions, metadata and final QA into a self-contained run package before optional YouTube upload.", tradeoff: "Publishing is opt-in and defaults to private; a completed package does not automatically become a public post.", source: "src/daily_video_factory/pipeline.py", sourceLabel: "Production-path orchestration" },
+    ],
+  },
+  gpt: {
+    surface: "A decoder-only transformer built to expose the choices that disappear behind a training framework: representations, attention, optimization and memory.",
+    boundary: "A model card should be traceable to the model.",
+    note: "Research implementation · experiment artifacts are not independent benchmark results.",
+    layers: [
+      { label: "Representation", component: "BPE tokenizer", contract: "Text becomes discrete tokens", failure: "Tokenizer choices silently change vocabulary size and the model configuration being compared.", decision: "Train the tokenizer explicitly and keep the configured vocabulary visible alongside the architecture.", tradeoff: "The small tokenizer is a research choice. The exact parameter count depends on the selected configuration.", source: "train_tokenizer.py", sourceLabel: "Tokenizer training configuration" },
+      { label: "Transformer", component: "Causal model", contract: "Attention without future context", failure: "High-level abstractions conceal positional encoding, normalization and attention details.", decision: "Implement the causal decoder with RoPE, RMSNorm, QK normalization and a gated SiLU-style feed-forward path.", tradeoff: "The checked-in architecture is inspectable research code, not a claim of frontier-model quality.", source: "model.py", sourceLabel: "Decoder-only model implementation" },
+      { label: "Optimization", component: "Muon + AdamW", contract: "Different updates for different weights", failure: "One optimizer treatment obscures the distinction between matrix weights and the remaining parameters.", decision: "Split eligible 2D matrices into Muon updates and use AdamW for embeddings, normalization and the output head.", tradeoff: "Training defaults target a memory-constrained laptop, not throughput records or hardware-kernel benchmarks.", source: "train.py", sourceLabel: "Training loop and optimizer split" },
+      { label: "Inference", component: "Checkpoint generation", contract: "Reproduce the chosen configuration", failure: "An example output is disconnected from its tokenizer or trained checkpoint.", decision: "Load compatible tokenizer artifacts and a configured checkpoint into a visible top-k generation path.", tradeoff: "Large checkpoints are not committed. Generation requires the appropriate local artifacts; this is not a hosted inference service.", source: "generate.py", sourceLabel: "Checkpoint-based generation" },
+    ],
+  },
+};
+
+// Schematic labels name the actual components above. Lines indicate a design
+// relationship, never live traffic or the result of executing the application.
+export const XRAY_PATHS = {
+  karixmc: [["Paper event", "Signed batch", "Bridge API"], ["Raw bytes", "HMAC / nonce", "Accepted body"], ["Claim", "Acknowledge / expire", "Ledger"], ["Nginx", "App replicas", "PostgreSQL"]],
+  revive: [["Raw body", "HMAC", "Event"], ["Classify", "Policy", "Proposal"], ["Event ID", "Decision record", "Blob store"], ["Fixture", "Engine", "Assertion"]],
+  agent: [["Request", "Approval", "Grant"], ["Lease", "Heartbeat", "Completion"], ["Action digest", "Claim", "Receipt"], ["Dispatch", "Ownership check", "Recovery"]],
+  atlaslm: [["Content", "Contextual chunks", "Index"], ["Dense / BM25", "RRF + rerank", "MMR"], ["Sufficiency", "Generation", "Citation audit"], ["Query", "Evidence", "Trace"]],
+  atlasforge: [["Script", "Policy", "Quality gate"], ["Scene ranking", "Budget", "FFmpeg"], ["Checkpoint", "SQLite", "Resume"], ["Artifacts", "Render", "Package"]],
+  gpt: [["Corpus", "BPE", "Tokens"], ["RoPE", "Causal attention", "Gated MLP"], ["Weight groups", "Muon / AdamW", "Update"], ["Tokenizer", "Checkpoint", "Top-k"]],
+};

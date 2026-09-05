@@ -8,11 +8,9 @@ import {
 } from "motion/react";
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowRight,
   ArrowSquareOut,
   Brain,
-  Check,
   Database,
   GithubLogo,
   List,
@@ -23,6 +21,7 @@ import {
 import { Contact, IdentityVault } from "./IdentityVault.jsx";
 import { SignalOperatingSystem } from "./SignalOperatingSystem.jsx";
 import { PortraitSignature } from "./PortraitSignal.jsx";
+import { ProjectXRay } from "./ProjectXRay.jsx";
 import { useReducedMotion } from "./useMotionPreference.js";
 const SignalCore = lazy(() => import("./SignalCore.jsx").then((module) => ({ default: module.SignalCore })));
 const CognitiveDescent = lazy(() => import("./CognitiveDescent.jsx").then((module) => ({ default: module.CognitiveDescent })));
@@ -57,15 +56,15 @@ const PROJECTS = [
     eyebrow: "FINTECH / EXPLAINABLE AI",
     headline: "Revenue recovery that can explain every move.",
     summary:
-      "A live Razorpay recovery engine that classifies payment failures, chooses rail-aware actions, enforces deterministic trust policies, and proves uplift against a holdout.",
+      "A deployed Razorpay-shaped recovery prototype with validated events, deterministic policy decisions and immutable audit records. Recovery outcomes in the public simulation are illustrative, not merchant results.",
     image: "/assets/revive-cinematic-core.png",
     imageAlt: "Revive cinematic 3D revenue recovery product interface",
     tags: ["Next.js", "Three.js", "Vercel", "Policy engine"],
     groups: ["AI", "Product", "Systems"],
-    status: "LIVE",
-    proof: ["16 passing tests", "95.75% core coverage", "Immutable audit proof"],
+    status: "LIVE PROTOTYPE",
+    proof: ["Checked-in policy tests", "Deterministic decisions", "Immutable audit records"],
     flow: ["FAILURE", "CLASSIFY", "ROUTE", "PROVE"],
-    failure: "Failed payments without opaque recovery decisions.",
+    failure: "Recovery recommendations that bypass consent, approval or audit boundaries.",
     repo: "https://github.com/ReaperXD67/revive-ai",
     live: "https://revive-revenue.vercel.app",
     feed: "LIVE PRODUCT / REVIVE",
@@ -101,7 +100,7 @@ const PROJECTS = [
       "An inspectable RAG workbench with hybrid retrieval, RRF fusion, reranking, abstention, citation audits, continuous evaluations, and visible execution traces.",
     image: "/assets/atlaslm-landing.png",
     imageAlt: "AtlasLM evidence-first document intelligence landing page",
-    tags: ["Next.js", "Qdrant", "BM25", "Evaluation"],
+    tags: ["Next.js", "Qdrant / Upstash", "BM25", "Evaluation"],
     groups: ["AI", "Product", "Systems"],
     status: "LIVE",
     proof: ["Hybrid dense + BM25", "Citation audit", "Inspectable traces"],
@@ -137,7 +136,7 @@ const PROJECTS = [
     index: "06",
     name: "GPT Prototype",
     eyebrow: "RESEARCH / DEEP LEARNING",
-    headline: "A 125M parameter transformer built from first principles.",
+    headline: "A twelve-layer transformer built from first principles.",
     summary:
       "A decoder-only language model with RoPE, RMSNorm, QK normalization, a SwiGLU-style MLP, memory-mapped training, and Muon + AdamW optimization.",
     image: "/assets/gpt-prototype.svg",
@@ -341,9 +340,9 @@ function Hero() {
 
 const SIGNALS = [
   "28 PUBLIC REPOSITORIES",
-  "125M PARAMETER GPT",
-  "16 PASSING TESTS",
-  "95.75% CORE COVERAGE",
+  "12-LAYER TRANSFORMER",
+  "DURABLE WORKER LEASES",
+  "SIGNED GAME EVENTS",
   "HUMAN APPROVAL GATES",
   "HYBRID RETRIEVAL",
   "IMMUTABLE AUDIT PROOF",
@@ -352,9 +351,9 @@ const SIGNALS = [
 function SignalBand() {
   const proof = [
     ["28", "PUBLIC REPOSITORIES"],
-    ["125M", "PARAMETER GPT / FROM SCRATCH"],
+    ["12", "DECODER LAYERS / FROM SCRATCH"],
     ["06", "SELECTED SYSTEMS"],
-    ["95.75%", "REVIVE CORE COVERAGE"],
+    ["24", "SOURCE-LINKED DESIGN DECISIONS"],
   ];
   return (
     <section className="signal-band" aria-label="Selected proof points">
@@ -375,122 +374,7 @@ function SignalBand() {
 }
 
 function Work() {
-  const reducedMotion = useReducedMotion();
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [viewMode, setViewMode] = useState("preview");
-  const activeProject = PROJECTS[activeIndex];
-  const selectProject = (index) => {
-    setActiveIndex(index);
-    setViewMode("preview");
-  };
-  const selectRelative = (delta) => {
-    setActiveIndex((current) => (current + delta + PROJECTS.length) % PROJECTS.length);
-    setViewMode("preview");
-  };
-
-  return (
-    <section className="work-section section" id="work">
-      <header className="work-ledger-heading">
-        <h2><span>Pick a world.</span><em>Enter the build.</em></h2>
-        <p>Tune into six working systems. See the interface first, then cut through it to the architecture, failure boundary, and proof.</p>
-      </header>
-
-      <div className="transmission-console" style={{ "--project-accent": activeProject.accent }}>
-        <div className="transmission-index" role="group" aria-label="Select a project transmission">
-          <div className="transmission-index-heading" aria-hidden="true"><span>TUNE A BUILD</span><span>{String(PROJECTS.length).padStart(2, "0")} CHANNELS</span></div>
-          {PROJECTS.map((project, index) => (
-            <button
-              key={project.id}
-              type="button"
-              className={activeIndex === index ? "transmission-row is-active" : "transmission-row"}
-              onClick={() => selectProject(index)}
-              aria-pressed={activeIndex === index}
-              aria-controls="active-project-transmission"
-            >
-              <span className="transmission-row-number">{project.index}</span>
-              <span className="transmission-row-name">{project.name}</span>
-              <span className="transmission-row-domain">{project.eyebrow}</span>
-              <span className="transmission-row-status"><i aria-hidden="true" />{project.status}</span>
-              <ArrowRight size={19} aria-hidden="true" />
-            </button>
-          ))}
-        </div>
-
-        <div className="transmission-stage">
-          <div className="transmission-toolbar">
-            <span><i aria-hidden="true" />{activeProject.feed}</span>
-            <div className="transmission-mode-switch" role="group" aria-label="Choose project view">
-              <button type="button" className={viewMode === "preview" ? "is-active" : ""} onClick={() => setViewMode("preview")} aria-pressed={viewMode === "preview"}>Interface</button>
-              <button type="button" className={viewMode === "anatomy" ? "is-active" : ""} onClick={() => setViewMode("anatomy")} aria-pressed={viewMode === "anatomy"}>System</button>
-            </div>
-          </div>
-
-          <AnimatePresence mode="wait">
-            <motion.article
-              className="project-transmission"
-              id="active-project-transmission"
-              key={`${activeProject.id}-${viewMode}`}
-              aria-live="polite"
-              initial={reducedMotion ? false : { opacity: 0, scale: 0.985, clipPath: "inset(0 0 12% 0)" }}
-              animate={{ opacity: 1, scale: 1, clipPath: "inset(0 0 0% 0)" }}
-              exit={reducedMotion ? undefined : { opacity: 0, scale: 1.01, clipPath: "inset(12% 0 0 0)" }}
-              transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <div className="transmission-viewport">
-                {viewMode === "preview" ? (
-                  <motion.figure className="transmission-media" initial={reducedMotion ? false : { filter: "blur(12px)", scale: 1.08 }} animate={{ filter: "blur(0px)", scale: 1 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
-                    <img src={activeProject.image} alt={activeProject.imageAlt} />
-                    <figcaption><span>NOW TRANSMITTING</span><strong>{activeProject.name}</strong><small>{activeProject.eyebrow}</small></figcaption>
-                  </motion.figure>
-                ) : (
-                  <div className="transmission-anatomy">
-                    <div className="anatomy-declaration"><span>THE SYSTEM BENEATH THE SCREEN</span><h3>{activeProject.headline}</h3><p>{activeProject.failure}</p></div>
-                    <div className="anatomy-path" role="list" aria-label={`${activeProject.name} system path`}>
-                      {activeProject.flow.map((step, index) => (
-                        <span role="listitem" key={step}><small>{String(index + 1).padStart(2, "0")}</small><b>{step}</b>{index < activeProject.flow.length - 1 && <i aria-hidden="true" />}</span>
-                      ))}
-                    </div>
-                    <div className="anatomy-proof" role="list" aria-label={`${activeProject.name} proof`}>
-                      {activeProject.proof.map((item) => <span role="listitem" key={item}><Check size={16} weight="bold" aria-hidden="true" />{item}</span>)}
-                    </div>
-                  </div>
-                )}
-                {!reducedMotion && <motion.span className="transmission-scan" aria-hidden="true" initial={{ top: "8%", opacity: 0 }} animate={{ top: "92%", opacity: [0, 0.9, 0] }} transition={{ duration: 1.25, ease: "easeInOut" }} />}
-              </div>
-
-              <div className="transmission-story">
-                <div className="transmission-story-main">
-                  <span>{activeProject.name} / {activeProject.status}</span>
-                  <h3>{activeProject.headline}</h3>
-                  <p>{activeProject.summary}</p>
-                </div>
-                <div className="transmission-story-proof">
-                  <div><span>THE FAILURE IT HANDLES</span><p>{activeProject.failure}</p></div>
-                  <div><span>ENGINEERING EVIDENCE</span>
-                  <ul>{activeProject.proof.map((item) => <li key={item}><Check size={15} weight="bold" aria-hidden="true" />{item}</li>)}</ul>
-                  </div>
-                </div>
-              </div>
-
-              <footer className="transmission-footer">
-                <div className="transmission-tags">{activeProject.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
-                <div className="transmission-links">
-                  {activeProject.live && <a href={activeProject.live} target="_blank" rel="noreferrer">Open live <ArrowSquareOut size={17} /></a>}
-                  <a href={activeProject.repo} target="_blank" rel="noreferrer">Repository <GithubLogo size={18} /></a>
-                </div>
-              </footer>
-            </motion.article>
-          </AnimatePresence>
-
-          <div className="transmission-navigation" role="group" aria-label="Browse project transmissions">
-            <span>{String(activeIndex + 1).padStart(2, "0")} / {String(PROJECTS.length).padStart(2, "0")}</span>
-            <button type="button" onClick={() => selectRelative(-1)} aria-label="Previous project"><ArrowLeft size={19} /></button>
-            <button type="button" onClick={() => selectRelative(1)} aria-label="Next project"><ArrowRight size={19} /></button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  return <ProjectXRay projects={PROJECTS} />;
 }
 
 function Method() {

@@ -25,7 +25,7 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 | --- | --- |
 | **Decision Loom** | A scroll-controlled sensor → reasoning → execution sequence built with React Three Fiber. |
 | **Cognitive descent** | Project systems move through cinematic depth without repeating the evidence surfaces below. |
-| **Project transmissions** | Live product previews, system anatomy, failure modes, verified proof, source, and deployment state. |
+| **Engineering X-ray** | Peel a real interface into four architecture layers. Inspect 24 implementation-linked decisions, failure boundaries and trade-offs across six builds—with keyboard, touch and reduced-motion controls. |
 | **Validation Chamber** | Evidence, control, infrastructure, and interface constraints reshape one live signal field. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
 | **Person / System** | A finite raster scan assembles Aman's approved portrait, then holds a clear photograph. Replay or switch to the interactive kernel with keyboard and touch controls. |
@@ -38,7 +38,7 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 - **AtlasLM** — evidence-grounded document intelligence with dense + sparse retrieval, reranking, and citations.
 - **Autonomous Personal Agent** — controlled agent architecture with tool boundaries, memory, and safe execution paths.
 - **Revive** — explainable payment-recovery orchestration with deterministic policies and verified test evidence.
-- **GPT Prototype** — a 125M-parameter transformer implemented from first principles as a learning and systems artifact.
+- **GPT Prototype** — a twelve-layer decoder-only transformer implemented from first principles as a learning and systems artifact.
 
 ## Engineering surface
 
