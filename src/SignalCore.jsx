@@ -80,12 +80,26 @@ function DecisionLoom({ mode, reducedMotion, onCycle }) {
   const { pointer } = useThree();
   const accent = ACCENTS[mode];
   const targets = useMemo(() => [modeTargets(0), modeTargets(1), modeTargets(2)], []);
+  const initialTargets = useRef(targets[mode]);
   const rails = useMemo(() => Array.from({ length: 5 }, (_, index) => filamentCurve(index)), []);
 
   useEffect(() => () => { document.body.style.cursor = ""; }, []);
 
   useFrame((state, delta) => {
     if (!assembly.current) return;
+    if (reducedMotion) {
+      assembly.current.rotation.set(0, 0, 0);
+      assembly.current.position.y = 0;
+      shardRefs.current.forEach((shard, index) => {
+        if (!shard) return;
+        const target = targets[mode][index];
+        shard.position.set(...target.position);
+        shard.rotation.set(...target.rotation);
+        shard.scale.set(...target.scale);
+      });
+      return;
+    }
+    delta = Math.min(delta, 0.05);
     assembly.current.rotation.x = THREE.MathUtils.damp(assembly.current.rotation.x, pointer.y * 0.13, 3.6, delta);
     assembly.current.rotation.y = THREE.MathUtils.damp(assembly.current.rotation.y, pointer.x * 0.2, 3.6, delta);
     if (!reducedMotion) assembly.current.position.y = Math.sin(state.clock.elapsedTime * 0.52) * 0.055;
@@ -120,7 +134,7 @@ function DecisionLoom({ mode, reducedMotion, onCycle }) {
       ))}
 
       {Array.from({ length: SHARD_COUNT }, (_, index) => {
-        const initial = targets[0][index];
+        const initial = initialTargets.current[index];
         const isSignal = index % 7 === mode || index % 11 === mode + 2;
         return (
           <mesh
@@ -156,10 +170,21 @@ export function SignalCore({ mode, reducedMotion, onCycle }) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    if (!shellRef.current || !("IntersectionObserver" in window)) return undefined;
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { rootMargin: "180px" });
-    observer.observe(shellRef.current);
-    return () => observer.disconnect();
+    const node = shellRef.current;
+    if (!node) return undefined;
+    let nearViewport = !("IntersectionObserver" in window);
+    const updateVisibility = () => setVisible(nearViewport && !document.hidden);
+    const observer = "IntersectionObserver" in window ? new IntersectionObserver(([entry]) => {
+      nearViewport = entry.isIntersecting;
+      updateVisibility();
+    }, { rootMargin: "180px" }) : null;
+    observer?.observe(node);
+    document.addEventListener("visibilitychange", updateVisibility);
+    if (!observer) updateVisibility();
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", updateVisibility);
+    };
   }, []);
 
   return (

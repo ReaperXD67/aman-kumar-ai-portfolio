@@ -104,13 +104,20 @@ export function MethodField({ activeIndex, reducedMotion }) {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
     const context = canvas.getContext("2d", { alpha: false });
+    if (!context) return undefined;
     let frameId = 0;
     let width = 1;
     let height = 1;
     let pixelRatio = 1;
+    let visible = !("IntersectionObserver" in window);
+    let previousTime = 0;
+    let targets = [];
+    let measured = false;
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
+      const previousWidth = width;
+      const previousHeight = height;
       width = Math.max(1, rect.width);
       height = Math.max(1, rect.height);
       pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -123,10 +130,22 @@ export function MethodField({ activeIndex, reducedMotion }) {
           y: seeded(index, 2) * height,
           size: 1.3 + seeded(index, 3) * 2.7,
         }));
+      } else if (measured) {
+        particlesRef.current.forEach((particle) => {
+          particle.x *= width / previousWidth;
+          particle.y *= height / previousHeight;
+        });
       }
+      measured = true;
+      targets = Array.from({ length: PARTICLE_COUNT }, (_, index) => targetFor(activeIndex, index, width, height));
     };
 
     const render = (time = 0) => {
+      frameId = 0;
+      if (!visible || document.hidden) return;
+      // Keep convergence consistent on both 60 Hz phones and high-refresh displays.
+      const frameScale = previousTime ? Math.min((time - previousTime) / (1000 / 60), 3) : 1;
+      previousTime = time;
       context.fillStyle = "#070808";
       context.fillRect(0, 0, width, height);
       const accent = ACCENTS[activeIndex];
@@ -134,8 +153,8 @@ export function MethodField({ activeIndex, reducedMotion }) {
 
       const particles = particlesRef.current;
       particles.forEach((particle, index) => {
-        const [targetX, targetY] = targetFor(activeIndex, index, width, height);
-        const ease = reducedMotion ? 1 : 0.045 + (index % 5) * 0.006;
+        const [targetX, targetY] = targets[index];
+        const ease = reducedMotion ? 1 : 1 - Math.pow(1 - (0.045 + (index % 5) * 0.006), frameScale);
         particle.x += (targetX - particle.x) * ease;
         particle.y += (targetY - particle.y) * ease;
 
@@ -143,8 +162,8 @@ export function MethodField({ activeIndex, reducedMotion }) {
         const dx = particle.x - pointer.x;
         const dy = particle.y - pointer.y;
         const distance = Math.hypot(dx, dy);
-        if (pointer.active && distance < 105 && distance > 0) {
-          const force = (1 - distance / 105) * 2.6;
+        if (!reducedMotion && pointer.active && distance < 105 && distance > 0) {
+          const force = (1 - distance / 105) * 2.6 * frameScale;
           particle.x += (dx / distance) * force;
           particle.y += (dy / distance) * force;
         }
@@ -170,17 +189,39 @@ export function MethodField({ activeIndex, reducedMotion }) {
       if (!reducedMotion) frameId = requestAnimationFrame(render);
     };
 
+    const resume = () => {
+      if (visible && !document.hidden && !frameId) frameId = requestAnimationFrame(render);
+    };
+    const pause = () => {
+      cancelAnimationFrame(frameId);
+      frameId = 0;
+      previousTime = 0;
+      pointerRef.current.active = false;
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) pause();
+      else resume();
+    };
+    const visibilityObserver = "IntersectionObserver" in window ? new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) resume();
+      else pause();
+    }, { rootMargin: "80px" }) : null;
     const observer = new ResizeObserver(() => {
       resize();
-      if (reducedMotion) render();
+      resume();
     });
     observer.observe(canvas);
+    visibilityObserver?.observe(canvas);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     resize();
-    render();
+    resume();
 
     return () => {
       observer.disconnect();
-      cancelAnimationFrame(frameId);
+      visibilityObserver?.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      pause();
     };
   }, [activeIndex, reducedMotion]);
 
@@ -190,10 +231,12 @@ export function MethodField({ activeIndex, reducedMotion }) {
       className="method-field-canvas"
       aria-hidden="true"
       onPointerMove={(event) => {
+        if (reducedMotion || event.pointerType === "touch") return;
         const rect = event.currentTarget.getBoundingClientRect();
         pointerRef.current = { x: event.clientX - rect.left, y: event.clientY - rect.top, active: true };
       }}
       onPointerLeave={() => { pointerRef.current.active = false; }}
+      onPointerCancel={() => { pointerRef.current.active = false; }}
     />
   );
 }

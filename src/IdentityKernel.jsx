@@ -108,14 +108,15 @@ function SystemsAssembly({ reducedMotion, overclock, assembled }) {
     const monolith = monolithRef.current;
     const core = coreRef.current;
     if (!assembly || !topologyGroup || !monolith || !core) return;
+    delta = Math.min(delta, 0.05);
 
     if (reducedMotion || assembled) bootRef.current = 1;
     else bootRef.current = Math.min(1, bootRef.current + delta * 0.48);
 
     const boot = 1 - Math.pow(1 - bootRef.current, 4);
     const speed = overclock ? 2.8 : 1;
-    assembly.rotation.x = THREE.MathUtils.damp(assembly.rotation.x, pointer.y * 0.2 - 0.06, 3.5, delta);
-    assembly.rotation.y = THREE.MathUtils.damp(assembly.rotation.y, pointer.x * 0.34 + 0.18, 3.5, delta);
+    assembly.rotation.x = reducedMotion ? -0.06 : THREE.MathUtils.damp(assembly.rotation.x, pointer.y * 0.2 - 0.06, 3.5, delta);
+    assembly.rotation.y = reducedMotion ? 0.18 : THREE.MathUtils.damp(assembly.rotation.y, pointer.x * 0.34 + 0.18, 3.5, delta);
     assembly.scale.setScalar(0.58 + boot * 0.42);
 
     if (!reducedMotion) {
@@ -127,7 +128,7 @@ function SystemsAssembly({ reducedMotion, overclock, assembled }) {
     }
 
     if (coreMaterialRef.current) {
-      coreMaterialRef.current.emissiveIntensity = (overclock ? 1.65 : 0.58) + Math.sin(state.clock.elapsedTime * speed * 2.4) * 0.18;
+      coreMaterialRef.current.emissiveIntensity = (overclock ? 1.65 : 0.58) + (reducedMotion ? 0 : Math.sin(state.clock.elapsedTime * speed * 2.4) * 0.18);
     }
 
     const positionAttribute = nodeGeometryRef.current?.attributes?.position;
@@ -157,7 +158,7 @@ function SystemsAssembly({ reducedMotion, overclock, assembled }) {
     pulseRefs.current.forEach((pulse, index) => {
       if (!pulse) return;
       const orbit = 1.72 + (index % 3) * 0.54;
-      const phase = state.clock.elapsedTime * (0.44 + (index % 4) * 0.09) * speed + index * 0.83;
+      const phase = (reducedMotion ? 0 : state.clock.elapsedTime * (0.44 + (index % 4) * 0.09) * speed) + index * 0.83;
       pulse.position.set(
         Math.cos(phase) * orbit,
         Math.sin(phase * 1.7 + index) * (0.72 + (index % 2) * 0.24),
@@ -267,13 +268,19 @@ export function IdentityKernel({ reducedMotion = false }) {
   useEffect(() => {
     const node = rootRef.current;
     if (!node) return undefined;
-    if (!("IntersectionObserver" in window)) {
-      setVisible(true);
-      return undefined;
-    }
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { rootMargin: "220px" });
-    observer.observe(node);
-    return () => observer.disconnect();
+    let nearViewport = !("IntersectionObserver" in window);
+    const updateVisibility = () => setVisible(nearViewport && !document.hidden);
+    const observer = "IntersectionObserver" in window ? new IntersectionObserver(([entry]) => {
+      nearViewport = entry.isIntersecting;
+      updateVisibility();
+    }, { rootMargin: "220px" }) : null;
+    observer?.observe(node);
+    document.addEventListener("visibilitychange", updateVisibility);
+    if (!observer) updateVisibility();
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", updateVisibility);
+    };
   }, []);
 
   useEffect(() => {
@@ -305,6 +312,7 @@ export function IdentityKernel({ reducedMotion = false }) {
         type="button"
         onClick={() => setOverclock((value) => !value)}
         aria-label={overclock ? "Return systems kernel to normal power" : "Overclock the interactive systems kernel"}
+        aria-pressed={overclock}
       >
         <span className="kernel-canvas" aria-hidden="true">
           {visible && (
@@ -353,7 +361,7 @@ export function IdentityKernel({ reducedMotion = false }) {
           </span>
         )}
 
-        {!reducedMotion && (
+        {visible && !reducedMotion && !hasBootedRef.current && (
           <motion.span
             className="kernel-scan"
             aria-hidden="true"

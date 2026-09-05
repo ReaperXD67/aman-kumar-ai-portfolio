@@ -3,7 +3,6 @@ import {
   AnimatePresence,
   MotionConfig,
   motion,
-  useReducedMotion,
   useScroll,
   useSpring,
 } from "motion/react";
@@ -23,6 +22,8 @@ import {
 } from "@phosphor-icons/react";
 import { Contact, IdentityVault } from "./IdentityVault.jsx";
 import { SignalOperatingSystem } from "./SignalOperatingSystem.jsx";
+import { PortraitSignature } from "./PortraitSignal.jsx";
+import { useReducedMotion } from "./useMotionPreference.js";
 const SignalCore = lazy(() => import("./SignalCore.jsx").then((module) => ({ default: module.SignalCore })));
 const CognitiveDescent = lazy(() => import("./CognitiveDescent.jsx").then((module) => ({ default: module.CognitiveDescent })));
 const MethodField = lazy(() => import("./MethodField.jsx").then((module) => ({ default: module.MethodField })));
@@ -265,7 +266,7 @@ function Hero() {
     <section className="hero" id="top">
       <div className="hero-rail" aria-hidden="true">
         <span>PORTFOLIO / 2026</span>
-        <span>28.6139° N</span>
+        <span>12.9716° N / BENGALURU</span>
       </div>
       <motion.div
         className="hero-copy"
@@ -273,6 +274,7 @@ function Hero() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
+        <PortraitSignature />
         <h1>
           <span>I engineer systems</span>
           <span className="hero-image-line">
@@ -296,7 +298,7 @@ function Hero() {
         <div className="hero-actions">
           <a className="button button-solid" href="#work">Inspect selected work <ArrowDown size={17} weight="bold" /></a>
           <a className="button button-outline" href="#resume">
-            Open living résumé <ArrowSquareOut size={18} />
+            View résumé <ArrowSquareOut size={18} />
           </a>
         </div>
       </motion.div>
@@ -338,7 +340,7 @@ function Hero() {
 }
 
 const SIGNALS = [
-  "26 PUBLIC REPOSITORIES",
+  "28 PUBLIC REPOSITORIES",
   "125M PARAMETER GPT",
   "16 PASSING TESTS",
   "95.75% CORE COVERAGE",
@@ -349,7 +351,7 @@ const SIGNALS = [
 
 function SignalBand() {
   const proof = [
-    ["26", "PUBLIC REPOSITORIES"],
+    ["28", "PUBLIC REPOSITORIES"],
     ["125M", "PARAMETER GPT / FROM SCRATCH"],
     ["06", "SELECTED SYSTEMS"],
     ["95.75%", "REVIVE CORE COVERAGE"],
@@ -373,6 +375,7 @@ function SignalBand() {
 }
 
 function Work() {
+  const reducedMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
   const [viewMode, setViewMode] = useState("preview");
   const activeProject = PROJECTS[activeIndex];
@@ -428,14 +431,14 @@ function Work() {
               id="active-project-transmission"
               key={`${activeProject.id}-${viewMode}`}
               aria-live="polite"
-              initial={{ opacity: 0, scale: 0.985, clipPath: "inset(0 0 12% 0)" }}
+              initial={reducedMotion ? false : { opacity: 0, scale: 0.985, clipPath: "inset(0 0 12% 0)" }}
               animate={{ opacity: 1, scale: 1, clipPath: "inset(0 0 0% 0)" }}
-              exit={{ opacity: 0, scale: 1.01, clipPath: "inset(12% 0 0 0)" }}
+              exit={reducedMotion ? undefined : { opacity: 0, scale: 1.01, clipPath: "inset(12% 0 0 0)" }}
               transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="transmission-viewport">
                 {viewMode === "preview" ? (
-                  <motion.figure className="transmission-media" initial={{ filter: "blur(12px)", scale: 1.08 }} animate={{ filter: "blur(0px)", scale: 1 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
+                  <motion.figure className="transmission-media" initial={reducedMotion ? false : { filter: "blur(12px)", scale: 1.08 }} animate={{ filter: "blur(0px)", scale: 1 }} transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
                     <img src={activeProject.image} alt={activeProject.imageAlt} />
                     <figcaption><span>NOW TRANSMITTING</span><strong>{activeProject.name}</strong><small>{activeProject.eyebrow}</small></figcaption>
                   </motion.figure>
@@ -452,7 +455,7 @@ function Work() {
                     </div>
                   </div>
                 )}
-                <motion.span className="transmission-scan" aria-hidden="true" initial={{ top: "8%", opacity: 0 }} animate={{ top: "92%", opacity: [0, 0.9, 0] }} transition={{ duration: 1.25, ease: "easeInOut" }} />
+                {!reducedMotion && <motion.span className="transmission-scan" aria-hidden="true" initial={{ top: "8%", opacity: 0 }} animate={{ top: "92%", opacity: [0, 0.9, 0] }} transition={{ duration: 1.25, ease: "easeInOut" }} />}
               </div>
 
               <div className="transmission-story">
@@ -462,8 +465,8 @@ function Work() {
                   <p>{activeProject.summary}</p>
                 </div>
                 <div className="transmission-story-proof">
-                  <div><span>WHAT IT REFUSES TO FAKE</span><p>{activeProject.failure}</p></div>
-                  <div><span>WHAT PROVES IT</span>
+                  <div><span>THE FAILURE IT HANDLES</span><p>{activeProject.failure}</p></div>
+                  <div><span>ENGINEERING EVIDENCE</span>
                   <ul>{activeProject.proof.map((item) => <li key={item}><Check size={15} weight="bold" aria-hidden="true" />{item}</li>)}</ul>
                   </div>
                 </div>
@@ -555,6 +558,7 @@ function Method() {
 }
 
 export function App() {
+  const reducedMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signalPanel, setSignalPanel] = useState(null);
   const { scrollYProgress } = useScroll();
@@ -565,7 +569,7 @@ export function App() {
     return () => window.removeEventListener("resize", closeOnDesktop);
   }, []);
   return (
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion={reducedMotion ? "always" : "never"}>
       <a className="skip-link" href="#main-content">Skip to portfolio content</a>
       <motion.div className="scroll-progress" style={{ scaleX }} aria-hidden="true" />
       <AppHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} onOpenSignal={() => setSignalPanel("command")} />

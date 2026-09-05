@@ -1,5 +1,7 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { PortraitSignal } from "./PortraitSignal.jsx";
+import { AnimatePresence, motion } from "motion/react";
+import { useReducedMotion } from "./useMotionPreference.js";
 import {
   ArrowRight,
   ArrowSquareOut,
@@ -76,10 +78,6 @@ const PROFILE_LINKS = [
   { label: "LinkedIn", detail: "EXPERIENCE / PROFESSIONAL", href: "https://www.linkedin.com/in/aman-kumar-494601329/", icon: LinkedinLogo },
   { label: "X / Twitter", detail: "NOTES / BUILDS / UPDATES", href: "https://x.com/Aman1181", icon: XLogo },
 ];
-
-const IdentityKernel = lazy(() =>
-  import("./IdentityKernel.jsx").then((module) => ({ default: module.IdentityKernel })),
-);
 
 function CompiledIdentityHeading({ reducedMotion }) {
   const letters = "ACCOUNTABLE".split("");
@@ -208,12 +206,11 @@ export function IdentityVault() {
           viewport={{ once: true, amount: 0.28 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <Suspense fallback={<div className="identity-kernel-fallback"><span>COMPILING SYSTEMS KERNEL</span></div>}>
-            <IdentityKernel reducedMotion={reducedMotion} />
-          </Suspense>
+          <PortraitSignal />
         </motion.div>
 
         <div className="identity-copy">
+          <div className="identity-byline"><span>AMAN KUMAR / AI ENGINEER</span><a href="#experience">Previously AI Engineer Intern at micro1 ↗</a></div>
           <CompiledIdentityHeading reducedMotion={reducedMotion} />
           <p>
             I build AI products that can explain their state, survive failure, and earn trust after the demo ends—from model behavior and backend systems to infrastructure and the interface people actually use.
@@ -237,8 +234,8 @@ export function IdentityVault() {
 
       <section className="career-section" id="experience">
         <div className="career-heading">
-          <h2>Experience, decrypted into operating evidence.</h2>
-          <p>Not a chronology of titles. A trace of increasingly difficult systems, wider ownership, and code expected to keep working after the demo.</p>
+          <h2>Where the work became real.</h2>
+          <p>From adaptive AI workers at micro1 to leading product delivery at SIP. The roles, responsibilities, and engineering behind the experience.</p>
         </div>
 
         <div className="career-console">
@@ -296,8 +293,8 @@ export function IdentityVault() {
 
       <section className="proof-vault-section" id="resume">
         <div className="proof-vault-heading">
-          <h2>The career source stays current.</h2>
-          <p>Résumé and certification are presented as inspectable artifacts. No decorative badge wall, no claims without a document behind them.</p>
+          <h2>The details. On record.</h2>
+          <p>The current résumé and original micro1 credential, ready to inspect, download, or pass to your team.</p>
         </div>
 
         <div className="proof-vault-grid">
@@ -307,13 +304,13 @@ export function IdentityVault() {
               <span><FilePdf size={20} /> INSPECT SOURCE</span>
             </button>
             <div className="artifact-copy">
-              <h3>One canonical résumé. Built for recruiters and parsers.</h3>
+              <h3>The full picture, in one page.</h3>
               <header><span>RÉSUMÉ / {resume.version}</span><strong>LIVE SOURCE</strong></header>
-              <p>A single-column, machine-readable PDF with standard section headings, selectable text, factual project evidence, and direct links to the systems behind every major claim. A small runtime manifest keeps the route stable when the file changes.</p>
+              <p>Experience, three flagship projects, technical skills, and education in a clear single-page PDF. Every project links directly to its source or live product. This link always points to the current version.</p>
               <dl>
                 <div><dt>LAST VERIFIED</dt><dd>{resume.updated}</dd></div>
-                <div><dt>SOURCE MODE</dt><dd>{resume.source}</dd></div>
-                <div><dt>UPDATE PATH</dt><dd>REPLACE FILE / CHANGE URL</dd></div>
+                <div><dt>FORMAT</dt><dd>ONE PAGE / SELECTABLE TEXT</dd></div>
+                <div><dt>INCLUDES</dt><dd>EXPERIENCE / PROJECTS / SKILLS</dd></div>
               </dl>
               <div className="artifact-actions">
                 <button type="button" onClick={() => setArtifact("resume")}>Open résumé <ArrowSquareOut size={17} /></button>

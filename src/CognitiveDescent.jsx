@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Edges, Sparkles, useTexture } from "@react-three/drei";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { useGSAP } from "@gsap/react";
-import { useReducedMotion } from "motion/react";
+import { useReducedMotion } from "./useMotionPreference.js";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import * as THREE from "three";
@@ -24,13 +24,13 @@ const smoothstep = (start, end, value) => {
 
 function ScrollCamera({ progressRef, reducedMotion }) {
   const { camera } = useThree();
-  const current = useRef(reducedMotion ? 0.82 : 0);
-  const previous = useRef(0);
+  const current = useRef(reducedMotion ? 0.82 : progressRef.current);
+  const previous = useRef(current.current);
   const velocity = useRef(0);
 
   useFrame((state, delta) => {
     const target = reducedMotion ? 0.82 : progressRef.current;
-    current.current = THREE.MathUtils.damp(current.current, target, 5.5, delta);
+    current.current = reducedMotion ? target : THREE.MathUtils.damp(current.current, target, 5.5, Math.min(delta, 0.05));
     const progress = current.current;
     velocity.current = THREE.MathUtils.damp(
       velocity.current,
@@ -317,10 +317,21 @@ export function CognitiveDescent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!sectionRef.current || !("IntersectionObserver" in window)) return undefined;
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { rootMargin: "220px" });
-    observer.observe(sectionRef.current);
-    return () => observer.disconnect();
+    const node = sectionRef.current;
+    if (!node) return undefined;
+    let nearViewport = !("IntersectionObserver" in window);
+    const updateVisibility = () => setVisible(nearViewport && !document.hidden);
+    const observer = "IntersectionObserver" in window ? new IntersectionObserver(([entry]) => {
+      nearViewport = entry.isIntersecting;
+      updateVisibility();
+    }, { rootMargin: "220px" }) : null;
+    observer?.observe(node);
+    document.addEventListener("visibilitychange", updateVisibility);
+    if (!observer) updateVisibility();
+    return () => {
+      observer?.disconnect();
+      document.removeEventListener("visibilitychange", updateVisibility);
+    };
   }, []);
 
   useGSAP(() => {
@@ -356,9 +367,13 @@ export function CognitiveDescent() {
       ease: "none",
       scrollTrigger: { trigger: sectionRef.current, start: "top top", end: "bottom bottom", scrub: true },
     });
-    document.fonts?.ready.then(() => ScrollTrigger.refresh());
-    return () => timeline.kill();
-  }, { scope: sectionRef, dependencies: [reducedMotion] });
+    let active = true;
+    document.fonts?.ready.then(() => { if (active) ScrollTrigger.refresh(); });
+    return () => {
+      active = false;
+      timeline.kill();
+    };
+  }, { scope: sectionRef, dependencies: [reducedMotion], revertOnUpdate: true });
 
   return (
     <section className="descent-section" ref={sectionRef} aria-label="Scroll-controlled cognitive system journey">

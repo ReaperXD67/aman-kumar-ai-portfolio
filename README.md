@@ -15,7 +15,9 @@
 
 Most portfolios list claims. This one lets visitors inspect the system behind them.
 
-The experience is organized as a controlled descent through the work: a procedural **Decision Loom** turns signal into action, project transmissions expose real interfaces and architecture, a **Validation Chamber** reorganizes live system constraints, and the **Systems Kernel** reconstructs Aman's engineering identity through an interactive WebGL boot sequence.
+The experience moves through a procedural **Decision Loom**, cinematic project depth, real interface previews, and a **Validation Chamber**. The identity instrument reveals the person behind the engineering: Aman's portrait assembles from pixels, with the **Systems Kernel** available as its second view.
+
+![The Person / System identity instrument in Aman Kumar's portfolio](docs/portrait-preview.png)
 
 ## Authored interactions
 
@@ -26,6 +28,7 @@ The experience is organized as a controlled descent through the work: a procedur
 | **Project transmissions** | Live product previews, system anatomy, failure modes, verified proof, source, and deployment state. |
 | **Validation Chamber** | Evidence, control, infrastructure, and interface constraints reshape one live signal field. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
+| **Person / System** | A finite raster scan assembles Aman's approved portrait, then holds a clear photograph. Replay or switch to the interactive kernel with keyboard and touch controls. |
 | **Living résumé** | One stable runtime manifest keeps the canonical ATS résumé replaceable without rewriting interface code. |
 | **Signal Operating System** | Persistent GitHub, LinkedIn, X, and résumé access plus `/` command search, a recruiter quick-read, native sharing, and a mobile action tray. |
 
@@ -42,6 +45,7 @@ The experience is organized as a controlled descent through the work: a procedur
 - **Interface:** React 19, Vite, TypeScript/JavaScript, responsive semantic UI
 - **Spatial system:** Three.js, React Three Fiber, Drei, postprocessing
 - **Motion:** GSAP, Motion, scroll-linked timelines, reduced-motion fallbacks
+- **Performance:** viewport-aware rendering, hidden-tab suspension, finite portrait animation, 72 KB main portrait, and a 2.6 KB first-screen thumbnail
 - **Typography:** Space Grotesk + JetBrains Mono
 - **Delivery:** Vercel production deployment, Sites-compatible worker output, automated build verification
 
