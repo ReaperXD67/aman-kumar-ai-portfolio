@@ -7,7 +7,7 @@
 [![React 19](https://img.shields.io/badge/React-19-7ea8ff?style=flat-square&logo=react&logoColor=white&labelColor=090909)](https://react.dev/)
 [![Three.js](https://img.shields.io/badge/Three.js-Procedural_WebGL-ff5f38?style=flat-square&logo=threedotjs&logoColor=white&labelColor=090909)](https://threejs.org/)
 
-[Live experience](https://aman-kumar-ai-portfolio.vercel.app) · [ATS résumé](https://aman-kumar-ai-portfolio.vercel.app/profile/aman-kumar-resume.pdf) · [LinkedIn](https://www.linkedin.com/in/aman-kumar-494601329/) · [GitHub profile](https://github.com/ReaperXD67)
+[Live experience](https://aman-kumar-ai-portfolio.vercel.app) · [One-page résumé](https://aman-kumar-ai-portfolio.vercel.app/profile/aman-kumar-resume.pdf) · [LinkedIn](https://www.linkedin.com/in/aman-kumar-494601329/) · [GitHub profile](https://github.com/ReaperXD67)
 
 ![Aman Kumar's cinematic AI engineering portfolio](docs/portfolio-preview.png)
 
@@ -17,7 +17,7 @@ Most portfolios list claims. This one lets visitors inspect the system behind th
 
 The experience moves through a procedural **Decision Loom**, cinematic project depth, real interface previews, and a **Validation Chamber**. The identity instrument reveals the person behind the engineering: Aman's portrait assembles from pixels, with the **Systems Kernel** available as its second view.
 
-![The Person / System identity instrument in Aman Kumar's portfolio](docs/portrait-preview.png)
+![Aman Kumar — AI Engineer and Full-Stack Developer](public/assets/portfolio-social-preview-v2.png)
 
 ## Authored interactions
 
@@ -29,7 +29,7 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 | **Validation Chamber** | Evidence, control, infrastructure, and interface constraints reshape one live signal field. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
 | **Person / System** | A finite raster scan assembles Aman's approved portrait, then holds a clear photograph. Replay or switch to the interactive kernel with keyboard and touch controls. |
-| **Living résumé** | One stable runtime manifest keeps the canonical ATS résumé replaceable without rewriting interface code. |
+| **Living résumé** | One stable runtime manifest keeps the canonical one-page résumé replaceable without rewriting interface code. Selectable text, embedded fonts, and source links remain independently verifiable. |
 | **Signal Operating System** | Persistent GitHub, LinkedIn, X, and résumé access plus `/` command search, a recruiter quick-read, native sharing, and a mobile action tray. |
 
 ## Selected systems inside the portfolio
@@ -45,7 +45,7 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 - **Interface:** React 19, Vite, TypeScript/JavaScript, responsive semantic UI
 - **Spatial system:** Three.js, React Three Fiber, Drei, postprocessing
 - **Motion:** GSAP, Motion, scroll-linked timelines, reduced-motion fallbacks
-- **Performance:** viewport-aware rendering, hidden-tab suspension, finite portrait animation, 72 KB main portrait, and a 2.6 KB first-screen thumbnail
+- **Performance:** viewport-aware rendering, hidden-tab suspension, finite portrait animation, approximately 75 KB main portrait, and a 3.2 KB first-screen thumbnail
 - **Typography:** Space Grotesk + JetBrains Mono
 - **Delivery:** Vercel production deployment, Sites-compatible worker output, automated build verification
 
@@ -61,6 +61,7 @@ Production verification:
 ```bash
 npm run build
 npm run test:sites
+npm run test:profile
 ```
 
 The build must emit `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
@@ -68,6 +69,8 @@ The build must emit `dist/client/index.html`, `dist/server/index.js`, and `dist/
 ## Release integrity
 
 Production changes pass the Vite build and Sites worker contract before deployment. The public résumé uses one stable route and a versioned runtime manifest; releases verify that the deployed PDF is byte-identical to the canonical local artifact, so portfolio, GitHub, and recruiter links cannot silently drift apart.
+
+The September 2026 refresh uses the supplied portrait, a minimal 1200 × 630 social card, and a compact résumé photo header requested by Aman. Qualifications remain one-column text; this does not imply universal ATS acceptance. See [asset and verification notes](docs/profile-refresh-2026-09-24.md).
 
 ## Project structure
 

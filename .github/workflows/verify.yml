@@ -34,3 +34,5 @@ jobs:
       - name: Verify Sites handoff
         run: npm run test:sites
 
+      - name: Verify profile assets and canonical resume
+        run: npm run test:profile

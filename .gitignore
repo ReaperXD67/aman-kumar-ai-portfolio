@@ -7,3 +7,4 @@ tmp/
 .env*
 output/
 .playwright-cli/
+__pycache__/

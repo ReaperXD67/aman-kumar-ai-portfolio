@@ -3,7 +3,7 @@ import { ArrowCounterClockwise, ArrowUpRight, Cpu, User } from "@phosphor-icons/
 import { useReducedMotion } from "./useMotionPreference.js";
 import "./portrait-signal.css";
 
-const PORTRAIT = "/profile/aman-portrait.webp";
+const PORTRAIT = "/profile/aman-portrait.webp?v=20260924";
 const Kernel = lazy(() => import("./IdentityKernel.jsx").then((module) => ({ default: module.IdentityKernel })));
 const clamp = (value) => Math.min(1, Math.max(0, value));
 const noise = (index) => ((index * 7919 + 104729) % 65521) / 65521;
@@ -197,7 +197,7 @@ export function PortraitSignal() {
 export function PortraitSignature() {
   return (
     <a className="portrait-signature" href="#about" aria-label="Meet Aman Kumar, previously AI Engineer Intern at micro1">
-      <span className="portrait-signature-image"><img src="/profile/aman-portrait-small.webp" alt="Aman Kumar" width="160" height="160" /><i aria-hidden="true" /></span>
+      <span className="portrait-signature-image"><img src="/profile/aman-portrait-small.webp?v=20260924" alt="Aman Kumar" width="160" height="160" /><i aria-hidden="true" /></span>
       <span className="portrait-signature-copy"><strong>Aman Kumar<span>THE ENGINEER BEHIND THE SYSTEMS</span></strong><small>BUILDING AT SIP <b>↗</b> PREVIOUSLY AT micro1</small></span>
       <ArrowUpRight size={18} aria-hidden="true" />
     </a>
