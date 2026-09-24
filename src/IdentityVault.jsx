@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { PortraitSignal } from "./PortraitSignal.jsx";
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "./useMotionPreference.js";
+import { documentViewerUrl } from "./resumeManifest.js";
 import {
   ArrowRight,
   ArrowSquareOut,
@@ -64,14 +65,6 @@ const CAREER = [
     stack: ["PyTorch", "FastAPI", "Dify / n8n", "Vercel / VPS"],
   },
 ];
-
-const DEFAULT_RESUME = {
-  url: "/profile/aman-kumar-resume.pdf",
-  preview: "/profile/aman-kumar-resume-preview.png",
-  version: "2026.09.5",
-  updated: "05 SEP 2026",
-  source: "CANONICAL ATS PDF",
-};
 
 const PROFILE_LINKS = [
   { label: "GitHub", detail: "SYSTEMS / SOURCE / PROOF", href: "https://github.com/ReaperXD67", icon: GithubLogo },
@@ -152,6 +145,7 @@ function ArtifactDialog({ artifact, resume, onClose }) {
   return (
     <dialog
       className="artifact-dialog"
+      aria-label={artifact === "resume" ? "Résumé viewer" : "micro1 certificate viewer"}
       ref={dialogRef}
       onClose={onClose}
       onClick={(event) => event.target === event.currentTarget && close()}
@@ -162,11 +156,12 @@ function ArtifactDialog({ artifact, resume, onClose }) {
             <span>{artifact === "resume" ? "CAREER SOURCE / PDF" : "VERIFIED CREDENTIAL / IMAGE"}</span>
             <strong>{artifact === "resume" ? "AMAN KUMAR — RÉSUMÉ" : "MICRO1 — AI / ML DEVELOPER"}</strong>
           </div>
+          {artifact === "resume" && <a className="artifact-open-pdf" href={resume.url} target="_blank" rel="noreferrer">Open PDF <ArrowSquareOut size={16} /></a>}
           <button type="button" onClick={close} aria-label="Close document viewer"><X size={20} /></button>
         </header>
         <div className="artifact-dialog-content">
           {artifact === "resume" ? (
-            <iframe title="Aman Kumar résumé" src={`${resume.url}#view=FitH`} />
+            <iframe title="Aman Kumar résumé" src={documentViewerUrl(resume.url)} />
           ) : (
             <img src="/assets/micro1-certification.jpg" alt="micro1 certification awarded to Aman Kumar" />
           )}
@@ -176,23 +171,10 @@ function ArtifactDialog({ artifact, resume, onClose }) {
   );
 }
 
-export function IdentityVault() {
+export function IdentityVault({ resume }) {
   const reducedMotion = useReducedMotion();
   const [activeCareer, setActiveCareer] = useState(0);
   const [artifact, setArtifact] = useState(null);
-  const [resume, setResume] = useState(DEFAULT_RESUME);
-
-  useEffect(() => {
-    let alive = true;
-    fetch("/profile/resume.json", { cache: "no-store" })
-      .then((response) => {
-        if (!response.ok) throw new Error("Resume manifest unavailable");
-        return response.json();
-      })
-      .then((manifest) => alive && setResume({ ...DEFAULT_RESUME, ...manifest }))
-      .catch(() => alive && setResume(DEFAULT_RESUME));
-    return () => { alive = false; };
-  }, []);
 
   const current = CAREER[activeCareer];
 
@@ -305,17 +287,18 @@ export function IdentityVault() {
             </button>
             <div className="artifact-copy">
               <h3>The full picture, in one page.</h3>
-              <header><span>RÉSUMÉ / {resume.version}</span><strong>LIVE SOURCE</strong></header>
-              <p>Experience, three flagship projects, technical skills, and education in a clear single-page PDF. Every project links directly to its source or live product. This link always points to the current version.</p>
+              <header><span>RÉSUMÉ / {resume.version}</span><strong role="status">{resume.statusLabel}</strong></header>
+              <p>A photo-free, single-column résumé: experience, three flagship projects, technical skills, and education. Selectable text and direct source links make it straightforward to read, search, and verify.</p>
               <dl>
-                <div><dt>LAST VERIFIED</dt><dd>{resume.updated}</dd></div>
-                <div><dt>FORMAT</dt><dd>ONE PAGE / SELECTABLE TEXT</dd></div>
+                <div><dt>DOCUMENT DATE</dt><dd>{resume.updated}</dd></div>
+                <div><dt>FORMAT</dt><dd>ONE PAGE / PHOTO-FREE / TEXT PDF</dd></div>
                 <div><dt>INCLUDES</dt><dd>EXPERIENCE / PROJECTS / SKILLS</dd></div>
               </dl>
               <div className="artifact-actions">
                 <button type="button" onClick={() => setArtifact("resume")}>Open résumé <ArrowSquareOut size={17} /></button>
                 <a href={resume.url} download>Download PDF <DownloadSimple size={17} /></a>
               </div>
+              {resume.status === "offline" && <button className="resume-retry" type="button" onClick={resume.retry}>Version check unavailable. Retry <ArrowRight size={15} /></button>}
             </div>
           </article>
 
@@ -343,20 +326,31 @@ export function IdentityVault() {
 export function Contact() {
   const email = "amankumr3254u@gmail.com";
   const [copied, setCopied] = useState(false);
+  const [copyStatus, setCopyStatus] = useState("");
+  const copyTimer = useRef(null);
   const [status, setStatus] = useState("");
   const [fields, setFields] = useState({ name: "", sender: "", brief: "" });
 
+  useEffect(() => () => window.clearTimeout(copyTimer.current), []);
+
   const copyEmail = async () => {
-    await navigator.clipboard.writeText(email);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    window.clearTimeout(copyTimer.current);
+    try {
+      await navigator.clipboard.writeText(email);
+      setCopied(true);
+      setCopyStatus("Email address copied.");
+      copyTimer.current = window.setTimeout(() => { setCopied(false); setCopyStatus(""); }, 2200);
+    } catch {
+      setCopied(false);
+      setCopyStatus(`Copy unavailable. Email directly: ${email}`);
+    }
   };
 
   const submit = (event) => {
     event.preventDefault();
     const subject = `Portfolio enquiry from ${fields.name}`;
     const body = `Name: ${fields.name}\nEmail: ${fields.sender}\n\nProject / opportunity:\n${fields.brief}`;
-    setStatus("Opening your email client with the brief attached…");
+    setStatus("Email draft requested. Review and send it in your email app; nothing has been sent by this website.");
     window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
@@ -370,6 +364,7 @@ export function Contact() {
           <a href="tel:+917667116926"><Phone size={18} />+91 76671 16926</a>
           <button type="button" onClick={copyEmail}>{copied ? <Check size={18} weight="bold" /> : <Copy size={18} />}{copied ? "Copied" : "Copy email"}</button>
         </div>
+        <p className="contact-copy-status" role="status">{copyStatus}</p>
         <nav className="contact-channels" aria-label="Professional profiles">
           {PROFILE_LINKS.map(({ label, detail, href, icon: Icon }) => (
             <a key={label} href={href} target="_blank" rel="noreferrer">
@@ -395,8 +390,8 @@ export function Contact() {
           <span>The problem</span>
           <textarea value={fields.brief} onChange={(event) => setFields({ ...fields, brief: event.target.value })} name="brief" required minLength={20} rows={6} placeholder="What are you trying to build, repair, or prove?" />
         </label>
-        <button className="contact-submit" type="submit">Send the brief <ArrowRight size={19} /></button>
-        <p className="contact-status" role="status">{status || "Submitting opens a pre-filled email so the message goes directly to Aman."}</p>
+        <button className="contact-submit" type="submit">Open email draft <ArrowRight size={19} /></button>
+        <p className="contact-status" role="status">{status || "Opens a pre-filled draft in your email app. You review and send it."}</p>
       </form>
     </section>
   );

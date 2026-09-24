@@ -70,7 +70,11 @@ The build must emit `dist/client/index.html`, `dist/server/index.js`, and `dist/
 
 Production changes pass the Vite build and Sites worker contract before deployment. The public résumé uses one stable route and a versioned runtime manifest; releases verify that the deployed PDF is byte-identical to the canonical local artifact, so portfolio, GitHub, and recruiter links cannot silently drift apart.
 
-The September 2026 refresh uses the supplied portrait, a minimal 1200 × 630 social card, and a compact résumé photo header requested by Aman. Qualifications remain one-column text; this does not imply universal ATS acceptance. See [asset and verification notes](docs/profile-refresh-2026-09-24.md).
+The September 2026 refresh keeps the supplied portrait on the portfolio and GitHub, with a minimal 1200 × 630 social card. Following Aman's latest preference, the canonical résumé is photo-free: one column, readable black text, embedded fonts, and specific source-grounded keywords. No hidden ranking instructions or automatic-shortlisting claims. See [asset and verification notes](docs/profile-refresh-2026-09-24.md).
+
+The shared résumé resolver validates the runtime manifest, refreshes local document URLs when the PDF digest changes, and exposes a retryable fallback when a version check fails. The command palette supports accent-insensitive search (`resume`), `CV` aliases, ranked direct matches, and keyboard selection. Recruiter actions precede the project detail cards; mobile professional links use full labels.
+
+PDF structural checks also run in CI. To verify a replacement locally, install `scripts/requirements-resume-qa.txt` in a Python environment and run `python scripts/verify-resume.py`. The PDF is checked for image-free structure, text order, embedded fonts, legible text, links, and ordinary metadata; this is not an ATS vendor certification.
 
 ## Project structure
 

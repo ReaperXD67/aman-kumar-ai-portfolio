@@ -36,3 +36,15 @@ jobs:
 
       - name: Verify profile assets and canonical resume
         run: npm run test:profile
+
+      - name: Set up Python for PDF structural checks
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: scripts/requirements-resume-qa.txt
+
+      - name: Verify selectable, photo-free resume structure
+        run: |
+          python -m pip install -r scripts/requirements-resume-qa.txt
+          python scripts/verify-resume.py

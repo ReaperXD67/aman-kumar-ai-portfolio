@@ -10,7 +10,6 @@ import pymupdf
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "public" / "profile" / "aman-kumar-resume.pdf"
-PORTRAIT = ROOT / "public" / "profile" / "aman-avatar-20260924.jpg"
 
 PORTFOLIO = "https://aman-kumar-ai-portfolio.vercel.app"
 GITHUB = "https://github.com/ReaperXD67"
@@ -36,14 +35,11 @@ LINK = (0, 45 / 255, 77 / 255)
 FONT_DIR = Path(r"C:\Windows\Fonts")
 REGULAR_FILE = FONT_DIR / "arial.ttf"
 BOLD_FILE = FONT_DIR / "arialbd.ttf"
-ITALIC_FILE = FONT_DIR / "ariali.ttf"
 REGULAR_NAME = "ArialRegular"
 BOLD_NAME = "ArialBold"
-ITALIC_NAME = "ArialItalic"
 
 REGULAR = pymupdf.Font(fontfile=str(REGULAR_FILE))
 BOLD = pymupdf.Font(fontfile=str(BOLD_FILE))
-ITALIC = pymupdf.Font(fontfile=str(ITALIC_FILE))
 
 
 @dataclass(frozen=True)
@@ -64,9 +60,9 @@ PROJECTS = (
         source=AUTONOMOUS,
         live=None,
         bullets=(
-            "Built a durable agent runtime with a PostgreSQL transactional outbox, Redis dispatch, worker leases, heartbeats and bounded retries to recover interrupted work.",
-            "Bound human approvals to exact action payloads; checked persisted receipts to prevent replay of recorded side effects and rejected stale worker completions.",
-            "Integrated local Qwen inference and controlled hosted-model fallback; isolated Docker workers and added dependency, secret and image scans to CI.",
+            "Built a durable agent runtime with a PostgreSQL transactional outbox, Redis dispatch, worker leases and bounded retries to recover interrupted tasks.",
+            "Bound human-in-the-loop approvals to exact action payloads; checked persisted receipts to prevent replay of recorded side effects and rejected stale worker completions.",
+            "Integrated local Qwen inference with controlled hosted-model fallback; isolated Docker workers and added dependency, secret and container-image scans to CI.",
         ),
     ),
     Project(
@@ -76,9 +72,9 @@ PROJECTS = (
         source=ATLASLM,
         live=ATLASLM_LIVE,
         bullets=(
-            "Built a live RAG workbench with deterministic PDF ingestion, contextual chunking, exact deduplication and source metadata that follows evidence through retrieval.",
-            "Fused dense vector search and BM25 with reciprocal rank fusion, reranking and MMR; gated generation on evidence sufficiency and audited citations afterward.",
-            "Deployed on Vercel with Upstash Vector and a local Qdrant adapter; exposed timed traces, retrieval evaluations and document-scoped semantic caching.",
+            "Built a live document workbench with deterministic PDF ingestion, contextual chunking, deduplication and source metadata preserved through retrieval.",
+            "Implemented hybrid search with dense embeddings, BM25, reciprocal rank fusion, reranking and MMR; added evidence-sufficiency gates and citation audits.",
+            "Deployed on Vercel with Upstash Vector and a local Qdrant adapter; exposed retrieval evaluations, timed traces and document-scoped semantic caching.",
         ),
     ),
     Project(
@@ -89,7 +85,7 @@ PROJECTS = (
         live=MINEPULSE_LIVE,
         bullets=(
             "Built and deployed a Next.js marketplace and Java Paper plugin for account linking, server-verified playtime rewards and in-game purchase delivery.",
-            "Designed transactional ledgers, expiring delivery claims and durable plugin receipts; refunded eligible expired purchases without losing the accounting trail.",
+            "Designed transactional ledgers, expiring delivery claims and durable plugin receipts; implemented refunds for eligible expired purchases with an auditable trail.",
             "Secured the plugin boundary with HMAC-SHA256 and replay protection; deployed app replicas, PostgreSQL and Redis behind Nginx with encrypted backups.",
         ),
     ),
@@ -205,7 +201,7 @@ def draw_wrapped(
     return y
 
 
-def draw_bullets(page: pymupdf.Page, y: float, bullets: Iterable[str], *, size: float = 10.2, leading: float = 12.5) -> float:
+def draw_bullets(page: pymupdf.Page, y: float, bullets: Iterable[str], *, size: float = 10.5, leading: float = 12.8) -> float:
     first_x = LEFT + 4
     continuation_x = LEFT + 12
     for bullet in bullets:
@@ -222,13 +218,13 @@ def draw_bullets(page: pymupdf.Page, y: float, bullets: Iterable[str], *, size: 
 
 
 def section(page: pymupdf.Page, y: float, title: str) -> float:
-    draw_text(page, LEFT, y, title, 10.3, fontname=BOLD_NAME, color=NAVY)
+    draw_text(page, LEFT, y, title, 10.8, fontname=BOLD_NAME, color=NAVY)
     page.draw_line((LEFT, y + 3.6), (RIGHT, y + 3.6), color=(0.55, 0.55, 0.55), width=0.5)
-    return y + 14.8
+    return y + 15.2
 
 
 def role_header(page: pymupdf.Page, y: float, title: str, org: str, dates: str) -> float:
-    draw_text(page, LEFT, y, title, 10.2, fontname=BOLD_NAME)
+    draw_text(page, LEFT, y, title, 10.5, fontname=BOLD_NAME)
     date_size = 9.2
     draw_text(page, RIGHT - text_width(dates, date_size, BOLD), y, dates, date_size, fontname=BOLD_NAME)
     y += 12.1
@@ -237,11 +233,11 @@ def role_header(page: pymupdf.Page, y: float, title: str, org: str, dates: str) 
 
 
 def project_header(page: pymupdf.Page, y: float, project: Project) -> float:
-    title_size = fit_size(project.name, RIGHT - LEFT - 38, 10.2, 9.6, BOLD)
+    title_size = fit_size(project.name, RIGHT - LEFT - 38, 10.5, 10.0, BOLD)
     draw_text(page, LEFT, y, project.name, title_size, fontname=BOLD_NAME)
     draw_text(page, RIGHT - text_width(project.date, 9.0, BOLD), y, project.date, 9.0, fontname=BOLD_NAME)
     y += 12.0
-    stack_size = 8.8
+    stack_size = 9.0
     draw_text(page, LEFT, y, project.stack, stack_size, color=MUTED)
     x = LEFT + text_width(project.stack, stack_size)
     if project.live:
@@ -254,9 +250,7 @@ def project_header(page: pymupdf.Page, y: float, project: Project) -> float:
     return y + 12.7
 
 
-def build(output: Path = OUTPUT, portrait: Path = PORTRAIT) -> None:
-    if not portrait.is_file():
-        raise FileNotFoundError(f"Approved portrait not found: {portrait}; pass --portrait explicitly.")
+def build(output: Path = OUTPUT) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     document = pymupdf.open()
     page = document.new_page(width=PAGE_W, height=PAGE_H)
@@ -265,15 +259,13 @@ def build(output: Path = OUTPUT, portrait: Path = PORTRAIT) -> None:
     page.insert_font(fontname=REGULAR_NAME, fontfile=str(REGULAR_FILE), set_simple=True)
     page.insert_font(fontname=BOLD_NAME, fontfile=str(BOLD_FILE), set_simple=True)
 
-    # The user explicitly requested a portrait on 24 September 2026. Keep it
-    # confined to the header: all qualifications remain ordinary selectable
-    # single-column text. No resume can guarantee compatibility with every ATS.
-    photo_rect = pymupdf.Rect(RIGHT - 66, 27, RIGHT, 93)
-    page.insert_image(photo_rect, filename=str(portrait), keep_proportion=True)
-    draw_text(page, LEFT, 42.0, "AMAN KUMAR", 25.0, fontname=BOLD_NAME)
-    draw_text(page, LEFT, 58.0, "AI ENGINEER & FULL-STACK DEVELOPER", 10.6, fontname=BOLD_NAME)
-    draw_text(page, LEFT, 73.0, "Bengaluru, India | +91 76671 16926", 9.3)
-    draw_link(page, LEFT, 87.0, "amankumr3254u@gmail.com", EMAIL, 9.3)
+    # All contact information is normal page-body text, not a PDF form, image,
+    # or decorative running header. Preserve a plain one-column reading order.
+    draw_text(page, LEFT, 39.0, "AMAN KUMAR", 24.0, fontname=BOLD_NAME)
+    draw_text(page, LEFT, 55.0, "AI ENGINEER & FULL-STACK DEVELOPER", 10.6, fontname=BOLD_NAME)
+    contact = "Bengaluru, India | +91 76671 16926 | "
+    draw_text(page, LEFT, 71.0, contact, 9.3)
+    draw_link(page, LEFT + text_width(contact, 9.3), 71.0, "amankumr3254u@gmail.com", EMAIL, 9.3)
     x = LEFT
     for label, url in (
         ("Portfolio", PORTFOLIO),
@@ -281,17 +273,17 @@ def build(output: Path = OUTPUT, portrait: Path = PORTRAIT) -> None:
         ("LinkedIn / Aman Kumar", LINKEDIN),
     ):
         if x > LEFT:
-            draw_text(page, x, 102.0, "   |   ", 9.3, color=MUTED)
+            draw_text(page, x, 85.0, "   |   ", 9.3, color=MUTED)
             x += text_width("   |   ", 9.3)
-        x += draw_link(page, x, 102.0, label, url, 9.3)
+        x += draw_link(page, x, 85.0, label, url, 9.3)
 
-    y = section(page, 120.0, "SUMMARY")
+    y = section(page, 104.0, "SUMMARY")
     y = draw_wrapped(
         page,
         y,
-        "AI engineer building LLM applications, agentic workflows and full-stack products with traceable decisions and recoverable execution. Experience in AI product delivery at SIP Organization and self-adaptive systems at micro1.",
-        size=10.2,
-        leading=12.5,
+        "AI engineer building large language model (LLM) applications and full-stack products. Experience at SIP Organization and micro1 spans AI product delivery, backend integrations and self-adaptive systems.",
+        size=10.5,
+        leading=12.8,
     )
     y += 4.0
 
@@ -302,7 +294,7 @@ def build(output: Path = OUTPUT, portrait: Path = PORTRAIT) -> None:
         y,
         (
             "Lead development of AI-powered WhatsApp onboarding and customer-assistance workflows, including context-aware conversations and response orchestration.",
-            "Build backend integrations across AI microservices and coordinate reliability and end-to-end product delivery.",
+            "Build backend integrations across AI microservices, coordinating reliability and end-to-end product delivery.",
         ),
     )
     y = role_header(page, y + 3.0, "AI Engineer Intern", "micro1", "Aug 2025 - Jul 2026")
@@ -333,7 +325,7 @@ def build(output: Path = OUTPUT, portrait: Path = PORTRAIT) -> None:
     y = section(page, y + 2.0, "TECHNICAL SKILLS")
     skill_rows = (
         ("Languages", "Python, TypeScript, JavaScript, Java, SQL"),
-        ("AI / ML", "LLM applications, retrieval-augmented generation (RAG), agentic systems, PyTorch, embeddings, evaluation"),
+        ("AI / ML", "Retrieval-augmented generation (RAG), agentic systems, PyTorch, embeddings, reranking, evaluation"),
         ("Backend / Data", "FastAPI, Next.js, React, REST APIs, PostgreSQL, pgvector, Redis, Qdrant, Prisma, OAuth"),
         ("Infrastructure", "Docker, Linux, Nginx, GitHub Actions, CI/CD, Vercel, VPS, observability, webhooks"),
     )
@@ -348,15 +340,15 @@ def build(output: Path = OUTPUT, portrait: Path = PORTRAIT) -> None:
         y += 0.4
 
     y = section(page, y + 5.2, "EDUCATION & CERTIFICATION")
-    draw_text(page, LEFT, y, "B.Sc. Computer Science", 10.0, fontname=BOLD_NAME)
+    draw_text(page, LEFT, y, "B.Sc. Computer Science", 10.5, fontname=BOLD_NAME)
     dates = "Aug 2024 - Sep 2028"
     draw_text(page, RIGHT - text_width(dates, 9.0, BOLD), y, dates, 9.0, fontname=BOLD_NAME)
     y += 11.7
-    draw_text(page, LEFT, y, "Scaler School of Technology in collaboration with BITS Pilani | Bengaluru, India", 8.75, color=MUTED)
+    draw_text(page, LEFT, y, "Scaler School of Technology in collaboration with BITS Pilani | Bengaluru, India", 9.0, color=MUTED)
     y += 12.0
     label = "Certified Freelance AI / Machine Learning Developer - micro1, Mar 2026 | "
-    draw_text(page, LEFT, y, label, 8.5)
-    draw_link(page, LEFT + text_width(label, 8.5), y, "Certificate", CERTIFICATE, 8.5)
+    draw_text(page, LEFT, y, label, 9.0)
+    draw_link(page, LEFT + text_width(label, 9.0), y, "Certificate", CERTIFICATE, 9.0)
 
     if y > PAGE_H - 34:
         raise ValueError(f"Resume content overflowed the one-page layout at y={y:.1f}")
@@ -365,13 +357,8 @@ def build(output: Path = OUTPUT, portrait: Path = PORTRAIT) -> None:
         {
             "title": "Aman Kumar - AI Engineer and Full-Stack Developer Resume",
             "author": "Aman Kumar",
-            "subject": "AI engineering, agentic systems, RAG, backend systems, and full-stack product engineering",
-            "keywords": (
-                "AI Engineer, Applied AI Engineer, Full-Stack Engineer, LLM applications, agentic systems, "
-                "RAG, retrieval augmented generation, evaluation, observability, human in the loop, guardrails, "
-                "Python, TypeScript, FastAPI, Next.js, React, PostgreSQL, pgvector, Redis, vector database, "
-                "Docker, CI/CD, GitHub Actions, Vercel, VPS, REST APIs, OAuth, webhooks"
-            ),
+            "subject": "Professional experience, software projects, technical skills, education and certification",
+            "keywords": "AI Engineer, Full-Stack Developer, Python, TypeScript, RAG",
             "creator": "Aman Kumar",
             "producer": "PyMuPDF",
         }
@@ -390,6 +377,5 @@ def build(output: Path = OUTPUT, portrait: Path = PORTRAIT) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build the canonical one-page resume; use --output for a review candidate.")
     parser.add_argument("--output", type=Path, default=OUTPUT)
-    parser.add_argument("--portrait", type=Path, default=PORTRAIT)
     args = parser.parse_args()
-    build(args.output, args.portrait)
+    build(args.output)

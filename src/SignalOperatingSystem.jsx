@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "./useMotionPreference.js";
+import { commandMatches, commandPriority } from "./resumeManifest.js";
 import {
   ArrowRight,
   ArrowSquareOut,
@@ -24,14 +25,14 @@ const RECRUITER_URL = `${PORTFOLIO_URL}/?view=recruiter`;
 const SOCIALS = [
   {
     label: "GitHub",
-    shortLabel: "GH",
+    shortLabel: "GitHub",
     detail: "Systems, source, and proof",
     href: "https://github.com/ReaperXD67",
     icon: GithubLogo,
   },
   {
     label: "LinkedIn",
-    shortLabel: "IN",
+    shortLabel: "LinkedIn",
     detail: "Experience and professional context",
     href: "https://www.linkedin.com/in/aman-kumar-494601329/",
     icon: LinkedinLogo,
@@ -69,13 +70,6 @@ const FLAGSHIPS = [
   },
 ];
 
-const DEFAULT_RESUME = {
-  url: "/profile/aman-kumar-resume.pdf",
-  version: "2026.09.5",
-  updated: "05 SEP 2026",
-  source: "CANONICAL ATS PDF",
-};
-
 function useActiveSection() {
   const [activeSection, setActiveSection] = useState("TOP");
 
@@ -102,7 +96,7 @@ function useActiveSection() {
   return activeSection;
 }
 
-export function SignalOperatingSystem({ panel, onPanelChange }) {
+export function SignalOperatingSystem({ panel, onPanelChange, resume }) {
   const reducedMotion = useReducedMotion();
   const activeSection = useActiveSection();
   const dialogRef = useRef(null);
@@ -111,20 +105,7 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
   const [query, setQuery] = useState("");
   const [activeAction, setActiveAction] = useState(0);
   const [activeFlagship, setActiveFlagship] = useState(0);
-  const [resume, setResume] = useState(DEFAULT_RESUME);
   const [toast, setToast] = useState("");
-
-  useEffect(() => {
-    let alive = true;
-    fetch("/profile/resume.json", { cache: "no-store" })
-      .then((response) => {
-        if (!response.ok) throw new Error("Résumé manifest unavailable");
-        return response.json();
-      })
-      .then((manifest) => alive && setResume({ ...DEFAULT_RESUME, ...manifest }))
-      .catch(() => alive && setResume(DEFAULT_RESUME));
-    return () => { alive = false; };
-  }, []);
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("view") === "recruiter") onPanelChange("recruiter");
@@ -213,7 +194,7 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
   const actions = [
     { label: "Open recruiter quick-read", detail: "Three flagship systems, availability, résumé, and direct contact", group: "RECRUITER", icon: Briefcase, run: () => onPanelChange("recruiter") },
     { label: "Inspect selected work", detail: "Project previews, system anatomy, failure modes, and proof", group: "NAVIGATE", icon: ArrowRight, run: () => jumpTo("work") },
-    { label: "Open canonical résumé", detail: `${resume.version} · ${resume.updated} · ${resume.source}`, group: "CAREER", icon: FilePdf, run: () => openExternal(resume.url) },
+    { label: "Open ATS résumé", detail: `One-page, photo-free PDF · ${resume.updated}`, aliases: "cv curriculum vitae download canonical", group: "CAREER", icon: FilePdf, run: () => openExternal(resume.url) },
     { label: "Open GitHub", detail: "Source code, system documentation, and public activity", group: "CONNECT", icon: GithubLogo, run: () => openExternal(SOCIALS[0].href) },
     { label: "Open LinkedIn", detail: "Experience, education, and professional profile", group: "CONNECT", icon: LinkedinLogo, run: () => openExternal(SOCIALS[1].href) },
     { label: "Open X / Twitter", detail: "Technical notes, experiments, and updates", group: "CONNECT", icon: XLogo, run: () => openExternal(SOCIALS[2].href) },
@@ -222,7 +203,12 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
     { label: "Share this portfolio", detail: "Use the native share sheet or copy the production URL", group: "SHARE", icon: ShareNetwork, run: sharePortfolio },
   ];
 
-  const filteredActions = actions.filter((action) => `${action.label} ${action.detail} ${action.group}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const filteredActions = actions.filter((action) => commandMatches(action, query))
+    .sort((a, b) => commandPriority(b, query) - commandPriority(a, query));
+
+  useEffect(() => {
+    if (panel === "command") document.getElementById(`portfolio-action-${activeAction}`)?.scrollIntoView({ block: "nearest", behavior: "instant" });
+  }, [activeAction, query, panel]);
 
   const runAction = (action) => action?.run?.();
 
@@ -257,8 +243,8 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
         {SOCIALS.map(({ label, shortLabel, href, icon: Icon }) => (
           <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={`Open ${label}`}><Icon size={19} /><span>{shortLabel}</span></a>
         ))}
-        <a href={resume.url} target="_blank" rel="noreferrer" aria-label="Open résumé"><FilePdf size={19} /><span>CV</span></a>
-        <button type="button" onClick={() => onPanelChange("command")} aria-label="Open Signal OS"><Command size={19} /><span>OS</span></button>
+        <a href={resume.url} target="_blank" rel="noreferrer" aria-label="Open résumé"><FilePdf size={19} /><span>Résumé</span></a>
+        <button type="button" onClick={() => onPanelChange("command")} aria-label="Open portfolio menu"><Command size={19} /><span>Menu</span></button>
       </nav>
 
       <dialog
@@ -286,7 +272,7 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
               <div className="recruiter-hero">
                 <div>
                   <h2>Three systems.<br />One production thesis.</h2>
-                  <p>AI ideas are easy. Aman builds the controlled, observable, deployable layer that survives contact with real users.</p>
+                  <p>AI Engineer & Full-Stack Developer. Currently a Project Lead Developer Intern at SIP; previously an AI Engineer Intern at micro1. Explore the source, live products, and engineering decisions behind the work.</p>
                 </div>
                 <dl>
                   <div><dt>ROLE</dt><dd>AI ENGINEER + FULL-STACK</dd></div>
@@ -294,6 +280,13 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
                   <div><dt>STATUS</dt><dd><i /> AVAILABLE / ANY MODE</dd></div>
                   <div><dt>RÉSUMÉ</dt><dd>{resume.version} / {resume.updated}</dd></div>
                 </dl>
+              </div>
+
+              <div className="recruiter-actions">
+                <a href={resume.url} target="_blank" rel="noreferrer"><FilePdf size={19} /> One-page ATS résumé <ArrowSquareOut size={17} /></a>
+                <a href={SOCIALS[1].href} target="_blank" rel="noreferrer"><LinkedinLogo size={19} /> LinkedIn <ArrowSquareOut size={17} /></a>
+                <a href={`mailto:${EMAIL}`}><EnvelopeSimple size={19} /> Email Aman <ArrowRight size={17} /></a>
+                <button type="button" onClick={shareRecruiterView}><ShareNetwork size={19} /> Share recruiter view</button>
               </div>
 
               <div className={`recruiter-systems active-${activeFlagship}`}>
@@ -314,12 +307,6 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
                 ))}
               </div>
 
-              <div className="recruiter-actions">
-                <a href={resume.url} target="_blank" rel="noreferrer"><FilePdf size={19} /> Open canonical résumé <ArrowSquareOut size={17} /></a>
-                <a href={SOCIALS[1].href} target="_blank" rel="noreferrer"><LinkedinLogo size={19} /> LinkedIn <ArrowSquareOut size={17} /></a>
-                <a href={`mailto:${EMAIL}`}><EnvelopeSimple size={19} /> Email Aman <ArrowRight size={17} /></a>
-                <button type="button" onClick={shareRecruiterView}><ShareNetwork size={19} /> Share recruiter view</button>
-              </div>
             </motion.div>
           ) : (
             <div className="command-center">
@@ -329,6 +316,11 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
                   <span className="sr-only">Search portfolio commands</span>
                   <input
                     ref={searchRef}
+                    role="combobox"
+                    aria-expanded="true"
+                    aria-autocomplete="list"
+                    aria-controls="portfolio-actions"
+                    aria-activedescendant={filteredActions.length ? `portfolio-action-${activeAction}` : undefined}
                     value={query}
                     onChange={(event) => { setQuery(event.target.value); setActiveAction(0); }}
                     onKeyDown={handleSearchKeyDown}
@@ -337,14 +329,17 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
                   <kbd>ESC</kbd>
                 </label>
 
-                <div className="command-results" role="menu" aria-label="Portfolio actions">
+                <div className="command-results" id="portfolio-actions" role="listbox" aria-label="Portfolio actions">
                   {filteredActions.length ? filteredActions.map((action, index) => {
                     const Icon = action.icon;
                     return (
                       <button
                         key={action.label}
                         type="button"
-                        role="menuitem"
+                        role="option"
+                        id={`portfolio-action-${index}`}
+                        aria-selected={activeAction === index}
+                        tabIndex={-1}
                         className={activeAction === index ? "is-active" : ""}
                         onPointerEnter={() => setActiveAction(index)}
                         onFocus={() => setActiveAction(index)}
@@ -356,7 +351,7 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
                         <ArrowRight size={17} />
                       </button>
                     );
-                  }) : <p className="command-empty">No matching signal. Try “résumé”, “GitHub”, “work”, or “email”.</p>}
+                  }) : <p className="command-empty" role="status">No matching action. Try “resume”, “CV”, “GitHub”, “work”, or “email”.</p>}
                 </div>
               </div>
 
@@ -366,7 +361,7 @@ export function SignalOperatingSystem({ panel, onPanelChange }) {
                 <p>Use this interface to jump directly to proof, open professional profiles, copy contact details, or hand a recruiter the compressed version.</p>
                 <dl>
                   <div><dt>RÉSUMÉ SOURCE</dt><dd>{resume.source}</dd></div>
-                  <div><dt>LAST VERIFIED</dt><dd>{resume.updated}</dd></div>
+                  <div><dt>DOCUMENT DATE</dt><dd>{resume.updated}</dd></div>
                   <div><dt>KEYBOARD</dt><dd>↑ ↓ NAVIGATE / ENTER OPEN</dd></div>
                 </dl>
                 <button type="button" onClick={() => onPanelChange("recruiter")}><Briefcase size={18} /> Switch to recruiter quick-read <ArrowRight size={17} /></button>

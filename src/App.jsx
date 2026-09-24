@@ -23,6 +23,7 @@ import { SignalOperatingSystem } from "./SignalOperatingSystem.jsx";
 import { PortraitSignature } from "./PortraitSignal.jsx";
 import { ProjectXRay } from "./ProjectXRay.jsx";
 import { useReducedMotion } from "./useMotionPreference.js";
+import { useResumeManifest } from "./useResumeManifest.js";
 const SignalCore = lazy(() => import("./SignalCore.jsx").then((module) => ({ default: module.SignalCore })));
 const CognitiveDescent = lazy(() => import("./CognitiveDescent.jsx").then((module) => ({ default: module.CognitiveDescent })));
 const MethodField = lazy(() => import("./MethodField.jsx").then((module) => ({ default: module.MethodField })));
@@ -339,7 +340,7 @@ function Hero() {
 }
 
 const SIGNALS = [
-  "28 PUBLIC REPOSITORIES",
+  "THREE FLAGSHIP SYSTEMS",
   "12-LAYER TRANSFORMER",
   "DURABLE WORKER LEASES",
   "SIGNED GAME EVENTS",
@@ -350,7 +351,7 @@ const SIGNALS = [
 
 function SignalBand() {
   const proof = [
-    ["28", "PUBLIC REPOSITORIES"],
+    ["03", "FLAGSHIP SYSTEMS"],
     ["12", "DECODER LAYERS / FROM SCRATCH"],
     ["06", "SELECTED SYSTEMS"],
     ["24", "SOURCE-LINKED DESIGN DECISIONS"],
@@ -443,10 +444,29 @@ function Method() {
 
 export function App() {
   const reducedMotion = useReducedMotion();
+  const resume = useResumeManifest();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signalPanel, setSignalPanel] = useState(null);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 130, damping: 24, mass: 0.2 });
+  useEffect(() => {
+    // The browser resolves the initial fragment before React mounts its targets.
+    // Resolve it once after fonts settle; never interrupt a visitor's own input.
+    let id;
+    try { id = decodeURIComponent(window.location.hash.slice(1)); } catch { return undefined; }
+    if (!id) return undefined;
+    let cancelled = false;
+    const cancel = () => { cancelled = true; };
+    const events = ["pointerdown", "wheel", "touchstart", "keydown"];
+    events.forEach((name) => window.addEventListener(name, cancel, { once: true, passive: true }));
+    document.fonts.ready.then(() => {
+      if (!cancelled && !document.querySelector("dialog[open]")) document.getElementById(id)?.scrollIntoView({ behavior: "instant" });
+    });
+    return () => {
+      cancelled = true;
+      events.forEach((name) => window.removeEventListener(name, cancel));
+    };
+  }, []);
   useEffect(() => {
     const closeOnDesktop = () => window.innerWidth > 860 && setMenuOpen(false);
     window.addEventListener("resize", closeOnDesktop);
@@ -457,14 +477,14 @@ export function App() {
       <a className="skip-link" href="#main-content">Skip to portfolio content</a>
       <motion.div className="scroll-progress" style={{ scaleX }} aria-hidden="true" />
       <AppHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} onOpenSignal={() => setSignalPanel("command")} />
-      <SignalOperatingSystem panel={signalPanel} onPanelChange={setSignalPanel} />
+      <SignalOperatingSystem panel={signalPanel} onPanelChange={setSignalPanel} resume={resume} />
       <main id="main-content">
         <Hero />
         <SignalBand />
-        <Suspense fallback={<div className="descent-loading">CALIBRATING SCROLL FIELD</div>}><CognitiveDescent /></Suspense>
+        <Suspense fallback={<div className="descent-section descent-loading">CALIBRATING SCROLL FIELD</div>}><CognitiveDescent /></Suspense>
         <Work />
         <Method />
-        <IdentityVault />
+        <IdentityVault resume={resume} />
         <Contact />
       </main>
       <footer className="site-footer">
@@ -473,7 +493,7 @@ export function App() {
           <a href="https://github.com/ReaperXD67" target="_blank" rel="noreferrer">GitHub</a>
           <a href="https://www.linkedin.com/in/aman-kumar-494601329/" target="_blank" rel="noreferrer">LinkedIn</a>
           <a href="https://x.com/Aman1181" target="_blank" rel="noreferrer">X / Twitter</a>
-          <a href="/profile/aman-kumar-resume.pdf" target="_blank" rel="noreferrer">Résumé</a>
+          <a href={resume.url} target="_blank" rel="noreferrer">Résumé</a>
         </nav>
         <a href="#top">RETURN TO ORIGIN</a>
       </footer>
