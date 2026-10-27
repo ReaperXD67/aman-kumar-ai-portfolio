@@ -55,11 +55,6 @@
 .xray-plane-label > strong { font-size: 18px; font-weight: 500; }
 .xray-plane-label > small { justify-self: end; max-width: 30ch; color: #bcc9ac; font: 8px/1.5 var(--mono); }
 .xray-plane.is-selected .xray-plane-label { color: var(--project-accent); background: #2c3c1d; }
-.xray-plane-grid { position: absolute; inset: 26px; display: flex; align-items: center; justify-content: space-around; gap: 9%; opacity: 0.68; }
-.xray-plane-grid::before { content: ""; position: absolute; left: 9%; right: 9%; top: 50%; height: 1px; background: #8eaa69; }
-.xray-plane-grid > span { position: relative; z-index: 1; display: grid; place-items: center; flex: 1; min-height: 45px; padding: 8px 3px; border: 1px solid #8eaa69; background: #17240f; color: #d4dfc6; text-align: center; font: 8px/1.5 var(--mono); }
-.xray-plane-grid > span:nth-child(2n) { transform: translateY(-27px); }
-.xray-plane-grid > span:nth-child(2n)::after { content: ""; position: absolute; top: 100%; left: 50%; width: 1px; height: 27px; background: #8eaa69; }
 .xray-plane-terminal { position: absolute; left: 6%; top: 15%; width: 5px; height: 5px; border: 1px solid var(--project-accent); }
 .xray-lens-caption { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 21px 27px 24px; border-top: 1px solid #343934; background: #0b1008; }
 .xray-lens-caption > span { color: #a5b399; font: 8px var(--mono); letter-spacing: 0.09em; }
@@ -249,7 +244,6 @@
   .xray-plane-label { min-height: 36px; padding: 8px 12px; gap: 7px; }
   .xray-plane-label > strong { font-size: 15px; }
   .xray-plane-label > span { font-size: 9px; }
-  .xray-plane-grid { inset: 18px; }
   .xray-lens-caption { padding: 20px 17px; gap: 10px; }
   .xray-lens-caption > span { font-size: 6px; }
   .xray-lens-caption > strong { font-size: clamp(23px, 6vw, 31px); }

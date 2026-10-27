@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowSquareOut, GithubLogo, Scan, Stack } from "@phosphor-icons/react";
 import { useReducedMotion } from "./useMotionPreference.js";
-import { PROJECT_XRAY, XRAY_PATHS } from "./project-xray-data.js";
+import { PROJECT_XRAY } from "./project-xray-data.js";
 import "./project-xray.css";
 import { FailureTrace } from "./FailureTrace.jsx";
 import { ProjectPortal } from "./ProjectPortal.jsx";
+import { XRayCircuit } from "./XRayCircuit.jsx";
 
 const STAGES = [
   { name: "Surface", depth: 0 },
@@ -20,6 +21,7 @@ function InspectionInstrument({ project, previousProject }) {
   const [layerIndex, setLayerIndex] = useState(1);
   const [manual, setManual] = useState(false);
   const [traceControlVersion, setTraceControlVersion] = useState(0);
+  const [circuitVersion, setCircuitVersion] = useState(0);
   const [imageFailed, setImageFailed] = useState(false);
   const visualRef = useRef(null);
   const hasInteracted = useRef(false);
@@ -79,12 +81,14 @@ function InspectionInstrument({ project, previousProject }) {
     takeControl();
     setLayerIndex(index);
     setDepth(100);
+    setCircuitVersion(value => value + 1);
   };
   const inspectTrace = useCallback((index, step) => {
     hasInteracted.current = true;
     setManual(true);
     setLayerIndex(index);
     setDepth(STAGES[step].depth);
+    setCircuitVersion(value => value + 1);
   }, []);
 
   return (
@@ -110,7 +114,7 @@ function InspectionInstrument({ project, previousProject }) {
             <div className="xray-object">
               {notes.layers.map((item, index) => (
                 <div className={`xray-plane ${layerIndex === index ? "is-selected" : ""}`} key={item.label} style={{ "--layer-index": index }} aria-hidden="true">
-                  <div className="xray-plane-grid">{XRAY_PATHS[project.id][index].map((part) => <span key={part}>{part}</span>)}</div>
+                  <XRayCircuit projectId={project.id} layerIndex={index} active={inspecting && layerIndex === index} reducedMotion={reducedMotion} replayToken={circuitVersion} showGuards={sourceDepth} />
                   <div className="xray-plane-label"><span>0{index + 1}</span><strong>{item.label}</strong><small>{item.contract}</small></div>
                   <span className="xray-plane-terminal" />
                 </div>
@@ -159,6 +163,7 @@ function InspectionInstrument({ project, previousProject }) {
           ) : (
             <div className="xray-decision-notes" key={layer.label}>
               <div className="xray-active-layer"><span>0{layerIndex + 1}</span><h3>{layer.component}</h3></div>
+              <XRayCircuit projectId={project.id} layerIndex={layerIndex} active reducedMotion={reducedMotion} replayToken={circuitVersion} showGuards={sourceDepth} variant="readout" />
               <dl>
                 <div><dt>What can fail</dt><dd>{layer.failure}</dd></div>
                 <div className="xray-chosen-decision"><dt>The engineering choice</dt><dd>{layer.decision}</dd></div>

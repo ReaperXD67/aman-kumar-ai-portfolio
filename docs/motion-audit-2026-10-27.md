@@ -16,6 +16,14 @@ The selected-work instrument has a different problem: six text tabs are the entr
 
 Changes 2 and 3 are implemented in `src/ProjectXRay.jsx`, `src/ProjectPortal.jsx` and `src/project-xray.css`. The shutter sequence lasts less than one second, cancels on remount, never intercepts pointer events, and is omitted under reduced motion. Existing 24 notes, source paths, failure traces and project actions remain intact. The filmstrip uses local real assets and works through ordinary tab buttons, keyboard arrows/Home/End, and touch. On phones it becomes a native horizontal snap rail with a visible next-frame cue, keeping the selected instrument close instead of stacking six cards above it.
 
+## Project-specific source circuits
+
+`src/XRayCircuit.jsx` and `src/xray-circuit.css` replace the repeated three-box plane artwork with 24 explicit source schematics and 97 routed connections. The six project families have different, meaningful structures: agent approval, lease ownership and receipts; dense/BM25 fusion and grounding brakes; Paper trust and delivery/refund boundaries; deterministic recovery policy exits and audit storage; workstation artifact/budget/resume paths; and tokenizer, causal decoder, optimizer split and checkpoint generation.
+
+Each selected layer also appears as a flat diagram beside its engineering notes. Node text uses native CSS size rather than scaling text inside an SVG: 12px on the planes and 13px in the phone readout. The complete source explanation remains accessible as the diagram description and adjacent decision text. Every graph has four or five nodes; branches, return paths, gates and rejected paths remain visible when idle or under reduced motion.
+
+A finite route sweep runs on the active layer when inspection opens, the visitor selects a layer, or the failure walkthrough advances. Its key does not depend on numeric inspection depth or the slider's cancellation counter, so dragging and ordinary scrolling do not repeatedly restart it. Guard emphasis changes at decision depth without remounting playback. Static direction markers preserve the relationships after the sweep settles. There is no continuous renderer, extra pinned sequence, network request or implied live traffic.
+
 ## Skill discovery
 
 The installed **Impeccable** skill already supplies focused `animate`, `bolder`, `overdrive` and craft guidance. The implementation used its scoped animate/bolder guidance: one meaningful transition, bounded mask/transform work, default-visible content and no extra dependency. Its pinned visual rules are subordinate to this project's explicit industrial instrument direction.
@@ -36,4 +44,6 @@ No third-party artwork or animation source was copied into the project-switch im
 
 ## Verification scope
 
-Both changed JSX modules parsed with the project's installed esbuild. The Impeccable mechanical detector reported only the pre-existing grid inside the architectural inspection canvas; that grid belongs to an actual blueprint/measurement surface and is retained intentionally. Final browser verification should batch desktop/mobile project switching, rapid repeated selection, keyboard focus, 24 layer controls, reduced motion and image failure with the root agent's hero changes. This document does not claim those final integration checks have already passed.
+The circuit and integrated X-ray JSX entry points bundle with the project's installed esbuild. A local server-render smoke checked all 24 schematics against the four source-note layers for every project, verified all 97 route endpoints and paths, and rendered active, idle and reduced-motion variants. Active variants expose one finite packet per route; idle and reduced-motion variants retain every node and omit packet elements.
+
+The Impeccable mechanical detector reported only the pre-existing grid inside the architectural inspection canvas; that grid belongs to an actual blueprint/measurement surface and is retained intentionally. Final browser verification should batch desktop/mobile project switching, rapid repeated selection, keyboard focus, 24 layer controls, readout/route overlap at 320px, reduced motion and image failure with the root agent's hero changes. This document does not claim those final integration checks have already passed.

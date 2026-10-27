@@ -25,7 +25,7 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 | --- | --- |
 | **Decision Loom** | Full-stage original GLSL sculpture: 144 metallic ribbons and 6,800 moving signals morph through sensor array → reasoning braid → execution vector. A finite opening performance, pointer distortion, direct mode controls, pause, and reduced-motion rendering make the artifact explorable. |
 | **Cognitive descent** | Project systems move through cinematic depth without repeating the evidence surfaces below. |
-| **Engineering X-ray** | Browse real captures in a responsive filmstrip; eight optical shutters transmit one project into the next. Peel four architecture layers and inspect 24 source-linked decisions, plus finite failure walkthroughs. Keyboard, touch and reduced-motion controls remain available. |
+| **Engineering X-ray** | Browse real captures in a responsive filmstrip; eight optical shutters transmit one project into the next. Peel four architecture layers with project-specific routed schematics and 24 source-linked decisions. A flat active schematic and finite route playback connect inspection and failure walkthroughs. Keyboard, touch and reduced-motion controls remain available. |
 | **Validation Chamber** | Evidence, control, infrastructure, and interface constraints reshape one live signal field. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
 | **Person / System** | A finite raster scan assembles Aman's approved portrait, then holds a clear photograph. Replay or switch to the interactive kernel with keyboard and touch controls. |
@@ -75,6 +75,8 @@ The October 2026 refresh uses Aman's supplied yellow-kurta portrait with a charc
 The shared résumé resolver validates the runtime manifest, refreshes local document URLs when the PDF digest changes, and exposes a retryable fallback when a version check fails. The command palette supports accent-insensitive search (`resume`), `CV` aliases, ranked direct matches, and keyboard selection. Recruiter actions precede the project detail cards; mobile professional links use full labels.
 
 The [motion upgrade record](docs/motion-upgrade-2026-10-27.md) covers the full-stage hero, project transmissions, real GitHub contribution animations, installed official GSAP guides, research provenance and verification. The [earlier identity delivery](docs/profile-upgrade-2026-10-27.md) records the portrait, canonical résumé and saved LinkedIn copy. Existing LinkedIn and GitHub account photos are intentionally retained.
+
+The GitHub reading path also has a dedicated [project-showcase source investigation](docs/github-showcase-research-2026-10-27.md) and [body design audit](docs/github-body-design-audit-2026-10-27.md). These address the text-heavy project sections below the animated entrance: real product captures, illustrated engineering boundaries, compact visible decisions and direct source proof. The separate profile repository owns its generators, responsive assets and publication evidence.
 
 PDF structural checks also run in CI. To rebuild, run `python scripts/build-resume.py`; install `scripts/requirements-resume-qa.txt` in a Python environment and run `python scripts/verify-resume.py` for structural checks. The PDF is checked for image-free structure, text order, embedded fonts, legible text, links, and ordinary metadata; this is not an ATS vendor certification.
 
