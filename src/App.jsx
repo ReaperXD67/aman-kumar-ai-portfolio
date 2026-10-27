@@ -20,11 +20,10 @@ import {
 } from "@phosphor-icons/react";
 import { Contact, IdentityVault } from "./IdentityVault.jsx";
 import { SignalOperatingSystem } from "./SignalOperatingSystem.jsx";
-import { PortraitSignature } from "./PortraitSignal.jsx";
+import { HeroFoundry } from "./HeroFoundry.jsx";
 import { ProjectXRay } from "./ProjectXRay.jsx";
 import { useReducedMotion } from "./useMotionPreference.js";
 import { useResumeManifest } from "./useResumeManifest.js";
-const SignalCore = lazy(() => import("./SignalCore.jsx").then((module) => ({ default: module.SignalCore })));
 const CognitiveDescent = lazy(() => import("./CognitiveDescent.jsx").then((module) => ({ default: module.CognitiveDescent })));
 const MethodField = lazy(() => import("./MethodField.jsx").then((module) => ({ default: module.MethodField })));
 
@@ -189,26 +188,6 @@ const CAPABILITIES = [
   },
 ];
 
-function useIstClock() {
-  const [time, setTime] = useState("");
-  useEffect(() => {
-    const update = () =>
-      setTime(
-        new Intl.DateTimeFormat("en-GB", {
-          timeZone: "Asia/Kolkata",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        }).format(new Date()),
-      );
-    update();
-    const timer = window.setInterval(update, 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-  return time;
-}
-
 function AppHeader({ menuOpen, setMenuOpen, onOpenSignal }) {
   return (
     <header className="site-header">
@@ -251,93 +230,7 @@ function AppHeader({ menuOpen, setMenuOpen, onOpenSignal }) {
   );
 }
 
-function Hero() {
-  const reducedMotion = useReducedMotion();
-  const time = useIstClock();
-  const [sceneMode, setSceneMode] = useState(0);
-  const modes = ["OBSERVE", "REASON", "EXECUTE"];
-  const modeCopy = [
-    "Map weak signals",
-    "Test the evidence",
-    "Move with control",
-  ];
-
-  return (
-    <section className="hero" id="top">
-      <div className="hero-rail" aria-hidden="true">
-        <span>PORTFOLIO / 2026</span>
-        <span>12.9716° N / BENGALURU</span>
-      </div>
-      <motion.div
-        className="hero-copy"
-        initial={reducedMotion ? false : { opacity: 0, y: 28 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <PortraitSignature />
-        <h1>
-          <span>I engineer systems</span>
-          <span className="hero-image-line">
-            that
-            <span className="hero-inline-image" aria-hidden="true">
-              <img src="/assets/revive-cinematic-core.png" alt="" />
-            </span>
-            think
-          </span>
-          <em>before they act.</em>
-        </h1>
-        <div className="hero-roleline" role="group" aria-label="Professional focus">
-          <span>AI ENGINEER</span>
-          <span>FULL-STACK DEVELOPER</span>
-          <span>BENGALURU / AVAILABLE</span>
-        </div>
-        <p className="hero-lede">
-          I turn ambitious AI ideas into production-ready products—across model behavior,
-          APIs, databases, integrations, infrastructure, and the interface people trust.
-        </p>
-        <div className="hero-actions">
-          <a className="button button-solid" href="#work">Inspect selected work <ArrowDown size={17} weight="bold" /></a>
-          <a className="button button-outline" href="#resume">
-            View résumé <ArrowSquareOut size={18} />
-          </a>
-        </div>
-      </motion.div>
-      <motion.div
-        className="scene-panel"
-        initial={reducedMotion ? false : { opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <Suspense fallback={<div className="scene-fallback"><span>INITIALIZING VISUAL CORE</span></div>}>
-          <SignalCore
-            mode={sceneMode}
-            reducedMotion={reducedMotion}
-            onCycle={() => setSceneMode((value) => (value + 1) % modes.length)}
-          />
-        </Suspense>
-        <div className="scene-corner scene-corner-left"><span>DECISION LOOM / D-01</span><strong>{modes[sceneMode]}</strong></div>
-        <div className="scene-corner scene-corner-right"><span>IST / {time || "--:--:--"}</span><span>POINTER REACTIVE</span></div>
-        <div className="scene-mode-copy" aria-live="polite">
-          <span>{String(sceneMode + 1).padStart(2, "0")}</span>
-          <strong>{modeCopy[sceneMode]}</strong>
-        </div>
-        <div className="scene-modes" role="group" aria-label="Cognitive core mode">
-          {modes.map((mode, index) => (
-            <button
-              key={mode}
-              type="button"
-              className={sceneMode === index ? "is-active" : ""}
-              onClick={() => setSceneMode(index)}
-              aria-pressed={sceneMode === index}
-            >
-              <span>{String(index + 1).padStart(2, "0")}</span>{mode}
-            </button>
-          ))}
-        </div>
-      </motion.div>
-    </section>
-  );
-}
+function Hero() { return <HeroFoundry />; }
 
 const SIGNALS = [
   "THREE FLAGSHIP SYSTEMS",

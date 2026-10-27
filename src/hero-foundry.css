@@ -1,0 +1,86 @@
+.hero.hero-foundry { display: flex; flex-direction: column; min-height: max(880px, 100svh); padding: 132px 5.7vw 92px; gap: 0; overflow: clip; isolation: isolate; background: #030505; }
+.hero-foundry .foundry-art { position: absolute; z-index: -2; inset: 0; min-height: 0; border: 0; background: transparent; transform-origin: 70% 30%; }
+.foundry-shade { position: absolute; z-index: -1; inset: 0; pointer-events: none; background: linear-gradient(90deg, #030505dc 0%, #03050560 32%, transparent 62%), linear-gradient(0deg, #030505 0%, #03050522 33%, transparent 65%); }
+.foundry-topline { display: flex; justify-content: space-between; gap: 30px; align-items: start; }
+.hero-foundry .portrait-signature { margin: 0; }
+.hero-foundry .portrait-signature-image { width: 54px; height: 60px; }
+.hero-foundry .portrait-signature-copy strong { font-size: 18px; }
+.hero-foundry .portrait-signature-copy strong span { font-size: 6px; }
+.foundry-art-caption { display: grid; gap: 9px; text-align: right; pointer-events: none; }
+.foundry-art-caption > span { color: #b8c4c5; font: 9px var(--mono); letter-spacing: .12em; }
+.foundry-art-caption strong { color: #f0f4ee; font-size: 14px; font-weight: 450; }
+.foundry-art-caption small { color: #9ca9a9; font-size: 11px; }
+.hero-foundry .hero-copy { width: 100%; max-width: none; margin-top: auto; padding: 80px 0 48px; pointer-events: none; }
+.foundry-role { margin: 0 0 25px; color: #c3cbcb; font-size: 14px; letter-spacing: .01em; }
+.foundry-role > span { color: #ff754e; margin: 0 5px; }
+.hero-foundry h1.foundry-title { max-width: 1160px; margin: 0; font-size: clamp(76px, 9.8vw, 164px); line-height: .88; font-weight: 450; letter-spacing: -.04em; }
+.hero-foundry .foundry-title .hero-line { display: block; overflow: hidden; padding-bottom: .055em; white-space: nowrap; }
+.hero-foundry .hero-line > span { display: block; transform-origin: 50% 100%; }
+.hero-foundry .hero-line:last-child { color: #b9c4c4; }
+.foundry-caption-row { display: flex; align-items: end; justify-content: space-between; gap: 36px; max-width: 1215px; margin-top: 29px; }
+.hero-foundry .hero-lede { max-width: 505px; margin: 0; color: #bdc7c6; font-size: 16px; line-height: 1.65; }
+.hero-foundry .hero-actions { flex: 0 0 auto; margin: 0; pointer-events: auto; }
+.hero-foundry .button-solid { min-height: 54px; padding: 0 24px; background: #d8ff4f; border-color: #d8ff4f; }
+.hero-foundry .button-solid:hover { background: #f5f5f1; border-color: #f5f5f1; }
+.hero-foundry .button-outline { min-height: 54px; padding: 0 23px; background: #0507079c; }
+.foundry-console { display: flex; align-items: center; gap: 30px; min-height: 94px; border-top: 1px solid #3a4545; }
+.foundry-state { display: grid; grid-template-columns: 7px 1fr; gap: 7px 11px; margin-right: auto; }
+.foundry-state-dot { width: 5px; height: 5px; margin-top: 6px; background: #ff754e; }
+.hero-foundry[data-loom-mode="reason"] .foundry-state-dot { background: #d8ff4f; }
+.hero-foundry[data-loom-mode="execute"] .foundry-state-dot { background: #8bb8ff; }
+.foundry-state p { margin: 0; color: #d8e0dd; font-size: 13px; }
+.foundry-state small { grid-column: 2; color: #899b99; font: 7px var(--mono); letter-spacing: .08em; }
+.hero-foundry .scene-modes { position: static; border: 1px solid #3b4846; background: #07100cc9; }
+.hero-foundry .scene-modes button { min-height: 48px; min-width: 115px; padding: 0 17px; gap: 10px; color: #b4c1bc; font-size: 10px; text-transform: uppercase; }
+.hero-foundry .scene-modes button[aria-pressed="true"] { background: #d8ff4f; color: #0b1008; }
+.hero-foundry .scene-modes button[aria-pressed="true"] > span { color: #263418; }
+.hero-foundry .scene-modes button:hover { background: #d8ff4f; color: #0b1008; }
+.foundry-pause { display: inline-flex; align-items: center; gap: 9px; min-height: 48px; padding: 0 8px; border: 0; color: #c4cecb; background: transparent; font-size: 11px; cursor: pointer; }
+.foundry-pause:disabled { color: #81918a; cursor: default; }
+.loom-unavailable { position: absolute; right: 7%; top: 35%; display: grid; gap: 14px; max-width: 300px; color: #a2b4b0; }
+.loom-unavailable strong { color: #d8ff4f; font-size: 28px; font-weight: 450; }
+.loom-unavailable span { font-size: 14px; line-height: 1.7; }
+@media (max-width: 1100px) {
+  .hero.hero-foundry { padding-inline: 34px; }
+  .hero-foundry h1.foundry-title { font-size: clamp(76px, 10.8vw, 122px); }
+  .foundry-caption-row { align-items: start; gap: 30px; }
+  .hero-foundry .hero-lede { max-width: 430px; }
+  .hero-foundry .hero-actions { flex-direction: column; }
+  .hero-foundry .hero-copy { padding-top: 122px; }
+  .foundry-console { gap: 18px; }
+  .hero-foundry .scene-modes button { min-width: 96px; padding-inline: 12px; }
+}
+@media (max-width: 700px) {
+  .hero.hero-foundry { min-height: max(960px, 100svh); padding: 104px 20px 70px; }
+  .foundry-art-caption { display: none; }
+  .hero-foundry .foundry-art { bottom: 230px; }
+  .foundry-shade { background: linear-gradient(0deg,#030505 0%,#030505df 27%,transparent 60%); }
+  .hero-foundry .hero-copy { padding: 315px 0 30px; }
+  .foundry-role { margin-bottom: 20px; font-size: 11px; }
+  .hero-foundry h1.foundry-title { font-size: clamp(45px, 11.7vw, 79px); }
+  .foundry-caption-row { flex-direction: column; gap: 22px; margin-top: 22px; }
+  .hero-foundry .hero-lede { max-width: 46ch; font-size: 14px; }
+  .hero-foundry .hero-actions { flex-direction: row; width: 100%; gap: 8px; }
+  .hero-foundry .hero-actions .button { flex: 1; width: auto; min-height: 50px; padding-inline: 12px; font-size: 12px; }
+  .foundry-console { display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 20px 0; }
+  .foundry-state { grid-column: 1; }
+  .foundry-state p { font-size: 12px; }
+  .foundry-state small { font-size: 6px; }
+  .foundry-pause { grid-column: 2; grid-row: 1; font-size: 10px; }
+  .hero-foundry .scene-modes { grid-column: 1 / -1; display: flex; width: 100%; }
+  .hero-foundry .scene-modes button { flex: 1; min-width: 0; min-height: 48px; gap: 8px; padding-inline: 10px; font-size: 9px; }
+}
+@media (max-width: 359px) {
+  .hero.hero-foundry { padding-inline: 18px; }
+  .hero-foundry h1.foundry-title { font-size: 11.3vw; }
+  .hero-foundry .hero-copy { padding-top: 295px; }
+  .hero-foundry .portrait-signature-copy small { font-size: 6px; }
+  .hero-foundry .hero-actions .button { font-size: 11px; padding-inline: 9px; }
+}
+@media (max-height: 520px) and (min-width: 701px) {
+  .hero.hero-foundry { min-height: 760px; }
+  .hero-foundry .hero-copy { padding-top: 120px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-foundry *, .hero-foundry *::before, .hero-foundry *::after { transition: none !important; animation: none !important; }
+}

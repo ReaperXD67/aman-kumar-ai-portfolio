@@ -9,7 +9,7 @@
 
 [Live experience](https://aman-kumar-ai-portfolio.vercel.app) · [One-page résumé](https://aman-kumar-ai-portfolio.vercel.app/profile/aman-kumar-resume.pdf) · [LinkedIn](https://www.linkedin.com/in/aman-kumar-494601329/) · [GitHub profile](https://github.com/ReaperXD67)
 
-![Aman Kumar's cinematic AI engineering portfolio](docs/portfolio-preview-2026-10-27.jpg)
+![Aman Kumar's full-stage Decision Loom](docs/portfolio-foundry-2026-10-27.jpg)
 
 ## The idea
 
@@ -23,9 +23,9 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 
 | Surface | What it communicates |
 | --- | --- |
-| **Decision Loom** | A scroll-controlled sensor → reasoning → execution sequence built with React Three Fiber. |
+| **Decision Loom** | Full-stage original GLSL sculpture: 144 metallic ribbons and 6,800 moving signals morph through sensor array → reasoning braid → execution vector. A finite opening performance, pointer distortion, direct mode controls, pause, and reduced-motion rendering make the artifact explorable. |
 | **Cognitive descent** | Project systems move through cinematic depth without repeating the evidence surfaces below. |
-| **Engineering X-ray** | Peel a real interface into four architecture layers. Inspect 24 implementation-linked decisions across six builds. Run a finite failure walkthrough from expected input to broken assumption to source-linked guard; each step changes inspection depth. Keyboard, touch and reduced-motion controls remain available. |
+| **Engineering X-ray** | Browse real captures in a responsive filmstrip; eight optical shutters transmit one project into the next. Peel four architecture layers and inspect 24 source-linked decisions, plus finite failure walkthroughs. Keyboard, touch and reduced-motion controls remain available. |
 | **Validation Chamber** | Evidence, control, infrastructure, and interface constraints reshape one live signal field. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
 | **Person / System** | A finite raster scan assembles Aman's approved portrait, then holds a clear photograph. Replay or switch to the interactive kernel with keyboard and touch controls. |
@@ -45,7 +45,7 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 - **Interface:** React 19, Vite, TypeScript/JavaScript, responsive semantic UI
 - **Spatial system:** Three.js, React Three Fiber, Drei, postprocessing
 - **Motion:** GSAP, Motion, scroll-linked timelines, reduced-motion fallbacks
-- **Performance:** viewport-aware rendering, hidden-tab suspension, finite portrait/trace animation, approximately 149 KiB main portrait, and a 4.6 KiB first-screen thumbnail
+- **Performance:** a 2.2-million-pixel hero rendering budget, GPU field evaluation, shared ribbon geometry, 2,800 signals on phones, offscreen/hidden-tab suspension, pause controls, finite portrait/trace animation, approximately 149 KiB main portrait, and a 4.6 KiB first-screen thumbnail
 - **Typography:** Space Grotesk + JetBrains Mono
 - **Delivery:** Vercel production deployment, Sites-compatible worker output, automated build verification
 
@@ -74,7 +74,7 @@ The October 2026 refresh uses Aman's supplied yellow-kurta portrait with a charc
 
 The shared résumé resolver validates the runtime manifest, refreshes local document URLs when the PDF digest changes, and exposes a retryable fallback when a version check fails. The command palette supports accent-insensitive search (`resume`), `CV` aliases, ranked direct matches, and keyboard selection. Recruiter actions precede the project detail cards; mobile professional links use full labels.
 
-The [October delivery record](docs/profile-upgrade-2026-10-27.md) covers the portfolio, published GitHub profile, saved LinkedIn copy, prepared account artwork, and exact verification scope.
+The [motion upgrade record](docs/motion-upgrade-2026-10-27.md) covers the full-stage hero, project transmissions, real GitHub contribution animations, installed official GSAP guides, research provenance and verification. The [earlier identity delivery](docs/profile-upgrade-2026-10-27.md) records the portrait, canonical résumé and saved LinkedIn copy. Existing LinkedIn and GitHub account photos are intentionally retained.
 
 PDF structural checks also run in CI. To rebuild, run `python scripts/build-resume.py`; install `scripts/requirements-resume-qa.txt` in a Python environment and run `python scripts/verify-resume.py` for structural checks. The PDF is checked for image-free structure, text order, embedded fonts, legible text, links, and ordinary metadata; this is not an ATS vendor certification.
 
@@ -88,7 +88,7 @@ public/                  project captures, résumé, certificate, runtime manife
 worker/                  Sites-compatible production worker
 scripts/                 build preparation
 tests/                   production handoff verification
-docs/portfolio-preview-2026-10-27.jpg
+docs/portfolio-foundry-2026-10-27.jpg
 ```
 
 ## Status

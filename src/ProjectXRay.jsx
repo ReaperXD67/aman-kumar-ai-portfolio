@@ -4,6 +4,7 @@ import { useReducedMotion } from "./useMotionPreference.js";
 import { PROJECT_XRAY, XRAY_PATHS } from "./project-xray-data.js";
 import "./project-xray.css";
 import { FailureTrace } from "./FailureTrace.jsx";
+import { ProjectPortal } from "./ProjectPortal.jsx";
 
 const STAGES = [
   { name: "Surface", depth: 0 },
@@ -13,7 +14,7 @@ const STAGES = [
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
-function InspectionInstrument({ project }) {
+function InspectionInstrument({ project, previousProject }) {
   const reducedMotion = useReducedMotion();
   const [depth, setDepth] = useState(0);
   const [layerIndex, setLayerIndex] = useState(1);
@@ -124,7 +125,7 @@ function InspectionInstrument({ project }) {
                 <div className="xray-cut-line" aria-hidden="true"><span>CUT THROUGH THE SURFACE</span></div>
               </figure>
             </div>
-
+            <ProjectPortal previousProject={previousProject} project={project} reducedMotion={reducedMotion} />
           </div>
           <div className="xray-lens-caption" aria-hidden="true">
             <span>{inspecting ? "THE PART THE SCREEN DOESN’T SHOW" : "THE PRODUCT IS ONLY THE SURFACE"}</span>
@@ -184,9 +185,17 @@ function InspectionInstrument({ project }) {
 }
 
 export function ProjectXRay({ projects }) {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [selection, setSelection] = useState({ index: 0, previousIndex: null });
+  const activeIndex = selection.index;
   const activeProject = projects[activeIndex];
+  const previousProject = selection.previousIndex === null ? null : projects[selection.previousIndex];
   const tabRefs = useRef([]);
+  const selectProject = (next) => {
+    setSelection(current => {
+      const index = typeof next === "function" ? next(current.index) : next;
+      return index === current.index ? current : { index, previousIndex: current.index };
+    });
+  };
   const selectByKeyboard = (event, index) => {
     let next;
     if (event.key === "ArrowRight") next = (index + 1) % projects.length;
@@ -195,7 +204,7 @@ export function ProjectXRay({ projects }) {
     if (event.key === "End") next = projects.length - 1;
     if (next === undefined) return;
     event.preventDefault();
-    setActiveIndex(next);
+    selectProject(next);
     tabRefs.current[next]?.focus();
   };
 
@@ -208,18 +217,24 @@ export function ProjectXRay({ projects }) {
       <div className="xray-workbench" style={{ "--project-accent": activeProject.accent }}>
         <div className="xray-project-index" role="tablist" aria-label="Select a project to inspect">
           {projects.map((project, index) => (
-            <button key={project.id} ref={(element) => { tabRefs.current[index] = element; }} type="button" role="tab" id={`xray-tab-${project.id}`} aria-selected={activeIndex === index} aria-controls="xray-project-panel" tabIndex={activeIndex === index ? 0 : -1} className={activeIndex === index ? "is-active" : ""} onClick={() => setActiveIndex(index)} onKeyDown={(event) => selectByKeyboard(event, index)}>
-              <span>{project.index}</span><strong>{project.name}</strong><small>{project.status}</small><ArrowDown size={17} aria-hidden="true" />
+            <button key={project.id} ref={(element) => { tabRefs.current[index] = element; }} type="button" role="tab" id={`xray-tab-${project.id}`} aria-label={`${project.index} ${project.name} ${project.status}`} aria-selected={activeIndex === index} aria-controls="xray-project-panel" tabIndex={activeIndex === index ? 0 : -1} className={activeIndex === index ? "is-active" : ""} onClick={() => selectProject(index)} onKeyDown={(event) => selectByKeyboard(event, index)} style={{ "--frame-accent": project.accent }}>
+              <span className="xray-film-frame" aria-hidden="true"><img src={project.image} alt="" loading="lazy" decoding="async" /><i /><b>{project.index}</b></span>
+              <span className="xray-film-copy"><strong>{project.name}</strong><small>{project.status}</small><ArrowDown size={17} aria-hidden="true" /></span>
             </button>
           ))}
         </div>
         <div id="xray-project-panel" role="tabpanel" aria-labelledby={`xray-tab-${activeProject.id}`}>
-          <InspectionInstrument key={activeProject.id} project={activeProject} />
+          <header className="xray-transmission-title" key={`title-${activeProject.id}`}>
+            <span aria-hidden="true">{activeProject.index}</span>
+            <div><h3>{activeProject.name}</h3><p>{activeProject.eyebrow}</p></div>
+            <ArrowDown size={28} aria-hidden="true" />
+          </header>
+          <InspectionInstrument key={activeProject.id} project={activeProject} previousProject={previousProject} />
         </div>
         <div className="xray-browse">
           <span><strong>{String(activeIndex + 1).padStart(2, "0")}</strong> / {String(projects.length).padStart(2, "0")} BUILDS</span>
           <p>Real interfaces. Inspectable decisions. No simulated telemetry.</p>
-          <div><button type="button" aria-label="Previous project" onClick={() => setActiveIndex((index) => (index - 1 + projects.length) % projects.length)}><ArrowLeft size={20} /></button><button type="button" aria-label="Next project" onClick={() => setActiveIndex((index) => (index + 1) % projects.length)}><ArrowRight size={20} /></button></div>
+          <div><button type="button" aria-label="Previous project" onClick={() => selectProject((index) => (index - 1 + projects.length) % projects.length)}><ArrowLeft size={20} /></button><button type="button" aria-label="Next project" onClick={() => selectProject((index) => (index + 1) % projects.length)}><ArrowRight size={20} /></button></div>
         </div>
       </div>
     </section>
