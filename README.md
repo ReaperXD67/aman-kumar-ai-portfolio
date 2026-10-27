@@ -9,7 +9,7 @@
 
 [Live experience](https://aman-kumar-ai-portfolio.vercel.app) · [One-page résumé](https://aman-kumar-ai-portfolio.vercel.app/profile/aman-kumar-resume.pdf) · [LinkedIn](https://www.linkedin.com/in/aman-kumar-494601329/) · [GitHub profile](https://github.com/ReaperXD67)
 
-![Aman Kumar's cinematic AI engineering portfolio](docs/portfolio-preview.png)
+![Aman Kumar's cinematic AI engineering portfolio](docs/portfolio-preview-2026-10-27.jpg)
 
 ## The idea
 
@@ -17,7 +17,7 @@ Most portfolios list claims. This one lets visitors inspect the system behind th
 
 The experience moves through a procedural **Decision Loom**, cinematic project depth, real interface previews, and a **Validation Chamber**. The identity instrument reveals the person behind the engineering: Aman's portrait assembles from pixels, with the **Systems Kernel** available as its second view.
 
-![Aman Kumar — AI Engineer and Full-Stack Developer](public/assets/portfolio-social-preview-v2.png)
+![Aman Kumar — AI Engineer and Full-Stack Developer](public/assets/portfolio-social-preview-v3.png)
 
 ## Authored interactions
 
@@ -25,7 +25,7 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 | --- | --- |
 | **Decision Loom** | A scroll-controlled sensor → reasoning → execution sequence built with React Three Fiber. |
 | **Cognitive descent** | Project systems move through cinematic depth without repeating the evidence surfaces below. |
-| **Engineering X-ray** | Peel a real interface into four architecture layers. Inspect 24 implementation-linked decisions, failure boundaries and trade-offs across six builds—with keyboard, touch and reduced-motion controls. |
+| **Engineering X-ray** | Peel a real interface into four architecture layers. Inspect 24 implementation-linked decisions across six builds. Run a finite failure walkthrough from expected input to broken assumption to source-linked guard; each step changes inspection depth. Keyboard, touch and reduced-motion controls remain available. |
 | **Validation Chamber** | Evidence, control, infrastructure, and interface constraints reshape one live signal field. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
 | **Person / System** | A finite raster scan assembles Aman's approved portrait, then holds a clear photograph. Replay or switch to the interactive kernel with keyboard and touch controls. |
@@ -45,7 +45,7 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 - **Interface:** React 19, Vite, TypeScript/JavaScript, responsive semantic UI
 - **Spatial system:** Three.js, React Three Fiber, Drei, postprocessing
 - **Motion:** GSAP, Motion, scroll-linked timelines, reduced-motion fallbacks
-- **Performance:** viewport-aware rendering, hidden-tab suspension, finite portrait animation, approximately 75 KB main portrait, and a 3.2 KB first-screen thumbnail
+- **Performance:** viewport-aware rendering, hidden-tab suspension, finite portrait/trace animation, approximately 149 KiB main portrait, and a 4.6 KiB first-screen thumbnail
 - **Typography:** Space Grotesk + JetBrains Mono
 - **Delivery:** Vercel production deployment, Sites-compatible worker output, automated build verification
 
@@ -70,11 +70,15 @@ The build must emit `dist/client/index.html`, `dist/server/index.js`, and `dist/
 
 Production changes pass the Vite build and Sites worker contract before deployment. The public résumé uses one stable route and a versioned runtime manifest; releases verify that the deployed PDF is byte-identical to the canonical local artifact, so portfolio, GitHub, and recruiter links cannot silently drift apart.
 
-The September 2026 refresh keeps the supplied portrait on the portfolio and GitHub, with a minimal 1200 × 630 social card. Following Aman's latest preference, the canonical résumé is photo-free: one column, readable black text, embedded fonts, and specific source-grounded keywords. No hidden ranking instructions or automatic-shortlisting claims. See [asset and verification notes](docs/profile-refresh-2026-09-24.md).
+The October 2026 refresh uses Aman's supplied yellow-kurta portrait with a charcoal studio background and identity-preserving lighting, plus new versioned 1200 × 630 shared-link artwork. The canonical résumé remains photo-free: one column, readable text, embedded fonts, and specific engineering decisions grounded in project sources. Its PDF, preview, and digest manifest are generated together. See [résumé research and validation](docs/resume-research-2026-10-27.md) and [portfolio reference research](docs/portfolio-research-2026-10-27.md).
 
 The shared résumé resolver validates the runtime manifest, refreshes local document URLs when the PDF digest changes, and exposes a retryable fallback when a version check fails. The command palette supports accent-insensitive search (`resume`), `CV` aliases, ranked direct matches, and keyboard selection. Recruiter actions precede the project detail cards; mobile professional links use full labels.
 
-PDF structural checks also run in CI. To verify a replacement locally, install `scripts/requirements-resume-qa.txt` in a Python environment and run `python scripts/verify-resume.py`. The PDF is checked for image-free structure, text order, embedded fonts, legible text, links, and ordinary metadata; this is not an ATS vendor certification.
+The [October delivery record](docs/profile-upgrade-2026-10-27.md) covers the portfolio, published GitHub profile, saved LinkedIn copy, prepared account artwork, and exact verification scope.
+
+PDF structural checks also run in CI. To rebuild, run `python scripts/build-resume.py`; install `scripts/requirements-resume-qa.txt` in a Python environment and run `python scripts/verify-resume.py` for structural checks. The PDF is checked for image-free structure, text order, embedded fonts, legible text, links, and ordinary metadata; this is not an ATS vendor certification.
+
+Portrait delivery exports use `node scripts/export-profile-photo.mjs <source-png> <YYYYMMDD>`. The current social artwork is reproducible with `pwsh -File scripts/render-portfolio-social-preview-v3.ps1`. These mechanical exports preserve the generated portrait treatment. Earlier versioned originals remain available.
 
 ## Project structure
 
@@ -84,7 +88,7 @@ public/                  project captures, résumé, certificate, runtime manife
 worker/                  Sites-compatible production worker
 scripts/                 build preparation
 tests/                   production handoff verification
-docs/portfolio-preview.png
+docs/portfolio-preview-2026-10-27.jpg
 ```
 
 ## Status

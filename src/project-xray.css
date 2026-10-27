@@ -113,6 +113,49 @@
 .xray-source-link:hover strong { text-decoration: underline; text-underline-offset: 4px; }
 .xray-source-path { display: block; overflow-wrap: anywhere; color: #5a674c; margin-top: 12px; font: 8px/1.6 var(--mono); }
 .xray-honesty-note { margin: auto 0 0; padding-top: 30px; color: #58634d; font-size: 11px; line-height: 1.65; }
+.failure-trace { --trace-color: var(--project-accent); padding: 30px 27px 20px; border-top: 1px solid #414a37; background: #0d110c; }
+.failure-trace[data-trace-step="1"] { --trace-color: #ff8a66; }
+.failure-trace > header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 25px; }
+.failure-trace > header > div { min-width: 0; }
+.failure-trace > header > div > span { color: #a9b69b; font: 8px/1.6 var(--mono); letter-spacing: .09em; }
+.failure-trace h3 { margin: 10px 0 0; color: #f0f3e9; font-size: clamp(24px, 2.5vw, 36px); font-weight: 500; line-height: 1.15; letter-spacing: -.025em; }
+.trace-play { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 12px; min-height: 48px; padding: 12px 17px; border: 1px solid #5b6b49; background: #1d2816; color: #e2f1d0; cursor: pointer; font: 10px var(--mono); }
+.trace-play:hover { color: #090c06; background: var(--project-accent); }
+.trace-route { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #3d4933; }
+.trace-route button { position: relative; display: flex; align-items: center; gap: 14px; min-width: 0; min-height: 72px; padding: 16px 20px; border: 0; border-right: 1px solid #3d4933; background: #10170d; color: #aab79f; text-align: left; cursor: pointer; transition: color 220ms, background 220ms; }
+.trace-route button:last-child { border-right: 0; }
+.trace-route button[aria-pressed="true"] { color: var(--trace-color); background: #1c2815; }
+.trace-route button[aria-pressed="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--trace-color); }
+.trace-route button:hover { background: #24321a; color: #f5f5f1; }
+.trace-route strong { font-size: 13px; font-weight: 500; line-height: 1.4; }
+.trace-route svg { margin-left: auto; flex-shrink: 0; }
+.trace-node { display: grid; flex-shrink: 0; place-items: center; width: 30px; height: 30px; border: 1px solid currentColor; font: 10px var(--mono); }
+.trace-output { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 18px 28px; align-items: start; min-height: 155px; padding: 27px 0; }
+.trace-state { display: flex; align-items: center; gap: 8px; margin-top: 4px; color: var(--trace-color); font: 9px/1.6 var(--mono); letter-spacing: .04em; }
+.trace-state i { width: 5px; height: 5px; flex: 0 0 auto; background: currentColor; }
+.trace-output p { max-width: 72ch; margin: 0; color: #d1dac8; font-size: 16px; line-height: 1.65; animation: trace-arrive 260ms ease-out both; }
+.trace-output a { grid-column: 2; display: inline-flex; justify-self: start; align-items: center; gap: 10px; min-height: 44px; color: var(--project-accent); font-size: 12px; }
+.trace-output a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.failure-trace > footer { padding-top: 15px; border-top: 1px solid #303b28; color: #9cab8f; font: 8px/1.7 var(--mono); }
+@keyframes trace-arrive { from { opacity: .3; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 899px) {
+  .trace-route button { gap: 10px; padding: 14px; }
+  .trace-route strong { font-size: 12px; }
+  .trace-output { grid-template-columns: 180px minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .failure-trace { padding: 26px 17px 20px; }
+  .failure-trace > header { align-items: start; flex-direction: column; gap: 18px; margin-bottom: 20px; }
+  .failure-trace h3 { max-width: 19ch; font-size: 28px; }
+  .trace-play { min-height: 48px; }
+  .trace-route button { flex-direction: column; align-items: start; justify-content: start; gap: 12px; min-height: 120px; padding: 14px 10px; }
+  .trace-route strong { font-size: 11px; }
+  .trace-route svg { display: none; }
+  .trace-output { display: flex; flex-direction: column; gap: 16px; min-height: 270px; padding: 23px 0 16px; }
+  .trace-output p { font-size: 15px; }
+  .trace-output a { font-size: 12px; line-height: 1.5; }
+  .failure-trace > footer { font-size: 7px; }
+}
 .xray-footer { display: flex; align-items: stretch; justify-content: space-between; border-top: 1px solid #414a37; }
 .xray-tech { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 21px; padding: 22px 27px; }
 .xray-tech > span { color: #b4c0a8; font: 9px var(--mono); }

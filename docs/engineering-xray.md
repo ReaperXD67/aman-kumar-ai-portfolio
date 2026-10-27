@@ -11,10 +11,11 @@ The selected-work section is an inspection instrument, not a simulated productio
 - The short desktop scroll reveal stops as soon as a visitor takes control. Scrolling is never captured or pinned.
 - Reduced motion removes transitions and automatic peeling; all content and controls remain usable.
 - An unavailable project image leaves the architecture, implementation links, and project links available.
+- Each project offers a source walkthrough: expected input, a broken assumption, and the implemented guard. Manual steps set X-ray depth to 0/55/100 and select the relevant architecture layer. Explicit finite playback stops when offscreen, on tab hiding, or when the visitor takes a manual step. Reduced-motion playback resolves directly to the guard.
 
 ## Content maintenance
 
-Project metadata and status live in `src/App.jsx`. The 24 source notes and schematic component names live in `src/project-xray-data.js`. Keep source paths and operational limitations aligned with the linked repositories. Never label an illustrative diagram as live traffic or use demo outcomes as customer results.
+Project metadata and status live in `src/App.jsx`. The 24 source notes and schematic component names live in `src/project-xray-data.js`; six illustrative failure narratives live in `src/project-traces.js`. `FailureTrace.jsx` binds each narrative to its existing source-linked layer. Keep source paths and operational limitations aligned with the linked repositories. Never label an illustrative diagram as live traffic or use demo outcomes as customer results.
 
 Revive is explicitly a live prototype. AtlasLM distinguishes local Qdrant from its Upstash serverless deployment. Autonomous Personal Agent remains a local alpha. GPT Prototype uses the verified twelve-layer specification rather than the former approximate parameter count.
 

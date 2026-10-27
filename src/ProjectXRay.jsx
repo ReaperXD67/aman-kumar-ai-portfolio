@@ -1,8 +1,9 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowSquareOut, GithubLogo, Scan, Stack } from "@phosphor-icons/react";
 import { useReducedMotion } from "./useMotionPreference.js";
 import { PROJECT_XRAY, XRAY_PATHS } from "./project-xray-data.js";
 import "./project-xray.css";
+import { FailureTrace } from "./FailureTrace.jsx";
 
 const STAGES = [
   { name: "Surface", depth: 0 },
@@ -17,6 +18,7 @@ function InspectionInstrument({ project }) {
   const [depth, setDepth] = useState(0);
   const [layerIndex, setLayerIndex] = useState(1);
   const [manual, setManual] = useState(false);
+  const [traceControlVersion, setTraceControlVersion] = useState(0);
   const [imageFailed, setImageFailed] = useState(false);
   const visualRef = useRef(null);
   const hasInteracted = useRef(false);
@@ -66,6 +68,7 @@ function InspectionInstrument({ project }) {
   const takeControl = () => {
     hasInteracted.current = true;
     setManual(true);
+    setTraceControlVersion(value => value + 1);
   };
   const changeDepth = (value) => {
     takeControl();
@@ -76,6 +79,12 @@ function InspectionInstrument({ project }) {
     setLayerIndex(index);
     setDepth(100);
   };
+  const inspectTrace = useCallback((index, step) => {
+    hasInteracted.current = true;
+    setManual(true);
+    setLayerIndex(index);
+    setDepth(STAGES[step].depth);
+  }, []);
 
   return (
     <div className="xray-instrument" data-depth={Math.round(depth)} data-stage={STAGES[currentStage].name.toLowerCase()} data-project={project.id}>
@@ -162,6 +171,7 @@ function InspectionInstrument({ project }) {
         </aside>
       </div>
 
+      <FailureTrace project={project} notes={notes} reducedMotion={reducedMotion} onInspect={inspectTrace} controlVersion={traceControlVersion} />
       <div className="xray-footer">
         <div className="xray-tech">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
         <div className="xray-project-links">
@@ -193,7 +203,7 @@ export function ProjectXRay({ projects }) {
     <section className="work-section section xray-work" id="work">
       <header className="work-ledger-heading">
         <h2><span>The work.</span><em>Inside out.</em></h2>
-        <p>Six builds. Their interfaces, their fault lines, and the decisions that hold them together. Move the inspection depth. Follow any layer to the source.</p>
+        <p>Six builds. Open the interface. Peel back the architecture. Challenge one assumption—and follow the guard to its source.</p>
       </header>
       <div className="xray-workbench" style={{ "--project-accent": activeProject.accent }}>
         <div className="xray-project-index" role="tablist" aria-label="Select a project to inspect">

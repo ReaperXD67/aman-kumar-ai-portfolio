@@ -60,9 +60,9 @@ PROJECTS = (
         source=AUTONOMOUS,
         live=None,
         bullets=(
-            "Built a durable agent runtime with a PostgreSQL transactional outbox, Redis dispatch, worker leases and bounded retries to recover interrupted tasks.",
-            "Bound human-in-the-loop approvals to exact action payloads; checked persisted receipts to prevent replay of recorded side effects and rejected stale worker completions.",
-            "Integrated local Qwen inference with controlled hosted-model fallback; isolated Docker workers and added dependency, secret and container-image scans to CI.",
+            "Designed a PostgreSQL transactional outbox and Redis worker queue with leases, heartbeats and bounded retries so interrupted agent tasks can recover.",
+            "Bound human-in-the-loop approvals to exact payloads; rejected stale worker results and checked durable receipts to block replay of recorded external actions.",
+            "Integrated hosted LLM routing with local Qwen fallback; isolated Docker action workers and gated CI on dependency, secret and container-image scans.",
         ),
     ),
     Project(
@@ -72,9 +72,9 @@ PROJECTS = (
         source=ATLASLM,
         live=ATLASLM_LIVE,
         bullets=(
-            "Built a live document workbench with deterministic PDF ingestion, contextual chunking, deduplication and source metadata preserved through retrieval.",
-            "Implemented hybrid search with dense embeddings, BM25, reciprocal rank fusion, reranking and MMR; added evidence-sufficiency gates and citation audits.",
-            "Deployed on Vercel with Upstash Vector and a local Qdrant adapter; exposed retrieval evaluations, timed traces and document-scoped semantic caching.",
+            "Built PDF, TXT and Markdown ingestion with deterministic chunk IDs, exact deduplication and source metadata carried into inspectable answers.",
+            "Combined dense vector search, BM25, reciprocal rank fusion and reranking; gated weak evidence before generation and audited citations afterward.",
+            "Deployed on Vercel with Upstash Vector and local Qdrant support; added retrieval evaluations, timed pipeline traces and document-scoped semantic caching.",
         ),
     ),
     Project(
@@ -85,8 +85,8 @@ PROJECTS = (
         live=MINEPULSE_LIVE,
         bullets=(
             "Built and deployed a Next.js marketplace and Java Paper plugin for account linking, server-verified playtime rewards and in-game purchase delivery.",
-            "Designed transactional ledgers, expiring delivery claims and durable plugin receipts; implemented refunds for eligible expired purchases with an auditable trail.",
-            "Secured the plugin boundary with HMAC-SHA256 and replay protection; deployed app replicas, PostgreSQL and Redis behind Nginx with encrypted backups.",
+            "Designed transactional ledgers and expiring purchase claims; persisted plugin receipts so a lost acknowledgement need not repeat a recorded delivery.",
+            "Authenticated the game/API boundary with HMAC-SHA256 and one-time nonces; deployed app replicas, PostgreSQL and Redis behind Nginx with encrypted backups.",
         ),
     ),
 )
@@ -281,7 +281,7 @@ def build(output: Path = OUTPUT) -> None:
     y = draw_wrapped(
         page,
         y,
-        "AI engineer building large language model (LLM) applications and full-stack products. Experience at SIP Organization and micro1 spans AI product delivery, backend integrations and self-adaptive systems.",
+        "AI engineer and former micro1 intern building large language model (LLM) applications and full-stack products. Focus: durable agents, grounded retrieval, Python APIs and TypeScript interfaces.",
         size=10.5,
         leading=12.8,
     )
@@ -294,7 +294,7 @@ def build(output: Path = OUTPUT) -> None:
         y,
         (
             "Lead development of AI-powered WhatsApp onboarding and customer-assistance workflows, including context-aware conversations and response orchestration.",
-            "Build backend integrations across AI microservices, coordinating reliability and end-to-end product delivery.",
+            "Integrate AI microservices and backend workflows; coordinate reliability and end-to-end product delivery.",
         ),
     )
     y = role_header(page, y + 3.0, "AI Engineer Intern", "micro1", "Aug 2025 - Jul 2026")
@@ -325,7 +325,7 @@ def build(output: Path = OUTPUT) -> None:
     y = section(page, y + 2.0, "TECHNICAL SKILLS")
     skill_rows = (
         ("Languages", "Python, TypeScript, JavaScript, Java, SQL"),
-        ("AI / ML", "Retrieval-augmented generation (RAG), agentic systems, PyTorch, embeddings, reranking, evaluation"),
+        ("AI / ML", "LLMs, retrieval-augmented generation (RAG), agent workflows, PyTorch, embeddings, reranking, evaluation"),
         ("Backend / Data", "FastAPI, Next.js, React, REST APIs, PostgreSQL, pgvector, Redis, Qdrant, Prisma, OAuth"),
         ("Infrastructure", "Docker, Linux, Nginx, GitHub Actions, CI/CD, Vercel, VPS, observability, webhooks"),
     )
@@ -340,7 +340,7 @@ def build(output: Path = OUTPUT) -> None:
         y += 0.4
 
     y = section(page, y + 5.2, "EDUCATION & CERTIFICATION")
-    draw_text(page, LEFT, y, "B.Sc. Computer Science", 10.5, fontname=BOLD_NAME)
+    draw_text(page, LEFT, y, "Bachelor of Science in Computer Science", 10.5, fontname=BOLD_NAME)
     dates = "Aug 2024 - Sep 2028"
     draw_text(page, RIGHT - text_width(dates, 9.0, BOLD), y, dates, 9.0, fontname=BOLD_NAME)
     y += 11.7

@@ -3,7 +3,7 @@ import { ArrowCounterClockwise, ArrowUpRight, Cpu, User } from "@phosphor-icons/
 import { useReducedMotion } from "./useMotionPreference.js";
 import "./portrait-signal.css";
 
-const PORTRAIT = "/profile/aman-portrait.webp?v=20260924";
+const PORTRAIT = "/profile/aman-portrait.webp?v=20261027";
 const Kernel = lazy(() => import("./IdentityKernel.jsx").then((module) => ({ default: module.IdentityKernel })));
 const clamp = (value) => Math.min(1, Math.max(0, value));
 const noise = (index) => ((index * 7919 + 104729) % 65521) / 65521;
@@ -145,7 +145,7 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
       <span className="portrait-edge-label" aria-hidden="true">A.K. / THE PERSON BEHIND THE SYSTEM</span>
       <div className="portrait-nameplate">
         <span>HELLO, I'M</span>
-        <strong>Aman<span>Kumar.</span></strong>
+        <strong>Aman<span> Kumar.</span></strong>
         <p>Engineering is personal.<br />So is the responsibility.</p>
       </div>
     </div>
@@ -197,7 +197,7 @@ export function PortraitSignal() {
 export function PortraitSignature() {
   return (
     <a className="portrait-signature" href="#about" aria-label="Meet Aman Kumar, previously AI Engineer Intern at micro1">
-      <span className="portrait-signature-image"><img src="/profile/aman-portrait-small.webp?v=20260924" alt="Aman Kumar" width="160" height="160" /><i aria-hidden="true" /></span>
+      <span className="portrait-signature-image"><img src="/profile/aman-portrait-small.webp?v=20261027" alt="Aman Kumar" width="160" height="160" /><i aria-hidden="true" /></span>
       <span className="portrait-signature-copy"><strong>Aman Kumar<span>THE ENGINEER BEHIND THE SYSTEMS</span></strong><small>BUILDING AT SIP <b>↗</b> PREVIOUSLY AT micro1</small></span>
       <ArrowUpRight size={18} aria-hidden="true" />
     </a>

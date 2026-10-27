@@ -14,11 +14,14 @@ catch {
   sharp = require(bundled);
 }
 const base = path.resolve(import.meta.dirname, '../public/profile');
-const source = path.resolve(process.argv[2] || path.join(base, 'aman-portrait-20260924.png'));
+const source = path.resolve(process.argv[2] || path.join(base, 'aman-portrait-20261027.png'));
+const version = process.argv[3] || '20261027';
+if (!/^\d{8}$/.test(version)) throw new Error('Portrait version must use YYYYMMDD.');
 const variants = [
   ['aman-portrait.webp', 1000, 'webp', 89],
   ['aman-portrait-small.webp', 160, 'webp', 86],
-  ['aman-avatar-20260924.jpg', 800, 'jpeg', 94],
+  [`aman-avatar-${version}.jpg`, 800, 'jpeg', 94],
+  ['linkedin/linkedin-aman-editorial-portrait-v3.jpg', 800, 'jpeg', 94],
 ];
 for (const [filename, size, format, quality] of variants) {
   const info = await sharp(source).rotate().resize(size, size, { fit: 'cover' })[format]({ quality }).toFile(path.join(base, filename));

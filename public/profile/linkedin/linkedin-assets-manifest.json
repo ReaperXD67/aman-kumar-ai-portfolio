@@ -1,0 +1,30 @@
+{
+  "platform": "LinkedIn",
+  "generatedAt": "2026-10-27",
+  "profilePhoto": {
+    "file": "linkedin-aman-editorial-portrait-v3.jpg",
+    "width": 800,
+    "height": 800,
+    "format": "JPEG",
+    "bytes": 174382,
+    "source": "User-supplied yellow-kurta photograph, 27 October 2026",
+    "intent": "identity-preserve",
+    "circularCropSafe": true,
+    "uploadStatus": "prepared; blocked by Chrome extension local-file permission",
+    "liveProfilePhotoUnchanged": true
+  },
+  "backgroundPhoto": {
+    "file": "linkedin-minimal-engineer-banner-v2.png",
+    "width": 1584,
+    "height": 396,
+    "format": "PNG",
+    "bytes": 72434,
+    "avatarOverlapZone": "left 25% kept dark and low-contrast"
+  },
+  "provenance": {
+    "profilePhotoMaster": "public/profile/aman-portrait-20261027.png",
+    "profilePhotoDelivery": "docs/linkedin-update-2026-10-27.md",
+    "backgroundPhotoSource": "scripts/render-linkedin-banner.ps1",
+    "profileCopy": "docs/linkedin-profile-system.md"
+  }
+}

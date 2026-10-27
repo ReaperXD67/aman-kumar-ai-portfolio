@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const publicFile = (path) => new URL(`../public${path}`, import.meta.url);
-const socialPath = "/assets/portfolio-social-preview-v2.png";
+const socialPath = "/assets/portfolio-social-preview-v3.png";
 const socialUrl = `https://aman-kumar-ai-portfolio.vercel.app${socialPath}`;
 const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
@@ -49,7 +49,7 @@ test("canonical resume preview is a nonempty portrait PNG", async () => {
   assert.ok(width >= 1000 && height > width, "Expected a legible full-page portrait preview");
 });
 
-test("professional social preview v2 is exactly 1200 by 630", async () => {
+test("professional social preview v3 is exactly 1200 by 630", async () => {
   const preview = await readFile(publicFile(socialPath));
   assert.deepEqual(pngDimensions(preview), { width: 1200, height: 630 });
   assert.ok(preview.byteLength > 1000, "Social preview must not be an empty placeholder");
@@ -69,13 +69,15 @@ test("Open Graph and Twitter reference the same versioned social artwork", async
 });
 
 test("approved portrait and optimized delivery assets are present", async () => {
-  const originals = await readFile(publicFile("/profile/aman-portrait-20260924.png"));
+  const originals = await readFile(publicFile("/profile/aman-portrait-20261027.png"));
   const dimensions = pngDimensions(originals);
-  assert.ok(dimensions.width >= 800 && dimensions.height >= 800);
+  assert.deepEqual(dimensions, { width: 1254, height: 1254 });
 
-  const jpeg = await readFile(publicFile("/profile/aman-avatar-20260924.jpg"));
+  const jpeg = await readFile(publicFile("/profile/aman-avatar-20261027.jpg"));
   assert.ok(jpeg.byteLength > 1000);
   assert.deepEqual(jpeg.subarray(0, 3), Buffer.from([255, 216, 255]));
+  const linkedInPhoto = await readFile(publicFile("/profile/linkedin/linkedin-aman-editorial-portrait-v3.jpg"));
+  assert.deepEqual(linkedInPhoto, jpeg, "LinkedIn and account upload use the same approved portrait");
 
   for (const path of ["/profile/aman-portrait.webp", "/profile/aman-portrait-small.webp"]) {
     const webp = await readFile(publicFile(path));
