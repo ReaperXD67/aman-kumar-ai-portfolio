@@ -4,7 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { HeroFoundry } from "./HeroFoundry.jsx";
 import { useReducedMotion } from "./useMotionPreference.js";
-import { containFrame, mixFrame, readStory, smoothRange } from "./cinematic-motion.js";
+import { captureClipPath, containFrame, mixFrame, readStory, smoothRange } from "./cinematic-motion.js";
 import "./cinematic-opening.css";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -44,8 +44,21 @@ export function CinematicOpening({ children }) {
     const image = instrument?.querySelector(".xray-surface > img");
     const ready = Boolean(image?.complete && image.naturalWidth && bridgeImage.current?.complete && projection.current);
     const active = !failed && !bridgeCancelled.current && ready && story.arrival > 0 && story.arrival < 1;
-    let frame;
-    if (active) frame = mixFrame(projection.current, containFrame(image.getBoundingClientRect(), image.naturalWidth, image.naturalHeight), story.arrival);
+    let frame, clip = "none";
+    if (active) {
+      frame = mixFrame(projection.current, containFrame(image.getBoundingClientRect(), image.naturalWidth, image.naturalHeight), story.arrival);
+      const stage = node.querySelector('.descent-flight[data-shared-scene="true"] .flight-stage')?.getBoundingClientRect();
+      const protectedFrames = [...node.querySelectorAll('.flight-arrival, .flight-navigation > span, .flight-navigation a, .flight-footer > span')].flatMap(element => {
+        const style = getComputedStyle(element), box = element.getBoundingClientRect();
+        if (!stage || style.display === "none" || style.visibility === "hidden" || Number(style.opacity) <= .001 || !box.width || !box.height) return [];
+        // The sticky narrative is clipped by its own stage as it leaves. Never
+        // let an offscreen label punch an unrelated hole into the destination.
+        const left = Math.max(0, stage.left, box.left), top = Math.max(0, stage.top, box.top);
+        const right = Math.min(window.innerWidth, stage.right, box.right), bottom = Math.min(window.innerHeight, stage.bottom, box.bottom);
+        return right > left && bottom > top ? [{ left, top, width: right - left, height: bottom - top }] : [];
+      });
+      clip = captureClipPath(frame, protectedFrames, projection.current.width, projection.current.height);
+    }
     node.dataset.cinemaAct = story.arrival > 0 ? "evidence" : story.flight > .01 ? "projects" : story.passage > .02 ? "unfold" : "signal";
     node.dataset.bridgeActive = String(active);
     node.style.setProperty("--passage", String(story.passage));
@@ -55,6 +68,7 @@ export function CinematicOpening({ children }) {
     node.style.setProperty("--surface-arrival-opacity", String(smoothRange(story.arrival, .86, 1)));
     if (bridge.current) {
       bridge.current.style.opacity = active ? String(1 - smoothRange(story.arrival, .86, 1)) : "0";
+      bridge.current.style.clipPath = clip;
       if (frame) {
         bridge.current.style.transform = `translate3d(${frame.left}px, ${frame.top}px, 0) scale(${frame.width / projection.current.width}, ${frame.height / projection.current.height})`;
       }

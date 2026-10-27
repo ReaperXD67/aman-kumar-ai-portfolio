@@ -181,15 +181,9 @@ export function IdentityVault({ resume }) {
   return (
     <>
       <section className="identity-section section" id="about">
-        <motion.div
-          className="identity-kernel-frame"
-          initial={reducedMotion ? false : { opacity: 0.72, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.28 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        >
+        <div className="identity-kernel-frame">
           <PortraitSignal />
-        </motion.div>
+        </div>
 
         <div className="identity-copy">
           <div className="identity-byline"><span>AMAN KUMAR / AI ENGINEER</span><a href="#experience">Previously AI Engineer Intern at micro1 ↗</a></div>

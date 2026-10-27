@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
   MotionConfig,
@@ -21,6 +21,7 @@ import {
 import { Contact, IdentityVault } from "./IdentityVault.jsx";
 import { SignalOperatingSystem } from "./SignalOperatingSystem.jsx";
 import { CinematicOpening } from "./CinematicOpening.jsx";
+import { CinematicContinuation } from "./CinematicContinuation.jsx";
 import { ProjectXRay } from "./ProjectXRay.jsx";
 import { useReducedMotion } from "./useMotionPreference.js";
 import { useResumeManifest } from "./useResumeManifest.js";
@@ -269,7 +270,7 @@ function Work({ onProofChange }) {
   return <ProjectXRay projects={PROJECTS} cinematicEntry onProofChange={onProofChange} />;
 }
 
-function Method({ entrySignal }) {
+function Method({ entrySignal, continuation }) {
   const reducedMotion = useReducedMotion();
   const [activeCapability, setActiveCapability] = useState(0);
   const current = CAPABILITIES[activeCapability];
@@ -283,7 +284,7 @@ function Method({ entrySignal }) {
       <div className="method-chamber" style={{ "--method-accent": ["#ff5f38", "#d8ff4f", "#7ea8ff", "#f2f2ec"][activeCapability] }}>
         <div className="method-visual" role="img" aria-label={`Live system view: ${current.title}`}>
           <Suspense fallback={<div className="method-field-fallback">ROUTING SYSTEM SIGNAL</div>}>
-            <MethodField activeIndex={activeCapability} reducedMotion={reducedMotion} entrySignal={entrySignal} />
+            <MethodField activeIndex={activeCapability} reducedMotion={reducedMotion} entrySignal={entrySignal} continuation={continuation} />
           </Suspense>
           <span className="method-visual-index">0{activeCapability + 1}</span>
           <div className="method-visual-hud"><span>VALIDATION CHAMBER / LIVE</span><strong><i /> SIGNAL ROUTED</strong></div>
@@ -339,6 +340,7 @@ export function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [signalPanel, setSignalPanel] = useState(null);
   const [entrySignal, setEntrySignal] = useState({ projectId: "karixmc", layerIndex: 1 });
+  const continuation = useRef({ visible: false, reduced: false, methodExit: 0, points: [], accent: "#d8ff4f", scene: null, invalidate: null });
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 130, damping: 24, mass: 0.2 });
   useEffect(() => {
@@ -372,10 +374,12 @@ export function App() {
       <SignalOperatingSystem panel={signalPanel} onPanelChange={setSignalPanel} resume={resume} />
       <main id="main-content">
         <CinematicOpening><Work onProofChange={setEntrySignal} /></CinematicOpening>
-        <SignalBand />
-        <Method entrySignal={entrySignal} />
-        <IdentityVault resume={resume} />
-        <Contact />
+        <CinematicContinuation continuation={continuation}>
+          <SignalBand />
+          <Method entrySignal={entrySignal} continuation={continuation} />
+          <IdentityVault resume={resume} />
+          <Contact />
+        </CinematicContinuation>
       </main>
       <footer className="site-footer">
         <span>© 2026 AMAN KUMAR</span>

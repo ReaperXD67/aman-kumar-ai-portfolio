@@ -130,12 +130,14 @@ function drawEntryStructure(context, geometry, width, height, accent, strength) 
   context.restore();
 }
 
-export function MethodField({ activeIndex, reducedMotion, entrySignal }) {
+export function MethodField({ activeIndex, reducedMotion, entrySignal, continuation }) {
   const canvasRef = useRef(null);
   const pointerRef = useRef({ x: -999, y: -999, active: false });
   const particlesRef = useRef([]);
   const controllerRef = useRef(null);
   const entryLifeRef = useRef({ phase: "pending", elapsed: 0, entry: null });
+  const continuationRef = useRef(continuation);
+  continuationRef.current = continuation;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -150,6 +152,9 @@ export function MethodField({ activeIndex, reducedMotion, entrySignal }) {
     let previousTime = 0;
     let targets = [];
     let sourcePoints = [];
+    let outputPoints = [];
+    const displayedPoints = Array.from({ length: PARTICLE_COUNT }, () => ({ x: 0, y: 0 }));
+    const normalizedPoints = Array.from({ length: PARTICLE_COUNT }, () => ({ x: 0, y: 0 }));
     let measured = false;
     let stage = activeIndex;
     let reduced = Boolean(reducedMotion);
@@ -167,6 +172,20 @@ export function MethodField({ activeIndex, reducedMotion, entrySignal }) {
       targets = Array.from({ length: PARTICLE_COUNT }, (_, index) => targetFor(stage, index, width, height));
       const entry = life.entry || candidateEntry;
       sourcePoints = entry ? entry.geometry.points.map(point => fitEntryPoint(point, width, height)) : [];
+      // One continuous perimeter, sampled by physical edge length rather than
+      // four equal-count sides. This becomes the next artifact's registration.
+      const pad = Math.min(width, height) * .13;
+      const innerWidth = width - pad * 2, innerHeight = height - pad * 2;
+      const perimeter = 2 * (innerWidth + innerHeight);
+      outputPoints = Array.from({ length: PARTICLE_COUNT }, (_, index) => {
+        let distance = index / PARTICLE_COUNT * perimeter;
+        if (distance <= innerWidth) return [pad + distance, pad];
+        distance -= innerWidth;
+        if (distance <= innerHeight) return [width - pad, pad + distance];
+        distance -= innerHeight;
+        if (distance <= innerWidth) return [width - pad - distance, height - pad];
+        return [pad, height - pad - (distance - innerWidth)];
+      });
     };
     const takeControl = () => {
       // Lock the provenance even if a visitor interrupts before the first frame.
@@ -224,11 +243,14 @@ export function MethodField({ activeIndex, reducedMotion, entrySignal }) {
       // accumulates visible frame time only; scrolling back cannot restart it.
       const t = Math.max(0, Math.min(1, (progress - 0.14) / 0.86));
       const transfer = t * t * t * (t * (t * 6 - 15) + 10);
+      const output = continuationRef.current?.current;
+      const outputProgress = reduced ? 0 : Math.max(0, Math.min(1, output?.methodExit || 0));
+      const exit = outputProgress * outputProgress * outputProgress * (outputProgress * (outputProgress * 6 - 15) + 10);
       context.fillStyle = "#070808";
       context.fillRect(0, 0, width, height);
       const accent = ACCENTS[stage];
-      drawStructure(context, stage, width, height, accent, time, transfer);
-      if (life.phase === "transferring") drawEntryStructure(context, life.entry.geometry, width, height, accent, 1 - transfer);
+      drawStructure(context, stage, width, height, accent, time, transfer * (1 - exit));
+      if (life.phase === "transferring") drawEntryStructure(context, life.entry.geometry, width, height, accent, (1 - transfer) * (1 - exit));
 
       const particles = particlesRef.current;
       particles.forEach((particle, index) => {
@@ -252,23 +274,54 @@ export function MethodField({ activeIndex, reducedMotion, entrySignal }) {
           particle.x += (dx / distance) * force;
           particle.y += (dy / distance) * force;
         }
+        // Scroll changes only the visible projection, never simulation state.
+        // Reversing restores the current principle without replaying entry.
+        const displayed = displayedPoints[index], framePoint = outputPoints[index];
+        displayed.x = particle.x + (framePoint[0] - particle.x) * exit;
+        displayed.y = particle.y + (framePoint[1] - particle.y) * exit;
+        normalizedPoints[index].x = displayed.x / width;
+        normalizedPoints[index].y = displayed.y / height;
       });
 
+      if (output) {
+        const changed = output.points !== normalizedPoints || output.accent !== accent;
+        output.points = normalizedPoints;
+        output.accent = accent;
+        if (changed) {
+          if (output.scene) { output.scene.points = normalizedPoints; output.scene.accent = accent; }
+          output.invalidate?.();
+        }
+      }
+      const reportedExit = outputProgress.toFixed(3);
+      if (canvas.dataset.outputProgress !== reportedExit) canvas.dataset.outputProgress = reportedExit;
+
+      if (exit > 0) {
+        const pad = Math.min(width, height) * .13;
+        context.strokeStyle = accent;
+        context.globalAlpha = exit * .34;
+        context.lineWidth = 1;
+        context.strokeRect(pad, pad, width - pad * 2, height - pad * 2);
+        context.globalAlpha = 1;
+      }
+
       context.lineWidth = 0.7;
-      particles.forEach((particle, index) => {
+      displayedPoints.forEach((particle, index) => {
         if (stage === 0 && life.phase !== "transferring") {
-          const peer = particles[(index + 4) % particles.length];
+          const peer = displayedPoints[(index + 4) % displayedPoints.length];
           if (Math.hypot(peer.x - particle.x, peer.y - particle.y) < 120) {
             context.strokeStyle = index % 4 === 0 ? accent : "rgba(203, 208, 204, 0.17)";
+            context.globalAlpha = 1 - exit;
             context.beginPath();
             context.moveTo(particle.x, particle.y);
             context.lineTo(peer.x, peer.y);
             context.stroke();
+            context.globalAlpha = 1;
           }
         }
+        const size = particles[index].size;
         const pulse = reduced ? 0 : Math.sin(time * 0.002 + index) * 0.7;
         context.fillStyle = index % (6 - Math.min(stage, 2)) === 0 ? accent : "rgba(225, 228, 223, 0.76)";
-        context.fillRect(particle.x - particle.size / 2, particle.y - particle.size / 2, particle.size + pulse, particle.size + pulse);
+        context.fillRect(particle.x - size / 2, particle.y - size / 2, size + pulse, size + pulse);
       });
 
       if (life.phase === "transferring" && progress === 1) setPhase("settled");
@@ -345,9 +398,26 @@ export function MethodField({ activeIndex, reducedMotion, entrySignal }) {
     };
   }, []);
 
-  useEffect(() => { controllerRef.current?.setStage(activeIndex); }, [activeIndex]);
+  useEffect(() => {
+    controllerRef.current?.setStage(activeIndex);
+    // A tab can remain visible after its canvas has left the viewport. Carry
+    // that explicit selection onward without waking an offscreen simulation.
+    const output = continuationRef.current?.current;
+    if (output) {
+      output.accent = ACCENTS[activeIndex];
+      if (output.scene) output.scene.accent = output.accent;
+      output.invalidate?.();
+    }
+  }, [activeIndex]);
   useEffect(() => { controllerRef.current?.setReduced(reducedMotion); }, [reducedMotion]);
   useEffect(() => { controllerRef.current?.setEntry(entrySignal); }, [entrySignal?.projectId, entrySignal?.layerIndex]);
+  useEffect(() => {
+    const state = continuation?.current;
+    const request = controllerRef.current?.resume;
+    if (!state || !request) return undefined;
+    state.requestMethodFrame = request;
+    return () => { if (state.requestMethodFrame === request) state.requestMethodFrame = null; };
+  }, [continuation]);
 
   return (
     <canvas
@@ -357,6 +427,7 @@ export function MethodField({ activeIndex, reducedMotion, entrySignal }) {
       data-entry-project=""
       data-entry-layer=""
       data-entry-state="pending"
+      data-output-progress="0.000"
       onPointerDown={() => { controllerRef.current?.takeControl(); controllerRef.current?.resume(); }}
       onPointerMove={(event) => {
         if (reducedMotion || event.pointerType === "touch") return;
