@@ -48,6 +48,7 @@ export function CinematicOpening({ children }) {
     if (active) frame = mixFrame(projection.current, containFrame(image.getBoundingClientRect(), image.naturalWidth, image.naturalHeight), story.arrival);
     node.dataset.cinemaAct = story.arrival > 0 ? "evidence" : story.flight > .01 ? "projects" : story.passage > .02 ? "unfold" : "signal";
     node.dataset.bridgeActive = String(active);
+    node.style.setProperty("--passage", String(story.passage));
     // The projected copy takes ownership in place, before it travels. Keeping
     // the world visible through the dock would expose two separate captures.
     node.style.setProperty("--world-opacity", String(1 - smoothRange(story.arrival, 0, .04)));
@@ -110,6 +111,7 @@ export function CinematicOpening({ children }) {
     <div className="cinematic-render-sensor" ref={sensor} aria-hidden="true" />
     <div className="cinematic-stage" aria-hidden="true">
       {visible && !failed && <CinemaBoundary onFailure={fail}><Suspense fallback={null}><World motion={motion} mode={controls.mode} paused={controls.paused} onCycle={() => controlsRef.current?.cycle?.()} onFailure={fail} onProjection={receiveProjection} /></Suspense></CinemaBoundary>}
+      <div className="cinematic-grade cinematic-grade-hero" /><div className="cinematic-grade cinematic-grade-flight" />
       {failed && <div className="cinematic-unavailable"><strong>Observe. Reason. Execute.</strong><p>The 3D view is unavailable. The work is ready to inspect.</p></div>}
     </div>
     <div className="cinematic-hero-layer"><HeroFoundry sharedScene motionRef={motion} onSceneState={receiveControls} /></div>

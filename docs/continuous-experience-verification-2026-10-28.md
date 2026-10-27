@@ -15,6 +15,7 @@ Work selection reports its actual project/layer into Method. Its 84 points sampl
 - The first integration exposed missing newlines before Three shader preprocessor directives. Both metal and edge shader injections now include an explicit separator; the titanium surfaces render again. Subsequent browser logs contained no new compilation errors.
 - The initial docking overlap showed two images. The world now gives up ownership within the first 4% of arrival; the moving image is the sole capture thereafter.
 - Workbench title, filmstrip, instrument bar, readout and controls sit above the moving copy. The destination lens remains beneath it, so the picture enters its opening without covering the controls.
+- A production screenshot exposed a horizontal lighting edge where two section overlays met. Hero and flight grades now occupy the same persistent viewport stage and blend with the shared passage value; individual shared-section overlays and the shared hero's bottom border are disabled.
 - Projection remains available throughout the terminal flight window, including a fast crossing into arrival. Layout refresh uses measured boundaries and an explicit zero origin for its GSAP `fromTo`, avoiding a refreshed route that adopts its current distance as the start.
 
 ## Checked in the preview

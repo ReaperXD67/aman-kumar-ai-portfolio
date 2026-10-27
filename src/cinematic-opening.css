@@ -1,10 +1,14 @@
-.cinematic-opening { position: relative; isolation: isolate; background: #030505; --world-opacity: 1; --surface-arrival-opacity: 0; }
+.cinematic-opening { position: relative; isolation: isolate; background: #030505; --world-opacity: 1; --surface-arrival-opacity: 0; --passage: 0; }
 .cinematic-render-sensor { position: absolute; top: 0; left: 0; width: 1px; height: var(--render-range, 650svh); pointer-events: none; }
 .cinematic-stage { position: sticky; z-index: 0; top: 0; height: 100svh; margin-bottom: -100svh; overflow: hidden; background: #030505; }
 .cinematic-webgl { position: absolute; inset: 0; opacity: var(--world-opacity); }
 .cinematic-webgl > div, .cinematic-webgl canvas { width: 100% !important; height: 100% !important; }
+.cinematic-grade { position: absolute; inset: 0; pointer-events: none; }
+.cinematic-grade-hero { opacity: calc(1 - var(--passage)); background: linear-gradient(90deg, #030505d9, #03050555 28%, transparent 57%), linear-gradient(0deg, #030505, #03050565 24%, transparent 61%); }
+.cinematic-grade-flight { opacity: var(--passage); background: linear-gradient(180deg, #03050590, transparent 24%, transparent 52%, #030505d6), linear-gradient(90deg, #03050555, transparent 35%, transparent 65%, #03050544); }
 .cinematic-hero-layer { position: relative; z-index: 2; pointer-events: none; }
-.cinematic-hero-layer .hero.hero-foundry { background: transparent; }
+.cinematic-hero-layer .hero.hero-foundry { border-bottom: 0; background: transparent; }
+.cinematic-hero-layer .foundry-shade, .cinematic-opening .descent-flight[data-shared-scene="true"] .flight-shade { display: none; }
 .cinematic-hero-layer a, .cinematic-hero-layer button { pointer-events: auto; }
 .cinematic-opening .descent-flight[data-shared-scene="true"] { z-index: 2; height: 460svh; border: 0; background: transparent; pointer-events: none; }
 .cinematic-opening .descent-flight[data-shared-scene="true"] .flight-stage { background: transparent; }
@@ -30,6 +34,7 @@
 .cinematic-unavailable strong { color: #d8ff4f; font-size: 30px; font-weight: 500; }
 .cinematic-unavailable p { font-size: 15px; line-height: 1.6; }
 @media (max-width: 700px) {
+  .cinematic-grade-hero { background: linear-gradient(0deg, #030505, #030505eb 25%, transparent 55%); }
   .cinematic-opening .descent-flight[data-shared-scene="true"] { height: 380svh; }
   .cinematic-opening .flight-exit.flight-arrival { left: 20px; right: 20px; bottom: 13vh; max-width: 320px; }
   .cinematic-opening .flight-arrival h2 { font-size: 42px; }
