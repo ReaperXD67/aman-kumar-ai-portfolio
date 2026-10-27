@@ -1,6 +1,6 @@
 # Aman Kumar — LinkedIn Profile System
 
-Canonical profile copy, refined 27 October 2026. **Headline and About saved and verified on 2026-10-27.** The seven Featured cards, five top skills, and recruiter-only Open to Work presentation were inspected and retained. The new portrait is prepared; upload is blocked by Chrome's local-file permission and the live photo remains unchanged. See [the current delivery record](linkedin-update-2026-10-27.md) for exact scope, research, and the upload requirement. Earlier complete profile configuration is preserved in the local historical live-update log; it does not imply every underlying field was reverified today.
+Canonical profile copy, refined 27 October 2026. **Headline and About saved and verified on 2026-10-27.** The seven Featured cards, five top skills, and recruiter-only Open to Work presentation were inspected and retained. Aman chose to keep the current LinkedIn and GitHub account photos; no avatar replacement is pending. The new portrait stays in the portfolio and GitHub README artwork. See [the current delivery record](linkedin-update-2026-10-27.md) for exact scope and research. Earlier complete profile configuration is preserved in the local historical live-update log; it does not imply every underlying field was reverified today.
 
 Make Aman's engineering role, actual internship experience, implemented systems, source evidence, and contact path clear within seconds. Use relevant terminology where it is demonstrated. No profile can guarantee inclusion in every recruiter search or a particular ranking.
 
@@ -306,9 +306,9 @@ No credential ID or expiration date appears on the supplied certificate. Do not 
 ## Visual identity
 
 - Prepared updated portrait: `public/profile/linkedin/linkedin-aman-editorial-portrait-v3.jpg` — 800 × 800 JPEG. Based on the user-supplied yellow-kurta photograph with a charcoal background; facial identity, expression, hair, and clothing remain recognizable. Visually inspected on 27 October 2026.
-- The existing live portrait remains in place: uploading v3 was blocked by the Chrome extension's disabled local-file permission. See [the current delivery record](linkedin-update-2026-10-27.md) before claiming it is applied.
+- Keep the existing live portrait by Aman's explicit choice after the blocked upload attempt. Do not retry the account-photo upload without a new request.
 - Approved current banner: `public/profile/linkedin/linkedin-minimal-engineer-banner-v2.png` — 1584 × 396 PNG.
-- Preserve Aman's facial identity, recognizable features, expression, hairstyle, and clothing. The latest supplied photograph supersedes older portrait choices for this refresh; retain the complementary banner.
+- Preserve Aman's facial identity, recognizable features, expression, hairstyle, and clothing. The latest supplied photograph is used in the portfolio and GitHub README, while the existing account avatars and complementary LinkedIn banner are retained.
 - Inspect actual images before uploading. Match Featured thumbnails to destinations. Use interfaces and source evidence to demonstrate engineering ability; the portrait introduces the person.
 
 ## Evidence and accuracy notes

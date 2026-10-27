@@ -17,7 +17,7 @@ The stable route remains `/profile/aman-kumar-resume.pdf`, with a runtime digest
 
 The separate `ReaperXD67/ReaperXD67` repository holds the GitHub profile, its authored responsive portrait entrance, flagship proof paths, and source limitations. Its pins already matched the approved six-project order. See [GitHub research](github-research-2026-10-27.md).
 
-LinkedIn's role-led headline and About were saved and read back on the owner profile. Existing Featured links, core skills and recruiter-only availability were inspected and retained. The new account portrait and replacement Featured thumbnail are prepared; Chrome's disabled local-file upload permission blocked applying those images. Owner screenshots are local verification artifacts and are excluded from publication. See the [LinkedIn delivery record](linkedin-update-2026-10-27.md).
+LinkedIn's role-led headline and About were saved and read back on the owner profile. Existing Featured links, core skills and recruiter-only availability were inspected and retained. Aman chose to keep the current LinkedIn and GitHub account photos after Chrome blocked the initial upload attempt. Those avatar replacements are no longer pending; the new portrait remains in the portfolio and GitHub README. The replacement Featured thumbnail is prepared but was not applied. Owner screenshots are local verification artifacts and are excluded from publication. See the [LinkedIn delivery record](linkedin-update-2026-10-27.md).
 
 ## Validation
 

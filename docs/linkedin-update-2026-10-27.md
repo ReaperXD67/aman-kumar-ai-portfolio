@@ -14,15 +14,13 @@ The authenticated profile owner and edit controls were verified in Chrome. Headl
 
 No role titles, dates, education, credentials, existing endorsements, posts, messages, or connection requests were changed in this pass. Earlier complete experience/project configuration remains documented in the historical live-update log; this pass does not claim to have reverified every underlying record.
 
-## Portrait prepared; upload blocked
+## Existing account photos retained by choice
 
 The new portrait is [linkedin-aman-editorial-portrait-v3.jpg](../public/profile/linkedin/linkedin-aman-editorial-portrait-v3.jpg), an 800 × 800 JPEG (174,382 bytes), derived from the user-supplied yellow-kurta photograph with an identity-preserving charcoal studio background. The image was visually inspected before attempting upload.
 
 LinkedIn's Update → Upload photo flow opened a file chooser. The Chrome extension refused file selection because its local-file permission is disabled. The existing live portrait remains unchanged. No extension permissions were altered.
 
-To enable file upload, open chrome://extensions, click Details under the ChatGPT browser extension, and enable "Allow access to file URLs." See [here](https://developers.openai.com/codex/app/chrome-extension#upload-files) for details.
-
-After that user-controlled permission change, upload the v3 JPEG, inspect its circular crop, save, and verify the main profile. Preserve the existing complementary banner.
+Aman subsequently chose “Keep the current LinkedIn and GitHub profile photos.” Preserve both existing account avatars. The new portrait stays in the portfolio and GitHub README artwork; account-photo uploads are no longer pending. The prepared LinkedIn JPEG remains available as an unused delivery asset. The existing complementary banner and Featured thumbnail remain unchanged.
 
 ## Evidence
 

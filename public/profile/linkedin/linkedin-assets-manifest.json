@@ -10,7 +10,7 @@
     "source": "User-supplied yellow-kurta photograph, 27 October 2026",
     "intent": "identity-preserve",
     "circularCropSafe": true,
-    "uploadStatus": "prepared; blocked by Chrome extension local-file permission",
+    "uploadStatus": "not selected for account upload; existing LinkedIn and GitHub profile photos retained by user choice",
     "liveProfilePhotoUnchanged": true
   },
   "backgroundPhoto": {
