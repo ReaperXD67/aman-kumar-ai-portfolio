@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ContinuationSignal } from "./ContinuationSignal.jsx";
 import { useReducedMotion } from "./useMotionPreference.js";
-import { documentFrame, methodOutputProgress, readContinuation, viewportFrame } from "./continuation-motion.js";
+import { documentFrame, methodOutputProgress, ownerClipExclusions, readContinuation, safeFilmFocus, viewportFrame } from "./continuation-motion.js";
 import { smoothRange } from "./cinematic-motion.js";
 import "./cinematic-continuation.css";
 
@@ -12,9 +12,9 @@ const STOPS = [
   [".resume-artifact .artifact-preview", "record"],
   [".contact-form", "contact"],
 ];
-const WORDS = ".method-heading,.method-readout,.method-stage-rail,.identity-copy,.portrait-instrument-header,.portrait-instrument-footer,.career-heading,.career-rail,.career-stage,.education-signal,.proof-vault-heading,.artifact-copy,.contact-intro,.contact-form-top,.contact-form label,.contact-submit,.contact-status";
+const PROTECTED = ".signal-band,.method-heading,.method-visual,.method-readout,.method-stage-rail,.identity-kernel-frame,.identity-copy,.career-heading,.career-console,.education-signal,.proof-vault-heading,.artifact-preview,.artifact-copy,.contact-intro,.contact-form";
 
-/** One signal carrier follows native artifact bounds through the entire ending. */
+/** Native content supplies a reading clock and occlusion, never sculpture shape. */
 export function CinematicContinuation({ children, continuation }) {
   const root = useRef(null);
   const reducedMotion = useReducedMotion();
@@ -33,7 +33,7 @@ export function CinematicContinuation({ children, continuation }) {
         const element = node.querySelector(selector);
         return element ? [{ ...box(element), act }] : [];
       });
-      localExclusions = [...node.querySelectorAll(WORDS)].map(box);
+      localExclusions = [...node.querySelectorAll(PROTECTED)].map(box);
       needsMeasure = false;
     };
     const sync = () => {
@@ -57,18 +57,23 @@ export function CinematicContinuation({ children, continuation }) {
           .map(element => element.getBoundingClientRect())
           .filter(rectangle => rectangle.width > 0 && rectangle.height > 0)
           .map(rectangle => ({ left: rectangle.left - stage.left, top: rectangle.top - stage.top, width: rectangle.width, height: rectangle.height }));
+        const viewport = { width: Math.max(1, stage.width), height: Math.max(1, stage.height) };
+        const protectedFrames = [...exclusions.map(project),
+          { left: -stage.left, top: -stage.top, width: window.innerWidth, height: headerBottom },
+          ...docks, ...ownerClipExclusions(rootBox, stage)];
         shared.scene = {
           from: project(route.from), to: project(route.to), progress: route.progress,
+          // This is the one eased clock. The film and camera consume it directly.
+          coordinate: route.coordinate, viewport, focus: safeFilmFocus(viewport, protectedFrames),
           act: route.act, phase: route.phase, points: shared.points, accent: shared.accent || "#d8ff4f",
-          exclusions: [...exclusions.map(project),
-            { left: -stage.left, top: -stage.top, width: window.innerWidth, height: headerBottom },
-            ...docks],
+          exclusions: protectedFrames,
         };
         const method = stops.find(stop => stop.act === "method");
         const contact = stops.find(stop => stop.act === "contact");
         shared.methodExit = method && !reducedMotion ? methodOutputProgress(y, method, height) : 0;
         shared.requestMethodFrame?.();
         node.dataset.continuationAct = route.act;
+        node.dataset.continuationCoordinate = route.coordinate.toFixed(4);
         node.style.setProperty("--contact-arrival", contact ? String(smoothRange(y + height * .72, contact.top, contact.top + Math.min(contact.height, height) * .5)) : "1");
       }
       shared.invalidate?.();

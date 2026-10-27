@@ -1,192 +1,147 @@
 import { useEffect, useRef } from "react";
-import { createContinuationVolume } from "./continuation-geometry.js";
+import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { captureClipPath, smoothRange } from "./cinematic-motion.js";
+import { createEndingFilmGrid, readEndingCamera, updateEndingFilmGrid } from "./ending-film-geometry.js";
 
-const ACTS = { method: 0, portrait: 1, record: 2, contact: 3 };
-const FACETS = 84;
-const clamp = value => Math.min(1, Math.max(0, value));
-const ease = value => { const t = clamp(value); return t * t * t * (t * (t * 6 - 15) + 10); };
-const mix = (from, to, t) => from + (to - from) * t;
-const wrap = value => ((value % 1) + 1) % 1;
-
-function validFrame(frame) {
-  return frame && [frame.left, frame.top, frame.width, frame.height].every(Number.isFinite)
-    && frame.width > 0 && frame.height > 0;
-}
-
-/** Retain the source point's nearest boundary, rather than inventing a cloud. */
-function sourceArc(point, frame, fallback) {
-  if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return fallback;
-  const x = clamp(point.x), y = clamp(point.y);
-  const distances = [y * frame.height, (1 - x) * frame.width, (1 - y) * frame.height, x * frame.width];
-  const edge = distances.indexOf(Math.min(...distances));
-  const total = (frame.width + frame.height) * 2;
-  if (edge === 0) return x * frame.width / total;
-  if (edge === 1) return (frame.width + y * frame.height) / total;
-  if (edge === 2) return (frame.width + frame.height + (1 - x) * frame.width) / total;
-  return (frame.width * 2 + frame.height + (1 - y) * frame.height) / total;
-}
-
-function drawFrame(context, scene, points, width, height, reduced) {
-  if (!validFrame(scene?.from) || !validFrame(scene?.to)) return;
-  const t = reduced ? 1 : ease(Number.isFinite(scene.progress) ? scene.progress : 0);
-  const frame = {
-    left: mix(scene.from.left, scene.to.left, t), top: mix(scene.from.top, scene.to.top, t),
-    width: mix(scene.from.width, scene.to.width, t), height: mix(scene.from.height, scene.to.height, t),
-  };
-  if (frame.left > width + 90 || frame.top > height + 90 || frame.left + frame.width < -90 || frame.top + frame.height < -90) return;
-  const narrow = width < 700;
-  // Semantic copy changes halfway through a passage; only the interval index
-  // addresses geometry, so that label change cannot jump the carrier.
-  const phase = Number.isFinite(scene.phase) ? Math.max(0, Math.min(3, Math.trunc(scene.phase))) : ACTS[scene.act] ?? 0;
-  const coordinate = reduced ? Math.max(0, Math.min(4, scene.phase || 0)) : phase + t;
-  const travel = coordinate / 4;
-  const accent = /^#[\da-f]{3,8}$/i.test(scene.accent || "") ? scene.accent : "#d8ff4f";
-  const perimeter = Math.max(1, (frame.width + frame.height) * 2);
-  const volume = createContinuationVolume(frame, coordinate, width, reduced);
-  const { rings, panels, segments } = volume;
-  const trace = vertices => {
-    vertices.forEach((point, index) => index ? context.lineTo(point.x, point.y) : context.moveTo(point.x, point.y));
-  };
-  const ringPoint = (ring, u) => {
-    const address = wrap(u) * segments, index = Math.floor(address), amount = address - index;
-    const from = ring.points[index], to = ring.points[index + 1];
-    return { x: mix(from.x, to.x, amount), y: mix(from.y, to.y, amount) };
-  };
-
-  // The mesh has genuine z/perspective and torsion, but its aperture is empty.
-  // This is a single hole, not an overlapping even-odd exclusion mask.
-  context.save();
-  context.beginPath(); context.rect(0, 0, width, height);
-  context.rect(frame.left, frame.top, frame.width, frame.height);
-  context.clip("evenodd");
-
-  // Transparent folded membranes reveal the volume between the projected rails.
-  // Batch material bands instead of issuing a fill for every individual facet.
-  for (let band = 0; band < 4; band++) {
-    context.beginPath();
-    for (const panel of panels) {
-      if (Math.min(3, Math.floor(panel.light * 4)) !== band) continue;
-      trace(panel.points); context.closePath();
-    }
-    context.fillStyle = `rgba(169,197,181,${.018 + band * .014})`;
-    context.fill();
-  }
-  context.beginPath();
-  for (const panel of panels) if (panel.accent) { trace(panel.points); context.closePath(); }
-  context.fillStyle = accent; context.globalAlpha = reduced ? .025 : .055; context.fill(); context.globalAlpha = 1;
-
-  // Cool metal catches light differently across the near and far depth rails.
-  const metal = context.createLinearGradient(frame.left, frame.top, frame.left + frame.width, frame.top + frame.height);
-  metal.addColorStop(0, "rgba(209,225,219,.77)");
-  metal.addColorStop(.22, "rgba(75,99,95,.48)");
-  metal.addColorStop(.47, "rgba(226,237,231,.86)");
-  metal.addColorStop(.62, "rgba(49,73,69,.35)");
-  metal.addColorStop(1, "rgba(163,185,174,.62)");
-  context.lineJoin = "bevel";
-  context.lineCap = "butt";
-  for (let lane = 0; lane < rings.length; lane++) {
-    context.globalAlpha = lane === 0 || lane === rings.length - 1 ? .9 : .36 + lane / rings.length * .2;
-    context.strokeStyle = lane === rings.length - 2 ? accent : metal;
-    context.lineWidth = lane === 0 ? 1.5 : lane === rings.length - 1 ? 1.15 : .65;
-    context.beginPath(); trace(rings[lane].points); context.stroke();
-  }
-  context.globalAlpha = 1;
-
-  // These depth ribs change azimuth across the extrusion: the object folds,
-  // rather than a set of two-dimensional outlines merely changing size.
-  for (let rib = 0; rib < segments; rib += narrow ? 8 : 6) {
-    context.beginPath(); trace(rings.map(ring => ring.points[rib]));
-    context.strokeStyle = rib % 3 === 0 ? accent : "rgba(175,201,184,.48)";
-    context.globalAlpha = rib % 3 === 0 ? .48 : .34;
-    context.lineWidth = .8; context.stroke();
-  }
-  context.globalAlpha = 1;
-
-  for (let index = 0; index < FACETS; index += 1) {
-    const uniform = index / FACETS;
-    const source = phase === 0
-      ? sourceArc(points?.[index % Math.max(1, points?.length || 0)], scene.from, uniform)
-      : uniform + .035 * phase;
-    // Shortest-arc interpolation remains deterministic when scrolling backward.
-    const target = uniform + .035 * (phase + 1);
-    const delta = wrap(target - source + .5) - .5;
-    const u = source + delta * t;
-    const ring = rings[index % rings.length];
-    const point = ringPoint(ring, u), next = ringPoint(ring, u + 2 / perimeter);
-    const light = Math.max(0, 1 - Math.abs(wrap(u - travel * .88 + .5) - .5) * 18);
-    context.strokeStyle = light > .12 ? accent : "rgba(192,211,200,.61)";
-    context.globalAlpha = .27 + light * .65;
-    context.lineWidth = light > .12 ? 1.8 : 1;
-    context.beginPath();
-    context.moveTo(point.x, point.y);
-    context.lineTo(next.x, next.y);
-    context.stroke();
-  }
-  context.globalAlpha = 1;
-
-  // A finite scroll-addressed packet; it never autoplays or requests more frames.
-  const packet = travel * .88;
-  const packetRing = rings[Math.floor(rings.length * .55)], packetSpan = Math.min(.055, 46 / perimeter);
-  context.strokeStyle = accent; context.lineWidth = 2;
-  context.beginPath(); trace(Array.from({ length: 16 }, (_, index) => ringPoint(packetRing, packet + packetSpan * index / 15))); context.stroke();
-  context.strokeStyle = "rgba(239,248,226,.96)"; context.lineWidth = 2.4;
-  context.beginPath(); trace([ringPoint(packetRing, packet + packetSpan), ringPoint(packetRing, packet + packetSpan + Math.min(.008, 5 / perimeter))]); context.stroke();
-  context.restore();
-
-  // Clear each forbidden rectangle independently: overlaps remain excluded,
-  // unlike an even-odd hole mask that can reveal their overlapping region.
-  for (const rectangle of scene.exclusions || []) {
-    if (!validFrame(rectangle)) continue;
-    context.clearRect(rectangle.left - 8, rectangle.top - 8, rectangle.width + 16, rectangle.height + 16);
-  }
-}
-
-/** Background artifact handoff. The owner supplies every scroll-addressed pose. */
+/** One open surface and a real perspective camera. Native content only occludes
+ * the film: its rectangles never become vertices, silhouettes or camera poses. */
 export function ContinuationSignal({ motion }) {
   const canvasRef = useRef(null);
   useEffect(() => {
-    const canvas = canvasRef.current, context = canvas?.getContext("2d", { alpha: true });
-    if (!canvas || !context || !motion?.current) return undefined;
-    let request = 0, disposed = false, width = 1, height = 1, ratio = 1;
-    const clear = () => context.clearRect(0, 0, width, height);
+    const canvas = canvasRef.current;
+    if (!canvas || !motion?.current) return undefined;
+    let request = 0, disposed = false, unavailable = false, lost = false, environmentDirty = false;
+    let width = 1, height = 1, ratio = 1, renderer, scene, camera, mesh, geometry, material, grid, environment;
+    let narrow, signature = "";
+    const silver = new THREE.Color("#aebfc8"), paper = new THREE.Color("#efefe9");
+    const target = new THREE.Vector3();
+
+    const makeGeometry = () => {
+      const phone = width < 700;
+      if (geometry && narrow === phone) return;
+      narrow = phone;
+      geometry?.dispose();
+      grid = createEndingFilmGrid(phone ? 64 : 96, phone ? 14 : 20);
+      geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(grid.positions, 3).setUsage(THREE.DynamicDrawUsage));
+      geometry.setAttribute("normal", new THREE.BufferAttribute(grid.normals, 3).setUsage(THREE.DynamicDrawUsage));
+      geometry.setAttribute("uv", new THREE.BufferAttribute(grid.uv, 2));
+      geometry.setIndex(new THREE.BufferAttribute(grid.indices, 1));
+      if (mesh) mesh.geometry = geometry;
+    };
+    const refreshEnvironment = () => {
+      const room = new RoomEnvironment(), generator = new THREE.PMREMGenerator(renderer);
+      const next = generator.fromScene(room, .035);
+      room.dispose(); generator.dispose(); environment?.dispose();
+      environment = next; scene.environment = environment.texture;
+    };
+    const initialize = () => {
+      if (renderer || unavailable || disposed) return Boolean(renderer);
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "default" });
+        renderer.setClearColor(0x000000, 0);
+        renderer.setPixelRatio(ratio); renderer.setSize(width, height, false);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12;
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(38, width / height, .1, 70);
+        refreshEnvironment();
+        scene.add(new THREE.HemisphereLight("#c4dcea", "#17100c", 1.1));
+        for (const [color, intensity, position] of [
+          ["#e8f4ff", 4.2, [-3, 5, 7]], ["#ff704b", 3.3, [4, -2, -4]], ["#6e9fbb", 2.2, [-5, 1, -2]],
+        ]) { const light = new THREE.DirectionalLight(color, intensity); light.position.set(...position); scene.add(light); }
+        makeGeometry();
+        material = new THREE.MeshStandardMaterial({ color: silver, roughness: .24, metalness: .88,
+          side: THREE.DoubleSide, envMapIntensity: 1.7 });
+        mesh = new THREE.Mesh(geometry, material); mesh.frustumCulled = false; scene.add(mesh);
+        canvas.dataset.continuationRenderer = "webgl";
+        return true;
+      } catch {
+        unavailable = true; canvas.dataset.continuationRenderer = "unavailable";
+        geometry?.dispose(); material?.dispose(); environment?.dispose(); renderer?.dispose(); renderer = null;
+        return false;
+      }
+    };
     const draw = () => {
       request = 0;
-      if (disposed) return;
-      clear();
-      const current = motion.current;
-      if (!current.visible || document.hidden) return;
-      canvas.dataset.continuationAct = current.scene?.act || "method";
-      canvas.dataset.continuationAccent = current.scene?.accent || current.accent || "#d8ff4f";
-      canvas.dataset.continuationGeometry = current.reduced ? "settled-aperture" : "perspective-torsion-volume";
-      canvas.dataset.continuationPhase = String(current.scene?.phase || 0);
-      drawFrame(context, current.scene, current.scene?.points || current.points, width, height, current.reduced);
+      if (disposed || lost) return;
+      const current = motion.current, shot = current.scene;
+      if (!current.visible || document.hidden || !shot) { renderer?.clear(); return; }
+      if (!initialize()) return;
+      // Three restores its own resource tables later in the context event.
+      // Rebuild generated reflections on the next frame, after that handler.
+      if (environmentDirty) {
+        environmentDirty = false;
+        try { refreshEnvironment(); } catch { scene.environment = null; }
+      }
+      makeGeometry();
+      const coordinate = Math.max(0, Math.min(4, Number.isFinite(shot.coordinate) ? shot.coordinate : 0));
+      const reduced = Boolean(current.reduced);
+      updateEndingFilmGrid(grid, coordinate, reduced);
+      geometry.attributes.position.needsUpdate = true; geometry.attributes.normal.needsUpdate = true;
+      const pose = readEndingCamera(coordinate, width / height, reduced);
+      camera.position.set(...pose.position); target.set(...pose.target); camera.up.set(...pose.up); camera.lookAt(target);
+      camera.fov = pose.fov; camera.aspect = width / height;
+      // The soft negative-space centroid reframes the same camera, without
+      // fitting the object to an artifact or changing its topology.
+      const focus = reduced ? { x: .5, y: .5 } : shot.focus || { x: .5, y: .5 };
+      const x = .5 + (Math.max(.2, Math.min(.8, focus.x)) - .5) * .85;
+      const y = .5 + (Math.max(.2, Math.min(.8, focus.y)) - .5) * .85;
+      camera.setViewOffset(width, height, (.5 - x) * width, (.5 - y) * height, width, height);
+      camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+      mesh.scale.setScalar(narrow ? .82 : 1);
+      const landing = reduced ? 1 : smoothRange(coordinate, 3.15, 4);
+      // The film finishes behind the native paper terminal. It must not emerge
+      // again as a second blank sheet when the visitor continues to the footer.
+      const completion = smoothRange(coordinate, 3.93, 4);
+      canvas.style.opacity = String(1 - completion);
+      material.color.copy(silver).lerp(paper, landing);
+      material.metalness = .88 * (1 - landing); material.roughness = .24 + landing * .56;
+      material.envMapIntensity = 1.7 - landing * .9;
+      const viewport = { left: 0, top: 0, width, height };
+      const clip = captureClipPath(viewport, shot.exclusions || [], width, height);
+      if (clip !== signature) { canvas.style.clipPath = clip; signature = clip; }
+      canvas.dataset.continuationGeometry = reduced ? "settled-open-sheet" : "single-morphing-film";
+      canvas.dataset.continuationAct = shot.act || "method";
+      canvas.dataset.continuationCoordinate = coordinate.toFixed(4);
+      canvas.dataset.continuationCamera = pose.position.map(value => value.toFixed(3)).join(",");
+      canvas.dataset.continuationMaterial = landing.toFixed(3);
+      canvas.dataset.continuationCompletion = completion.toFixed(3);
+      renderer.render(scene, camera);
+      // Scroll, resize or state owns every frame; there is no self-invalidation.
     };
     const invalidate = () => {
-      if (disposed) return;
-      if (!motion.current.visible || document.hidden) { cancelAnimationFrame(request); request = 0; clear(); return; }
+      if (disposed || unavailable || lost) return;
+      if (!motion.current.visible || document.hidden) { cancelAnimationFrame(request); request = 0; renderer?.clear(); return; }
       if (!request) request = requestAnimationFrame(draw);
     };
     const resize = () => {
       const bounds = canvas.getBoundingClientRect();
       width = Math.max(1, bounds.width); height = Math.max(1, bounds.height);
       ratio = Math.min(window.devicePixelRatio || 1, 1.35, Math.sqrt(1_500_000 / (width * height)));
-      canvas.width = Math.max(1, Math.floor(width * ratio));
-      canvas.height = Math.max(1, Math.floor(height * ratio));
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      invalidate();
+      if (renderer) { renderer.setPixelRatio(ratio); renderer.setSize(width, height, false); }
+      signature = ""; invalidate();
     };
+    const contextLost = event => { event.preventDefault(); lost = true; cancelAnimationFrame(request); request = 0; canvas.dataset.continuationRenderer = "suspended"; };
+    const contextRestored = () => {
+      lost = false;
+      environmentDirty = true;
+      canvas.dataset.continuationRenderer = "webgl"; invalidate();
+    };
+    canvas.addEventListener("webglcontextlost", contextLost);
+    canvas.addEventListener("webglcontextrestored", contextRestored);
     motion.current.invalidate = invalidate;
-    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(resize) : null;
-    observer?.observe(canvas);
-    window.addEventListener("resize", resize);
+    const observer = new ResizeObserver(resize); observer.observe(canvas);
     document.addEventListener("visibilitychange", invalidate);
     resize();
     return () => {
-      disposed = true; cancelAnimationFrame(request); observer?.disconnect();
-      window.removeEventListener("resize", resize);
+      disposed = true; cancelAnimationFrame(request); observer.disconnect();
       document.removeEventListener("visibilitychange", invalidate);
+      canvas.removeEventListener("webglcontextlost", contextLost); canvas.removeEventListener("webglcontextrestored", contextRestored);
       if (motion.current.invalidate === invalidate) motion.current.invalidate = null;
-      clear();
+      geometry?.dispose(); material?.dispose(); environment?.dispose();
+      renderer?.dispose(); renderer?.forceContextLoss();
     };
   }, [motion]);
   return <canvas className="continuation-signal-canvas" ref={canvasRef} aria-hidden="true" />;

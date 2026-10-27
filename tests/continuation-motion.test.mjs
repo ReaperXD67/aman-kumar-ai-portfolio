@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { documentFrame, methodOutputProgress, readContinuation, viewportFrame } from "../src/continuation-motion.js";
+import { continuationCoordinate, documentFrame, methodOutputProgress, ownerClipExclusions, readContinuation, safeFilmFocus, viewportFrame } from "../src/continuation-motion.js";
 
 const stops = [
   { left: 48, top: 600, width: 880, height: 530, act: "method" },
@@ -71,4 +71,63 @@ test("late loading above the ending cannot leave its frame at a stale document p
   assert.equal(shiftedRoute.progress, oldRoute.progress);
   assert.equal(shiftedRoute.act, oldRoute.act);
   assert.deepEqual(viewportFrame(shiftedRoute.to, 6470), viewportFrame(oldRoute.to, 5600));
+});
+
+test("the film clock is monotone and passes through interior artifacts without braking", () => {
+  const knots = stops.map(stop => stop.top + stop.height / 2);
+  let previous = -1;
+  for (let focus = knots[0] - 100; focus <= knots.at(-1) + 100; focus += 2) {
+    const coordinate = continuationCoordinate(focus, stops);
+    assert(coordinate >= previous && coordinate >= 0 && coordinate <= 4);
+    previous = coordinate;
+  }
+  for (let index = 1; index < knots.length - 1; index++) {
+    const knot = knots[index], epsilon = .01;
+    assert.equal(continuationCoordinate(knot, stops), index);
+    const left = (index - continuationCoordinate(knot - epsilon, stops)) / epsilon;
+    const right = (continuationCoordinate(knot + epsilon, stops) - index) / epsilon;
+    assert(left > 0 && right > 0, "an interior artifact cannot stop the camera clock");
+    assert(Math.abs(left - right) < 1e-7, "the camera clock's velocity must remain continuous");
+  }
+});
+
+test("negative-space focus yields finite settled composition for empty or fully occluded phones", () => {
+  const viewport = { width: 390, height: 844 };
+  const empty = safeFilmFocus(viewport, []);
+  assert(Math.abs(empty.x - .5) < .001 && Math.abs(empty.y - .5) < .001);
+  assert(empty.available);
+  const covered = safeFilmFocus(viewport, [{ left: -20, top: -20, width: 430, height: 884 }]);
+  assert.deepEqual(covered, { x: .5, y: .5, clearance: 0, available: false, support: 0 });
+});
+
+test("composition shifts continuously when competing free regions change size", () => {
+  const viewport = { width: 390, height: 844 };
+  let previous;
+  for (let shift = -90; shift <= 90; shift++) {
+    const holes = [{ left: 18, top: 220 + shift, width: 354, height: 360 },
+      { left: 0, top: 0, width: 390, height: 66 }, { left: 0, top: 782, width: 390, height: 62 }];
+    const focus = safeFilmFocus(viewport, holes);
+    assert([focus.x, focus.y, focus.clearance, focus.support].every(Number.isFinite));
+    if (previous) assert(Math.hypot(focus.x - previous.x, focus.y - previous.y) < .01,
+      "the focus must not snap between the top and bottom free region");
+    previous = focus;
+  }
+});
+
+test("a sticky film cannot paint outside its owner into the footer or previous section", () => {
+  const stage = { left: 0, top: 0, width: 390, height: 844 };
+  const contains = (rectangles, x, y) => rectangles.some(rectangle => x >= rectangle.left
+    && x < rectangle.left + rectangle.width && y >= rectangle.top && y < rectangle.top + rectangle.height);
+  const ending = { left: 0, top: -18000, width: 390, height: 18579 };
+  const atFooter = ownerClipExclusions(ending, stage);
+  assert(!contains(atFooter, 195, 578.9));
+  for (let y = 579; y < 844; y++) assert(contains(atFooter, 195, y), "all footer pixels must be excluded");
+  const released = { ...stage, top: -154 };
+  const afterRelease = ownerClipExclusions(ending, released);
+  assert(contains(afterRelease, 195, 579 - released.top));
+  assert(!contains(afterRelease, 195, 578 - released.top));
+  const beforeEntry = ownerClipExclusions({ left: 0, top: 300, width: 390, height: 18000 }, stage);
+  assert(contains(beforeEntry, 195, 299)); assert(!contains(beforeEntry, 195, 301));
+  assert.deepEqual(ownerClipExclusions({ left: 0, top: 900, width: 390, height: 100 }, stage),
+    [{ left: 0, top: 0, width: 390, height: 844 }]);
 });
