@@ -4,7 +4,7 @@ import { useReducedMotion } from "./useMotionPreference.js";
 import { PROJECT_XRAY } from "./project-xray-data.js";
 import "./project-xray.css";
 import { FailureTrace } from "./FailureTrace.jsx";
-import { ProjectPortal } from "./ProjectPortal.jsx";
+import { ProjectPortal, readProjectStagePosition } from "./ProjectPortal.jsx";
 import { XRayCircuit } from "./XRayCircuit.jsx";
 
 const STAGES = [
@@ -35,7 +35,9 @@ function InspectionInstrument({ project, previousProject }) {
   // A short first peel follows ordinary page scroll. There is no pinned scene,
   // scroll interception or timeline after the visitor touches a control.
   useEffect(() => {
-    if (reducedMotion || manual || !window.matchMedia("(min-width: 900px)").matches) return;
+    // Selecting another project already expresses visitor control. Its handoff
+    // lands on an intact surface rather than competing with an automatic peel.
+    if (previousProject || reducedMotion || manual || !window.matchMedia("(min-width: 900px)").matches) return;
     const visual = visualRef.current;
     let frame = 0;
     let visible = false;
@@ -66,7 +68,7 @@ function InspectionInstrument({ project, previousProject }) {
       document.removeEventListener("visibilitychange", request);
       window.cancelAnimationFrame(frame);
     };
-  }, [manual, reducedMotion]);
+  }, [manual, previousProject, reducedMotion]);
 
   const takeControl = () => {
     hasInteracted.current = true;
@@ -190,11 +192,27 @@ function InspectionInstrument({ project, previousProject }) {
 }
 
 export function ProjectXRay({ projects }) {
+  const reducedMotion = useReducedMotion();
   const [selection, setSelection] = useState({ index: 0, previousIndex: null });
   const activeIndex = selection.index;
   const activeProject = projects[activeIndex];
   const previousProject = selection.previousIndex === null ? null : projects[selection.previousIndex];
   const tabRefs = useRef([]);
+  const panelRef = useRef(null);
+  const lastPresentedProject = useRef(activeProject.id);
+
+  useEffect(() => {
+    if (lastPresentedProject.current === activeProject.id) return;
+    lastPresentedProject.current = activeProject.id;
+    const stage = panelRef.current?.querySelector(".xray-lens");
+    if (!stage) return;
+    const position = readProjectStagePosition(stage);
+    if (!position.ready) {
+      // Bring an explicitly selected project below the real fixed header only
+      // when most of its stage is offscreen. No pinning or wheel interception.
+      window.scrollTo({ top: position.scrollTop, behavior: reducedMotion ? "auto" : "smooth" });
+    }
+  }, [activeProject.id, reducedMotion]);
   const selectProject = (next) => {
     setSelection(current => {
       const index = typeof next === "function" ? next(current.index) : next;
@@ -210,7 +228,7 @@ export function ProjectXRay({ projects }) {
     if (next === undefined) return;
     event.preventDefault();
     selectProject(next);
-    tabRefs.current[next]?.focus();
+    tabRefs.current[next]?.focus({ preventScroll: true });
   };
 
   return (
@@ -228,7 +246,7 @@ export function ProjectXRay({ projects }) {
             </button>
           ))}
         </div>
-        <div id="xray-project-panel" role="tabpanel" aria-labelledby={`xray-tab-${activeProject.id}`}>
+        <div id="xray-project-panel" role="tabpanel" aria-labelledby={`xray-tab-${activeProject.id}`} ref={panelRef}>
           <header className="xray-transmission-title" key={`title-${activeProject.id}`}>
             <span aria-hidden="true">{activeProject.index}</span>
             <div><h3>{activeProject.name}</h3><p>{activeProject.eyebrow}</p></div>

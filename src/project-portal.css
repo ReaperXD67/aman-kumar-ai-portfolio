@@ -1,0 +1,64 @@
+/* A perspective image volume, isolated from the X-ray's permanent layers. */
+.project-handoff {
+  position: absolute;
+  z-index: 9;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  perspective: 1080px;
+  perspective-origin: 48% 40%;
+}
+.project-handoff-volume { position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; }
+.project-handoff-frame,
+.project-handoff-registration {
+  position: absolute;
+  top: 13%;
+  left: 6%;
+  width: 88%;
+  height: calc(64% - 31px);
+  transform-style: preserve-3d;
+}
+.project-handoff-incoming { z-index: 1; }
+.project-handoff-outgoing { z-index: 2; }
+.project-handoff-plane {
+  position: absolute;
+  top: calc(var(--plane-row) * 100% / var(--plane-rows));
+  left: calc(var(--plane-column) * 100% / var(--plane-columns));
+  width: calc(100% / var(--plane-columns) + .5px);
+  height: calc(100% / var(--plane-rows) + .5px);
+  overflow: hidden;
+  background: #050605;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+.project-handoff-incoming .project-handoff-plane { opacity: 0; }
+.project-handoff-plane > img {
+  position: absolute;
+  top: calc(var(--plane-row) * -100%);
+  left: calc(var(--plane-column) * -100%);
+  width: calc(var(--plane-columns) * 100%);
+  height: calc(var(--plane-rows) * 100%);
+  max-width: none;
+  object-fit: contain;
+  object-position: top center;
+  user-select: none;
+  pointer-events: none;
+}
+.project-handoff-plane > i { position: absolute; inset: 0; border: 1px solid color-mix(in srgb, var(--project-accent), transparent 74%); pointer-events: none; }
+.project-handoff-registration { z-index: 3; opacity: 0; pointer-events: none; }
+.project-handoff-registration > i { position: absolute; width: 16px; height: 16px; border: 1px solid var(--project-accent); }
+.project-handoff-registration > i:nth-child(1) { inset: -4px auto auto -4px; border-right: 0; border-bottom: 0; }
+.project-handoff-registration > i:nth-child(2) { inset: -4px -4px auto auto; border-left: 0; border-bottom: 0; }
+.project-handoff-registration > i:nth-child(3) { inset: auto auto -4px -4px; border-right: 0; border-top: 0; }
+.project-handoff-registration > i:nth-child(4) { inset: auto -4px -4px auto; border-left: 0; border-top: 0; }
+@media (max-width: 600px) {
+  .project-handoff { perspective: 800px; }
+  .project-handoff-frame,
+  .project-handoff-registration { top: 12%; height: calc(52% - 31px); }
+  .project-handoff-registration > i { width: 11px; height: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .project-handoff { display: none; }
+}

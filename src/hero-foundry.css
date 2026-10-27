@@ -1,15 +1,15 @@
-.hero.hero-foundry { display: flex; flex-direction: column; min-height: max(880px, 100svh); padding: 132px 5.7vw 92px; gap: 0; overflow: clip; isolation: isolate; background: #030505; }
+.hero.hero-foundry { display: flex; flex-direction: column; min-height: max(920px, 100svh); padding: 132px 5.7vw 92px; gap: 0; overflow: clip; isolation: isolate; background: #030505; }
 .hero-foundry .foundry-art { position: absolute; z-index: -2; inset: 0; min-height: 0; border: 0; background: transparent; transform-origin: 70% 30%; }
-.foundry-shade { position: absolute; z-index: -1; inset: 0; pointer-events: none; background: linear-gradient(90deg, #030505dc 0%, #03050560 32%, transparent 62%), linear-gradient(0deg, #030505 0%, #03050522 33%, transparent 65%); }
-.foundry-topline { display: flex; justify-content: space-between; gap: 30px; align-items: start; }
+.foundry-shade { position: absolute; z-index: -1; inset: 0; pointer-events: none; background: linear-gradient(90deg, #030505d9 0%, #03050555 28%, transparent 57%), linear-gradient(0deg, #030505 0%, #03050565 24%, transparent 61%); }
+.foundry-topline { position: relative; display: flex; justify-content: space-between; gap: 30px; align-items: start; }
 .hero-foundry .portrait-signature { margin: 0; }
 .hero-foundry .portrait-signature-image { width: 54px; height: 60px; }
 .hero-foundry .portrait-signature-copy strong { font-size: 18px; }
 .hero-foundry .portrait-signature-copy strong span { font-size: 6px; }
-.foundry-art-caption { display: grid; gap: 9px; text-align: right; pointer-events: none; }
+.foundry-art-caption { position: absolute; top: 87px; left: 0; display: grid; gap: 9px; text-align: left; pointer-events: none; }
 .foundry-art-caption > span { color: #b8c4c5; font: 9px var(--mono); letter-spacing: .12em; }
 .foundry-art-caption strong { color: #f0f4ee; font-size: 14px; font-weight: 450; }
-.foundry-art-caption small { color: #9ca9a9; font-size: 11px; }
+.foundry-art-caption small { color: #9ca9a9; font-size: 11px; line-height: 1.7; }
 .hero-foundry .hero-copy { width: 100%; max-width: none; margin-top: auto; padding: 80px 0 48px; pointer-events: none; }
 .foundry-role { margin: 0 0 25px; color: #c3cbcb; font-size: 14px; letter-spacing: .01em; }
 .foundry-role > span { color: #ff754e; margin: 0 5px; }
@@ -54,7 +54,7 @@
   .hero.hero-foundry { min-height: max(960px, 100svh); padding: 104px 20px 70px; }
   .foundry-art-caption { display: none; }
   .hero-foundry .foundry-art { bottom: 230px; }
-  .foundry-shade { background: linear-gradient(0deg,#030505 0%,#030505df 27%,transparent 60%); }
+  .foundry-shade { background: linear-gradient(0deg,#030505 0%,#030505eb 25%,transparent 55%); }
   .hero-foundry .hero-copy { padding: 315px 0 30px; }
   .foundry-role { margin-bottom: 20px; font-size: 11px; }
   .hero-foundry h1.foundry-title { font-size: clamp(45px, 11.7vw, 79px); }
@@ -78,8 +78,14 @@
   .hero-foundry .hero-actions .button { font-size: 11px; padding-inline: 9px; }
 }
 @media (max-height: 520px) and (min-width: 701px) {
-  .hero.hero-foundry { min-height: 760px; }
-  .hero-foundry .hero-copy { padding-top: 120px; }
+  .hero.hero-foundry { min-height: 680px; padding-top: 100px; padding-bottom: 50px; }
+  .hero-foundry .hero-copy { padding-top: 150px; padding-bottom: 30px; }
+  .hero-foundry h1.foundry-title { font-size: clamp(62px, 8vw, 92px); }
+  .foundry-art-caption { display: none; }
+  .foundry-caption-row { align-items: end; }
+  .hero-foundry .hero-lede { max-width: 380px; font-size: 13px; }
+  .hero-foundry .hero-actions { flex-direction: row; }
+  .hero-foundry .hero-actions .button { min-height: 48px; padding-inline: 13px; font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-foundry *, .hero-foundry *::before, .hero-foundry *::after { transition: none !important; animation: none !important; }

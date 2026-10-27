@@ -14,6 +14,7 @@ const CAPTIONS = ["From noise, a signal.", "From evidence, a decision.", "From i
 
 export function HeroFoundry() {
   const root = useRef(null);
+  const journey = useRef({ progress: 0, invalidate: null });
   const reducedMotion = useReducedMotion();
   const [mode, setMode] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -33,24 +34,28 @@ export function HeroFoundry() {
   }, [interacted, paused, reducedMotion]);
 
   useGSAP(() => {
-    if (reducedMotion) return;
+    journey.current.progress = 0;
+    if (reducedMotion) { journey.current.invalidate?.(); return; }
     gsap.from(".foundry-title .hero-line > span", { yPercent: 105, rotationX: 12, filter: "blur(5px)", duration: 1.25, stagger: 0.13, ease: "expo.out", delay: 0.15 });
     gsap.from(".foundry-role, .foundry-caption-row, .foundry-console", { y: 18, opacity: 0, duration: 0.9, stagger: 0.1, ease: "power3.out", delay: 0.55 });
     gsap.to(".foundry-title", { y: -85, opacity: 0.25, ease: "none", scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 0.7 } });
-    gsap.to(".foundry-art", { scale: 1.12, yPercent: 8, ease: "none", scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 0.7 } });
+    // The canvas owns the spatial handoff: no CSS zoom and no second pinned scene.
+    gsap.to(journey.current, { progress: 1, ease: "none", onUpdate: () => journey.current.invalidate?.(),
+      scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 0.65 } });
+    gsap.to(".foundry-art-caption", { y: -32, opacity: 0, ease: "none", scrollTrigger: { trigger: root.current, start: "top top", end: "55% top", scrub: true } });
   }, { scope: root, dependencies: [reducedMotion], revertOnUpdate: true });
 
   return (
     <section className="hero hero-foundry" id="top" ref={root} data-loom-mode={MODES[mode].toLowerCase()} data-motion-paused={paused || reducedMotion}>
       <div className="scene-panel foundry-art">
         <Suspense fallback={<div className="scene-fallback">ASSEMBLING THE DECISION LOOM</div>}>
-          <SignalCore mode={mode} reducedMotion={reducedMotion} paused={paused} onCycle={cycle} />
+          <SignalCore mode={mode} reducedMotion={reducedMotion} paused={paused} onCycle={cycle} journey={journey} />
         </Suspense>
       </div>
       <div className="foundry-shade" aria-hidden="true" />
       <div className="foundry-topline">
         <PortraitSignature />
-        <div className="foundry-art-caption"><span>DECISION LOOM</span><strong>Noise → structure → action</strong><small>Move through the field. Click to transform.</small></div>
+        <div className="foundry-art-caption"><span>DECISION LOOM</span><strong>Noise → structure → action</strong><small>Move to explore. Click to transform.<br />Scroll into the system.</small></div>
       </div>
       <div className="hero-copy">
         <p className="foundry-role">AI Engineer <span>&</span> Full-Stack Developer</p>
@@ -67,7 +72,7 @@ export function HeroFoundry() {
         </div>
       </div>
       <footer className="foundry-console">
-        <div className="foundry-state"><span className="foundry-state-dot" aria-hidden="true" /><p>{CAPTIONS[mode]}</p><small>AUTHORED WEBGL FIELD</small></div>
+        <div className="foundry-state"><span className="foundry-state-dot" aria-hidden="true" /><p>{CAPTIONS[mode]}</p><small>PROCEDURAL SIGNAL SCULPTURE</small></div>
         <div className="scene-modes" role="group" aria-label="Cognitive core mode">
           {MODES.map((name, index) => <button key={name} type="button" aria-pressed={mode === index} onClick={() => choose(index)}><span>0{index + 1}</span>{name}</button>)}
         </div>

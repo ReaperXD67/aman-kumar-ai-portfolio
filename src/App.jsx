@@ -373,8 +373,8 @@ export function App() {
       <SignalOperatingSystem panel={signalPanel} onPanelChange={setSignalPanel} resume={resume} />
       <main id="main-content">
         <Hero />
-        <SignalBand />
         <Suspense fallback={<div className="descent-section descent-loading">CALIBRATING SCROLL FIELD</div>}><CognitiveDescent /></Suspense>
+        <SignalBand />
         <Work />
         <Method />
         <IdentityVault resume={resume} />
