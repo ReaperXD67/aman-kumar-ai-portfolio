@@ -7,6 +7,7 @@ import { DescentWorld, FLIGHT_BAYS, FlightContextObserver } from "./DescentWorld
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import "./cognitive-descent.css";
+import { readStory } from "./cinematic-motion.js";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -34,18 +35,18 @@ function StaticFlight() {
   </div>;
 }
 
-export function CognitiveDescent() {
+export function CognitiveDescent({ sharedScene = false, motionRef, sceneFailed = false }) {
   const sectionRef = useRef(null);
   const progressRef = useRef(0);
   const invalidateRef = useRef(null);
   const reducedMotion = useReducedMotion();
   const [visible, setVisible] = useState(false);
   const [failed, setFailed] = useState(false);
-  const staticMode = reducedMotion || failed;
+  const staticMode = reducedMotion || failed || sceneFailed;
 
   useEffect(() => {
     const node = sectionRef.current;
-    if (!node || staticMode) return undefined;
+    if (!node || staticMode || sharedScene) return undefined;
     let nearViewport = !("IntersectionObserver" in window);
     const updateVisibility = () => setVisible(nearViewport && !document.hidden);
     const observer = "IntersectionObserver" in window ? new IntersectionObserver(([entry]) => {
@@ -56,7 +57,7 @@ export function CognitiveDescent() {
     document.addEventListener("visibilitychange", updateVisibility);
     if (!observer) updateVisibility();
     return () => { observer?.disconnect(); document.removeEventListener("visibilitychange", updateVisibility); };
-  }, [staticMode]);
+  }, [staticMode, sharedScene]);
 
   useGSAP(() => {
     if (staticMode) { progressRef.current = 0; return undefined; }
@@ -69,7 +70,7 @@ export function CognitiveDescent() {
       if (section.dataset.flightChapter !== chapter) section.dataset.flightChapter = chapter;
       invalidateRef.current?.();
     };
-    const timeline = gsap.timeline({ scrollTrigger: { trigger: section, start: "top top", end: "bottom bottom", scrub: .45, invalidateOnRefresh: true } });
+    const timeline = gsap.timeline(sharedScene ? { paused: true } : { scrollTrigger: { trigger: section, start: "top top", end: "bottom bottom", scrub: .45, invalidateOnRefresh: true } });
     timeline.to(driver, { progress: 1, duration: 1, ease: "none", onUpdate: sync }, 0)
       .to(".flight-intro", { autoAlpha: 0, y: -55, duration: .08, ease: "power2.in" }, .035);
     [[.15, .34], [.40, .61], [.67, .85]].forEach(([start, end], index) => {
@@ -77,21 +78,26 @@ export function CognitiveDescent() {
         .to(`.flight-chapter-${CHAPTERS[index].id}`, { autoAlpha: 0, y: -24, duration: .045, ease: "power2.in" }, end);
     });
     timeline.fromTo(".flight-exit", { autoAlpha: 0, y: 45 }, { autoAlpha: 1, y: 0, duration: .09, ease: "expo.out" }, .89);
+    const update = progress => timeline.progress(progress);
+    if (sharedScene && motionRef) {
+      motionRef.current.flightNarrative = update;
+      update(readStory(motionRef.current.distance, motionRef.current.measures).flight);
+    }
     let active = true;
     document.fonts?.ready.then(() => { if (active) ScrollTrigger.refresh(); });
-    return () => { active = false; timeline.kill(); invalidateRef.current = null; };
-  }, { scope: sectionRef, dependencies: [staticMode], revertOnUpdate: true });
+    return () => { active = false; timeline.kill(); invalidateRef.current = null; if (motionRef?.current.flightNarrative === update) motionRef.current.flightNarrative = null; };
+  }, { scope: sectionRef, dependencies: [staticMode, sharedScene, motionRef], revertOnUpdate: true });
 
-  return <section className="descent-section descent-flight" ref={sectionRef} data-static={staticMode} data-flight-chapter="entry" aria-label="A scroll-controlled journey through three real engineering projects">
+  return <section className="descent-section descent-flight" ref={sectionRef} data-shared-scene={sharedScene} data-static={staticMode} data-flight-chapter="entry" aria-label="A scroll-controlled journey through three real engineering projects">
     <StaticFlight />
     {!staticMode && <div className="descent-stage flight-stage">
-      <div className="flight-poster" aria-hidden="true"><img src="/assets/atlaslm-landing.png" alt="" /></div>
+      {!sharedScene && <><div className="flight-poster" aria-hidden="true"><img src="/assets/atlaslm-landing.png" alt="" /></div>
       <div className="descent-canvas flight-canvas" aria-hidden="true">
         {visible && <FlightBoundary onFailure={() => setFailed(true)}><Canvas camera={{ position: [-.8, -.25, 13], fov: 50, near: .08, far: 70 }} dpr={1} frameloop="demand" gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}>
           <FlightContextObserver onFailure={() => setFailed(true)} />
           <Suspense fallback={null}><DescentWorld progressRef={progressRef} invalidateRef={invalidateRef} /></Suspense>
         </Canvas></FlightBoundary>}
-      </div>
+      </div></>}
       <div className="flight-shade" aria-hidden="true" />
       <header className="flight-navigation"><span>SCROLL THROUGH THE SYSTEM</span><a href="#work">Skip to evidence <ArrowDown size={15} /></a></header>
       <div className="flight-progress" aria-hidden="true"><i /></div>
@@ -99,7 +105,7 @@ export function CognitiveDescent() {
       {CHAPTERS.map(chapter => <div key={chapter.id} className={`flight-chapter flight-chapter-${chapter.id}`} data-side={chapter.side} style={{ "--flight-color": chapter.color }} aria-hidden="true">
         <p>{chapter.title}</p><h2>{chapter.name}</h2><span>{chapter.line}</span><small>{chapter.status} · {chapter.id === "agent" ? "AUTHORED BLUEPRINT" : "ACTUAL INTERFACE"}</small>
       </div>)}
-      <div className="flight-exit"><h2>The system<br />becomes proof.</h2><p>Now inspect the choices that hold it together.</p><a href="#work">Open the evidence <ArrowDown size={18} /></a></div>
+      <div className={`flight-exit${sharedScene ? " flight-arrival" : ""}`}><h2>{sharedScene ? <>From product<br />to proof.</> : <>The system<br />becomes proof.</>}</h2><p>{sharedScene ? "Keep scrolling. Follow the interface into its engineering." : "Now inspect the choices that hold it together."}</p><a href="#work">Open the evidence <ArrowDown size={18} /></a></div>
       <footer className="flight-footer" aria-hidden="true"><span>ILLUSTRATED ARCHITECTURE · REAL PROJECT ARTIFACTS</span><span>NATIVE SCROLL / NO LIVE TELEMETRY</span></footer>
       <p className="sr-only">An authored camera journey passes through an angular signal field and real AtlasLM, Autonomous Personal Agent and KarixMC artifacts. The ordinary selected-work section below provides all project source links and decisions.</p>
     </div>}

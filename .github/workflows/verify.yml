@@ -37,6 +37,9 @@ jobs:
       - name: Verify profile assets and canonical resume
         run: npm run test:profile
 
+      - name: Verify continuous camera route and morph geometry
+        run: npm run test:motion
+
       - name: Set up Python for PDF structural checks
         uses: actions/setup-python@v5
         with:

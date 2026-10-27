@@ -48,7 +48,83 @@ export function flightFrame(progress) {
   return { center, tangent, right, up, quaternion };
 }
 
-function MachinedApertures() {
+const BAY_TRANSFORMS = FLIGHT_BAYS.map(bay => {
+  const frame = flightFrame(bay.progress);
+  const rotation = frame.quaternion.clone().multiply(new THREE.Quaternion().setFromAxisAngle(UP, bay.side * -.17));
+  return { ...bay, right: frame.right, position: frame.center.clone().addScaledVector(frame.right, bay.side * 3.75).addScaledVector(frame.up, .15), rotation, normal: Z.clone().applyQuaternion(rotation), up: UP.clone().applyQuaternion(rotation) };
+});
+const ARRIVAL_START = .8;
+const ARRIVAL_BAY = BAY_TRANSFORMS[BAY_TRANSFORMS.length - 1];
+const arrivalAmount = progress => THREE.MathUtils.smootherstep(progress, ARRIVAL_START, 1);
+
+function writeBaseFlightPose(progress, position, target) {
+  FLIGHT_CURVE.getPointAt(progress, position);
+  FLIGHT_CURVE.getPointAt(Math.min(1, progress + .055), target);
+  if (progress > .98) target.z -= 3;
+  for (let index = 0; index < BAY_TRANSFORMS.length; index++) {
+    const bay = BAY_TRANSFORMS[index];
+    const focus = Math.exp(-Math.pow((progress - (bay.progress - .075)) / .065, 2));
+    target.addScaledVector(bay.right, bay.side * 2.8 * focus);
+  }
+}
+
+// These control points are created once. The terminal Bezier keeps the incoming
+// position/aim tangent and settles in front of Karix, instead of flying past it.
+const ARRIVAL_CONTROLS = (() => {
+  const position = new THREE.Vector3(), target = new THREE.Vector3();
+  const beforePosition = new THREE.Vector3(), beforeTarget = new THREE.Vector3();
+  const afterPosition = new THREE.Vector3(), afterTarget = new THREE.Vector3();
+  writeBaseFlightPose(ARRIVAL_START, position, target);
+  writeBaseFlightPose(ARRIVAL_START - .0001, beforePosition, beforeTarget);
+  writeBaseFlightPose(ARRIVAL_START + .0001, afterPosition, afterTarget);
+  const derivativeScale = (1 - ARRIVAL_START) / (.0002 * 3);
+  const positionControl = afterPosition.sub(beforePosition).multiplyScalar(derivativeScale).add(position);
+  const targetControl = afterTarget.sub(beforeTarget).multiplyScalar(derivativeScale).add(target);
+  const cameraRight = new THREE.Vector3().crossVectors(UP, ARRIVAL_BAY.normal).normalize();
+  const cameraUp = new THREE.Vector3().crossVectors(ARRIVAL_BAY.normal, cameraRight).normalize();
+  const roll = Math.atan2(-ARRIVAL_BAY.up.dot(cameraRight), ARRIVAL_BAY.up.dot(cameraUp));
+  return { position, target, positionControl, targetControl, roll };
+})();
+
+function writeTerminalBezier(output, start, control, endX, endY, endZ, t) {
+  const oneMinusT = 1 - t;
+  const startWeight = oneMinusT * oneMinusT * oneMinusT;
+  const controlWeight = 3 * oneMinusT * oneMinusT * t;
+  const endWeight = 3 * oneMinusT * t * t + t * t * t;
+  output.set(start.x * startWeight + control.x * controlWeight + endX * endWeight, start.y * startWeight + control.y * controlWeight + endY * endWeight, start.z * startWeight + control.z * controlWeight + endZ * endWeight);
+}
+
+/**
+ * Write a flight pose without frame allocations when poseOut is supplied.
+ * options: { arrival?: boolean (default true), velocity?: number }.
+ * poseOut receives { fov, roll, arrival }; position/target are caller Vector3s.
+ */
+export function sampleFlightPose(progress, width, height, position, target, poseOut = {}, options) {
+  const p = clamp(progress, 0, 1);
+  const narrow = width < 700;
+  const baseFov = narrow ? 86 : 50;
+  const velocity = clamp(options?.velocity || 0, -.6, .6);
+  const arrival = options?.arrival === false ? 0 : arrivalAmount(p);
+  writeBaseFlightPose(p, position, target);
+  if (options?.arrival !== false && p > ARRIVAL_START) {
+    const imageWidth = 6.6 * .96 * (narrow ? .74 : 1);
+    const aspect = Math.max(1, width) / Math.max(1, height);
+    const widthFraction = Math.min(narrow ? .9 : .82, .78 * (6.6 / 4.2) / aspect);
+    const distance = imageWidth / (widthFraction * 2 * Math.tan(THREE.MathUtils.degToRad(baseFov) / 2) * aspect);
+    const endX = ARRIVAL_BAY.position.x + ARRIVAL_BAY.normal.x * distance;
+    const endY = ARRIVAL_BAY.position.y + ARRIVAL_BAY.normal.y * distance;
+    const endZ = ARRIVAL_BAY.position.z + ARRIVAL_BAY.normal.z * distance;
+    const t = (p - ARRIVAL_START) / (1 - ARRIVAL_START);
+    writeTerminalBezier(position, ARRIVAL_CONTROLS.position, ARRIVAL_CONTROLS.positionControl, endX, endY, endZ, t);
+    writeTerminalBezier(target, ARRIVAL_CONTROLS.target, ARRIVAL_CONTROLS.targetControl, ARRIVAL_BAY.position.x, ARRIVAL_BAY.position.y, ARRIVAL_BAY.position.z, t);
+  }
+  poseOut.fov = baseFov + (narrow ? 0 : Math.min(.8, Math.abs(velocity)) * 5 * (1 - arrival));
+  poseOut.roll = (Math.sin(p * TAU * 1.35) * .075 + velocity * .035) * (1 - arrival) + ARRIVAL_CONTROLS.roll * arrival;
+  poseOut.arrival = arrival;
+  return poseOut;
+}
+
+function MachinedApertures({ shared }) {
   const bodyRef = useRef(null);
   const lightRef = useRef(null);
   const data = useMemo(() => {
@@ -57,6 +133,7 @@ function MachinedApertures() {
     const dummy = new THREE.Object3D(), localRotation = new THREE.Quaternion();
     for (let gate = 0; gate < 31; gate++) {
       const progress = .045 + gate / 30 * .94;
+      if (shared && progress < .16) continue;
       const frame = flightFrame(progress);
       const orientation = frame.quaternion.clone().multiply(new THREE.Quaternion().setFromAxisAngle(Z, Math.sin(progress * TAU * 1.4) * .2));
       const color = new THREE.Color(progress < .38 ? "#d8ff4f" : progress < .66 ? "#8bb8ff" : "#ff673d");
@@ -77,7 +154,7 @@ function MachinedApertures() {
       });
     }
     return { bodies, lights };
-  }, []);
+  }, [shared]);
   useEffect(() => {
     [[bodyRef.current, data.bodies], [lightRef.current, data.lights]].forEach(([mesh, instances]) => {
       instances.forEach((instance, index) => { mesh.setMatrixAt(index, instance.matrix); mesh.setColorAt(index, instance.color); });
@@ -158,18 +235,16 @@ function ArchitectureBlade({ color, side, index, labels, projectId }) {
   </group>;
 }
 
-function ArtifactBays({ flightRef }) {
+function ArtifactBays({ flightRef, arrivalSurfaceRef }) {
   const narrow = useThree(state => state.size.width < 700);
   const textures = useTexture(FLIGHT_BAYS.map(bay => bay.image));
-  const bays = useMemo(() => FLIGHT_BAYS.map(bay => {
-    const frame = flightFrame(bay.progress);
-    return { ...bay, position: frame.center.clone().addScaledVector(frame.right, bay.side * 3.75).addScaledVector(frame.up, .15), rotation: frame.quaternion.clone().multiply(new THREE.Quaternion().setFromAxisAngle(UP, bay.side * -.17)) };
-  }), []);
+  const bays = BAY_TRANSFORMS;
   const refs = useRef([]);
   useEffect(() => { textures.forEach(texture => { texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = 4; }); }, [textures]);
   useFrame(() => { refs.current.forEach((group, index) => {
     if (!group) return;
-    const approach = Math.exp(-Math.pow((flightRef.current.progress - (bays[index].progress - .085)) / .09, 2));
+    const progress = flightRef.current.progress;
+    const approach = Math.exp(-Math.pow((progress - (bays[index].progress - .085)) / .09, 2)) * (bays[index].id === "karixmc" ? 1 - arrivalAmount(progress) : 1);
     group.scale.setScalar((narrow ? .74 : 1) * (.96 + approach * .08));
   }); });
   return <>{bays.map((bay, index) => {
@@ -177,7 +252,7 @@ function ArtifactBays({ flightRef }) {
     return <group key={bay.id} ref={element => { refs.current[index] = element; }} position={bay.position} quaternion={bay.rotation}>
       {[2, 1, 0].map(blade => <ArchitectureBlade key={blade} index={blade} side={bay.side} color={bay.color} labels={bay.labels} projectId={bay.id} />)}
       <mesh position={[0, 0, -.1]}><boxGeometry args={[6.95, height + .45, .18]} /><meshStandardMaterial color="#42575a" metalness={.72} roughness={.3} /></mesh>
-      <mesh position={[0, 0, .015]}><planeGeometry args={[6.6, height]} /><meshBasicMaterial map={textures[index]} toneMapped={false} /></mesh>
+      <mesh ref={bay.id === "karixmc" ? element => { if (arrivalSurfaceRef) arrivalSurfaceRef.current = element; } : undefined} position={[0, 0, .015]}><planeGeometry args={[6.6, height]} /><meshBasicMaterial map={textures[index]} toneMapped={false} /></mesh>
       <mesh position={[0, height / 2 + .12, .025]}><boxGeometry args={[6.62, .024, .025]} /><meshBasicMaterial color={bay.color} toneMapped={false} /></mesh>
       {[-1, 1].map(side => <group key={side} position={[side * 3.52, 0, -.2]}>
         <mesh><boxGeometry args={[.15, height + .7, .5]} /><meshStandardMaterial color="#8faaa9" metalness={.8} roughness={.3} /></mesh>
@@ -191,7 +266,8 @@ function FlightCamera({ progressRef, flightRef, invalidateRef }) {
   const { camera, invalidate, size, setDpr } = useThree();
   const current = useRef(progressRef.current), previous = useRef(progressRef.current);
   const target = useMemo(() => new THREE.Vector3(), []), position = useMemo(() => new THREE.Vector3(), []);
-  const focusDirections = useMemo(() => FLIGHT_BAYS.map(bay => flightFrame(bay.progress).right), []);
+  const pose = useMemo(() => ({ fov: 50, roll: 0, arrival: 0 }), []);
+  const poseOptions = useMemo(() => ({ velocity: 0 }), []);
   useEffect(() => {
     invalidateRef.current = invalidate;
     setDpr(Math.min(window.devicePixelRatio || 1, 1.35, Math.sqrt(1_800_000 / Math.max(1, size.width * size.height))));
@@ -204,30 +280,29 @@ function FlightCamera({ progressRef, flightRef, invalidateRef }) {
     if (Math.abs(goal - current.current) < .00003) current.current = goal;
     const p = current.current, velocity = clamp((p - previous.current) / Math.max(.001, delta), -.6, .6);
     previous.current = p; flightRef.current.progress = p;
-    FLIGHT_CURVE.getPointAt(p, position); FLIGHT_CURVE.getPointAt(Math.min(1, p + .055), target);
-    if (p > .98) target.z -= 3;
-    FLIGHT_BAYS.forEach((bay, index) => {
-      const focus = Math.exp(-Math.pow((p - (bay.progress - .075)) / .065, 2));
-      target.addScaledVector(focusDirections[index], bay.side * 2.8 * focus);
-    });
+    poseOptions.velocity = velocity;
+    sampleFlightPose(p, size.width, size.height, position, target, pose, poseOptions);
     camera.position.copy(position); camera.up.set(0, 1, 0); camera.lookAt(target);
-    camera.rotateZ(Math.sin(p * TAU * 1.35) * .075 + velocity * .035);
-    const nextFov = size.width < 700 ? 86 : 50 + Math.min(.8, Math.abs(velocity)) * 5;
+    camera.rotateZ(pose.roll);
+    const nextFov = pose.fov;
     if (Math.abs(camera.fov - nextFov) > .02) { camera.fov = nextFov; camera.updateProjectionMatrix(); }
     if (Math.abs(goal - p) > .00003) invalidate();
   }, -1);
   return null;
 }
 
-export function DescentWorld({ progressRef, invalidateRef }) {
-  const flightRef = useRef({ progress: progressRef.current });
+export function DescentWorld({ progressRef, invalidateRef, shared = false, flightRef: externalFlightRef, arrivalSurfaceRef }) {
+  const localFlightRef = useRef({ progress: progressRef?.current || 0 });
+  const flightRef = externalFlightRef || localFlightRef;
+  const geometry = <><MachinedApertures shared={shared} /><BraidedRails flightRef={flightRef} /><ArtifactBays flightRef={flightRef} arrivalSurfaceRef={arrivalSurfaceRef} /></>;
+  if (shared) return geometry;
   return <>
     <color attach="background" args={["#030505"]} /><fog attach="fog" args={["#030505", 7, 30]} />
     <ambientLight intensity={.7} color="#8faeb2" />
     <directionalLight position={[4, 7, 10]} intensity={4} color="#d1e6e9" />
     <directionalLight position={[-5, -2, -18]} intensity={2.4} color="#ff7851" />
     <FlightCamera progressRef={progressRef} flightRef={flightRef} invalidateRef={invalidateRef} />
-    <MachinedApertures /><BraidedRails flightRef={flightRef} /><ArtifactBays flightRef={flightRef} />
+    {geometry}
     <EffectComposer multisampling={0} resolutionScale={.65}><Bloom luminanceThreshold={.85} luminanceSmoothing={.3} intensity={.32} mipmapBlur /></EffectComposer>
   </>;
 }

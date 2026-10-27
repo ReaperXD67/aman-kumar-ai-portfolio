@@ -6,13 +6,14 @@ import { useGSAP } from "@gsap/react";
 import { PortraitSignature } from "./PortraitSignal.jsx";
 import { useReducedMotion } from "./useMotionPreference.js";
 import "./hero-foundry.css";
+import { readStory } from "./cinematic-motion.js";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 const SignalCore = lazy(() => import("./SignalCore.jsx").then(module => ({ default: module.SignalCore })));
 const MODES = ["Observe", "Reason", "Execute"];
 const CAPTIONS = ["From noise, a signal.", "From evidence, a decision.", "From intent, controlled action."];
 
-export function HeroFoundry() {
+export function HeroFoundry({ sharedScene = false, motionRef, onSceneState }) {
   const root = useRef(null);
   const journey = useRef({ progress: 0, invalidate: null });
   const reducedMotion = useReducedMotion();
@@ -21,6 +22,7 @@ export function HeroFoundry() {
   const [interacted, setInteracted] = useState(false);
   const choose = useCallback(index => { setInteracted(true); setMode(index); }, []);
   const cycle = useCallback(() => { setInteracted(true); setMode(value => (value + 1) % 3); }, []);
+  useEffect(() => { onSceneState?.({ mode, paused, cycle }); }, [mode, paused, cycle, onSceneState]);
 
   // One opening performance. Any visitor input owns the instrument immediately.
   useEffect(() => {
@@ -38,20 +40,29 @@ export function HeroFoundry() {
     if (reducedMotion) { journey.current.invalidate?.(); return; }
     gsap.from(".foundry-title .hero-line > span", { yPercent: 105, rotationX: 12, filter: "blur(5px)", duration: 1.25, stagger: 0.13, ease: "expo.out", delay: 0.15 });
     gsap.from(".foundry-role, .foundry-caption-row, .foundry-console", { y: 18, opacity: 0, duration: 0.9, stagger: 0.1, ease: "power3.out", delay: 0.55 });
+    if (sharedScene && motionRef) {
+      const narrative = gsap.timeline({ paused: true })
+        .to(".foundry-title", { y: -85, opacity: .15, duration: 1, ease: "none" }, 0)
+        .to(".foundry-art-caption", { y: -32, opacity: 0, duration: .55, ease: "none" }, 0);
+      const update = progress => narrative.progress(progress);
+      motionRef.current.heroNarrative = update;
+      update(readStory(motionRef.current.distance, motionRef.current.measures).hero);
+      return () => { if (motionRef.current.heroNarrative === update) motionRef.current.heroNarrative = null; narrative.kill(); };
+    }
     gsap.to(".foundry-title", { y: -85, opacity: 0.25, ease: "none", scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 0.7 } });
     // The canvas owns the spatial handoff: no CSS zoom and no second pinned scene.
     gsap.to(journey.current, { progress: 1, ease: "none", onUpdate: () => journey.current.invalidate?.(),
       scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: 0.65 } });
     gsap.to(".foundry-art-caption", { y: -32, opacity: 0, ease: "none", scrollTrigger: { trigger: root.current, start: "top top", end: "55% top", scrub: true } });
-  }, { scope: root, dependencies: [reducedMotion], revertOnUpdate: true });
+  }, { scope: root, dependencies: [reducedMotion, sharedScene, motionRef], revertOnUpdate: true });
 
   return (
-    <section className="hero hero-foundry" id="top" ref={root} data-loom-mode={MODES[mode].toLowerCase()} data-motion-paused={paused || reducedMotion}>
-      <div className="scene-panel foundry-art">
+    <section className="hero hero-foundry" id="top" ref={root} data-shared-scene={sharedScene} data-loom-mode={MODES[mode].toLowerCase()} data-motion-paused={paused || reducedMotion}>
+      {!sharedScene && <div className="scene-panel foundry-art">
         <Suspense fallback={<div className="scene-fallback">ASSEMBLING THE DECISION LOOM</div>}>
           <SignalCore mode={mode} reducedMotion={reducedMotion} paused={paused} onCycle={cycle} journey={journey} />
         </Suspense>
-      </div>
+      </div>}
       <div className="foundry-shade" aria-hidden="true" />
       <div className="foundry-topline">
         <PortraitSignature />

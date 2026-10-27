@@ -15,7 +15,7 @@
 
 Most portfolios list claims. This one lets visitors inspect the system behind them.
 
-The experience moves through a procedural **Decision Loom**, cinematic project depth, real interface previews, and a **Validation Chamber**. The identity instrument reveals the person behind the engineering: Aman's portrait assembles from pixels, with the **Systems Kernel** available as its second view.
+The opening carries a fluid **Decision Loom** into a curved project world through one shared WebGL renderer and camera. The final KarixMC capture docks into its interactive **Engineering X-ray** lens; the proof band follows selected work. The inspected architecture then seeds the **Validation Chamber**. Aman's portrait introduces the person behind the engineering, with the **Systems Kernel** available as its second view.
 
 ![Aman Kumar — AI Engineer and Full-Stack Developer](public/assets/portfolio-social-preview-v3.png)
 
@@ -23,10 +23,10 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 
 | Surface | What it communicates |
 | --- | --- |
-| **Decision Loom** | Nine bevelled titanium apertures shape 144 GPU ribbons and 6,800 moving signals into sensor array → reasoning braid → execution vector. Procedural studio reflections give the machine physical depth; ordinary scrolling pushes the camera into its separated structure. Direct mode controls, pause and a settled reduced-motion composition remain available. |
-| **Cognitive descent** | A curved, gently banked camera travels through 31 instanced angular gates and twelve braided rails. AtlasLM, the autonomous agent and KarixMC occupy large spatial artifact bays. Scroll drives the entire world; rendering settles at rest. A native skip link and short source-linked static collection preserve direct access. |
-| **Engineering X-ray** | Browse real captures in a responsive filmstrip. Six outgoing image planes lift and arc into depth while four incoming planes assemble in a bounded 1.04-second handoff. Peel four architecture layers with project-specific routed schematics and 24 source-linked decisions. A flat active schematic and finite route playback connect inspection and failure walkthroughs. Keyboard, touch and reduced-motion controls remain available. |
-| **Validation Chamber** | Evidence, control, infrastructure, and interface constraints reshape one live signal field. |
+| **Decision Loom** | Nine bevelled titanium apertures and 144 GPU ribbons deform through sensor array → reasoning braid → execution vector. Bounded elastic strain and traveling waves reshape the metal and field; the same geometry opens into longitudinal entry rails. Direct mode controls, pause and a settled reduced-motion composition remain available. |
+| **Cognitive descent** | The opening's shared camera continues through 31 instanced angular gates and twelve braided rails toward AtlasLM, the autonomous agent and KarixMC. One measured document route drives the passage, flight and arrival. The flight settles at rest; native skip links and a source-linked static collection preserve direct access. |
+| **Engineering X-ray** | The final KarixMC artifact docks to the measured, contain-fit DOM capture before visitors inspect real interfaces and four routed architecture layers. Project switches use a bounded 1.04-second image-plane handoff. Twenty-four source-linked decisions, finite route playback and failure walkthroughs expose the engineering. Keyboard, touch and reduced-motion controls remain available. |
+| **Validation Chamber** | The selected project's actual circuit nodes and routes seed 84 particles, then transfer once into the active principle's pattern. Pointer or principle-tab input takes control immediately. Evidence, control, infrastructure and interface constraints reorganize the same field. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
 | **Person / System** | A finite raster scan assembles Aman's approved portrait, then holds a clear photograph. Replay or switch to the interactive kernel with keyboard and touch controls. |
 | **Living résumé** | One stable runtime manifest keeps the canonical one-page résumé replaceable without rewriting interface code. Selectable text, embedded fonts, and source links remain independently verifiable. |
@@ -45,7 +45,7 @@ The experience moves through a procedural **Decision Loom**, cinematic project d
 - **Interface:** React 19, Vite, TypeScript/JavaScript, responsive semantic UI
 - **Spatial system:** Three.js, React Three Fiber, Drei, postprocessing
 - **Motion:** GSAP, Motion, scroll-linked timelines, reduced-motion fallbacks
-- **Performance:** a 2.2-million-pixel hero rendering budget, GPU field evaluation, shared ribbon geometry, 2,800 signals on phones, a demand-rendered descent capped at roughly 1.8 million base pixels, instanced gates, offscreen/hidden-tab suspension, pause controls, finite portrait/trace animation, approximately 149 KiB main portrait, and a 4.6 KiB first-screen thumbnail
+- **Performance:** one demand-rendered opening stage capped at 1.8 million base pixels; the standalone hero retains a 2.2-million-pixel budget. GPU deformation, shared ribbon geometry, 6,800 desktop / 2,800 phone signals, instanced gates, offscreen/hidden-tab suspension, pause controls and finite portrait/trace/Method transfers bound the work. The main portrait is approximately 149 KiB with a 4.6 KiB first-screen thumbnail.
 - **Typography:** Space Grotesk + JetBrains Mono
 - **Delivery:** Vercel production deployment, Sites-compatible worker output, automated build verification
 
@@ -62,9 +62,12 @@ Production verification:
 npm run build
 npm run test:sites
 npm run test:profile
+npm run test:motion
 ```
 
 The build must emit `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
+
+`test:motion` checks nine pure route, contain-fit, docking and Loom-geometry invariants. These source/math checks complement browser verification; they do not establish visual quality or deployment status.
 
 ## Release integrity
 
@@ -76,9 +79,11 @@ The shared résumé resolver validates the runtime manifest, refreshes local doc
 
 The [motion upgrade record](docs/motion-upgrade-2026-10-27.md) covers the full-stage hero, project transmissions, real GitHub contribution animations, installed official GSAP guides, research provenance and verification. The [earlier identity delivery](docs/profile-upgrade-2026-10-27.md) records the portrait, canonical résumé and saved LinkedIn copy. Existing LinkedIn and GitHub account photos are intentionally retained.
 
-The deeper spatial iteration is documented in the [hero research](docs/immersive-hero-research-2026-10-27.md), [curved camera journey](docs/immersive-scroll-research-2026-10-27.md), and [project handoff research](docs/project-transition-research-2026-10-27.md). It studies Lusion, Joseph Santamaria, Bruno Simon and author-published gallery techniques while using original geometry and Aman's own project artifacts. The hero flows directly into the journey; the proof band follows it. Explicit project selection brings an offscreen stage into view before its handoff plays. GitHub ends with an original Contribution Loom made from the actual daily calendar; the snake and skyline remain optional closed disclosures after it.
+The current opening uses a persistent shared renderer for the Loom and descent, a measured KarixMC capture-to-lens dock, then ordinary interactive selected work. The proof band follows Work, and its actual project/layer selection supplies the chamber's one-time transfer. See the [continuity design and lifecycle research](docs/continuous-experience-research-2026-10-28.md), [Loom geometry contract](docs/continuous-loom-geometry-2026-10-28.md), and [integration verification](docs/continuous-experience-verification-2026-10-28.md) for the implementation, browser findings and limits of the checks.
 
-See the [integration verification](docs/signal-foundry-verification-2026-10-28.md) for browser findings, fixes, build checks and the limits of the verification.
+The [hero research](docs/immersive-hero-research-2026-10-27.md), [curved camera research](docs/immersive-scroll-research-2026-10-27.md), and [project handoff research](docs/project-transition-research-2026-10-27.md) document the references behind the original geometry and owned artifacts. Explicit project selection brings an offscreen stage into view before its handoff plays. GitHub ends with an original Contribution Loom made from the actual daily calendar; the snake and skyline remain optional closed disclosures after it.
+
+The [earlier Signal Foundry verification](docs/signal-foundry-verification-2026-10-28.md) records the preceding iteration's browser findings, fixes and build checks.
 
 The GitHub reading path also has a dedicated [project-showcase source investigation](docs/github-showcase-research-2026-10-27.md) and [body design audit](docs/github-body-design-audit-2026-10-27.md). These address the text-heavy project sections below the animated entrance: real product captures, illustrated engineering boundaries, compact visible decisions and direct source proof. The separate profile repository owns its generators, responsive assets and publication evidence.
 

@@ -15,7 +15,7 @@ const STAGES = [
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
-function InspectionInstrument({ project, previousProject }) {
+function InspectionInstrument({ project, previousProject, cinematicEntry = false, onProofChange }) {
   const reducedMotion = useReducedMotion();
   const [depth, setDepth] = useState(0);
   const [layerIndex, setLayerIndex] = useState(1);
@@ -31,13 +31,14 @@ function InspectionInstrument({ project, previousProject }) {
   const inspecting = depth >= 25;
   const sourceDepth = depth >= 78;
   const currentStage = depth < 25 ? 0 : depth < 78 ? 1 : 2;
+  useEffect(() => { onProofChange?.({ projectId: project.id, layerIndex }); }, [project.id, layerIndex, onProofChange]);
 
   // A short first peel follows ordinary page scroll. There is no pinned scene,
   // scroll interception or timeline after the visitor touches a control.
   useEffect(() => {
     // Selecting another project already expresses visitor control. Its handoff
     // lands on an intact surface rather than competing with an automatic peel.
-    if (previousProject || reducedMotion || manual || !window.matchMedia("(min-width: 900px)").matches) return;
+    if (cinematicEntry || previousProject || reducedMotion || manual || !window.matchMedia("(min-width: 900px)").matches) return;
     const visual = visualRef.current;
     let frame = 0;
     let visible = false;
@@ -68,7 +69,7 @@ function InspectionInstrument({ project, previousProject }) {
       document.removeEventListener("visibilitychange", request);
       window.cancelAnimationFrame(frame);
     };
-  }, [manual, previousProject, reducedMotion]);
+  }, [cinematicEntry, manual, previousProject, reducedMotion]);
 
   const takeControl = () => {
     hasInteracted.current = true;
@@ -191,7 +192,7 @@ function InspectionInstrument({ project, previousProject }) {
   );
 }
 
-export function ProjectXRay({ projects }) {
+export function ProjectXRay({ projects, cinematicEntry = false, onProofChange }) {
   const reducedMotion = useReducedMotion();
   const [selection, setSelection] = useState({ index: 0, previousIndex: null });
   const activeIndex = selection.index;
@@ -252,7 +253,7 @@ export function ProjectXRay({ projects }) {
             <div><h3>{activeProject.name}</h3><p>{activeProject.eyebrow}</p></div>
             <ArrowDown size={28} aria-hidden="true" />
           </header>
-          <InspectionInstrument key={activeProject.id} project={activeProject} previousProject={previousProject} />
+          <InspectionInstrument key={activeProject.id} project={activeProject} previousProject={previousProject} cinematicEntry={cinematicEntry} onProofChange={onProofChange} />
         </div>
         <div className="xray-browse">
           <span><strong>{String(activeIndex + 1).padStart(2, "0")}</strong> / {String(projects.length).padStart(2, "0")} BUILDS</span>

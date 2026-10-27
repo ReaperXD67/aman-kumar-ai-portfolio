@@ -1,7 +1,10 @@
 import { useEffect, useRef } from "react";
+import { XRAY_CIRCUITS, circuitPath } from "./XRayCircuit.jsx";
+import { fitEntryPoint, sampleCircuitEntry } from "./methodEntryGeometry.js";
 
 const ACCENTS = ["#ff5f38", "#d8ff4f", "#7ea8ff", "#f1f1eb"];
 const PARTICLE_COUNT = 84;
+const ENTRY_DURATION = 1200;
 
 function seeded(index, salt = 0) {
   const value = Math.sin((index + 1) * (12.9898 + salt * 17.17)) * 43758.5453;
@@ -46,8 +49,9 @@ function targetFor(stage, index, width, height) {
   return [pad + (frameX + localCol * (frameW / 4)) * usableW, pad + (0.12 + localRow * 0.145) * usableH];
 }
 
-function drawStructure(context, stage, width, height, accent, time) {
+function drawStructure(context, stage, width, height, accent, time, strength = 1) {
   context.save();
+  context.globalAlpha = strength;
   context.strokeStyle = "rgba(197, 203, 199, 0.12)";
   context.lineWidth = 1;
   for (let x = 0; x <= width; x += 48) {
@@ -64,7 +68,7 @@ function drawStructure(context, stage, width, height, accent, time) {
   }
 
   context.strokeStyle = accent;
-  context.globalAlpha = 0.52;
+  context.globalAlpha = 0.52 * strength;
   if (stage === 1) {
     [0.24, 0.48, 0.72].forEach((ratio, index) => {
       const x = width * ratio;
@@ -88,17 +92,50 @@ function drawStructure(context, stage, width, height, accent, time) {
     [[0.1, 0.18, 0.26, 0.62], [0.42, 0.18, 0.22, 0.62], [0.7, 0.18, 0.2, 0.62]].forEach((frame, index) => {
       context.strokeRect(frame[0] * width, frame[1] * height, frame[2] * width, frame[3] * height);
       context.fillStyle = accent;
-      context.globalAlpha = 0.22 + Math.sin(time * 0.0015 + index) * 0.08;
+      context.globalAlpha = (0.22 + Math.sin(time * 0.0015 + index) * 0.08) * strength;
       context.fillRect(frame[0] * width, frame[1] * height, frame[2] * width, 3);
     });
   }
   context.restore();
 }
 
-export function MethodField({ activeIndex, reducedMotion }) {
+function entryFor(signal) {
+  const circuit = XRAY_CIRCUITS[signal?.projectId]?.[signal?.layerIndex];
+  if (!circuit) return null;
+  const geometry = sampleCircuitEntry(circuit.nodes, circuit.routes.map(connection => circuitPath(circuit, connection)), PARTICLE_COUNT);
+  return geometry ? { projectId: signal.projectId, layerIndex: signal.layerIndex, geometry } : null;
+}
+
+function drawEntryStructure(context, geometry, width, height, accent, strength) {
+  if (strength <= 0) return;
+  context.save();
+  context.globalAlpha = strength;
+  context.strokeStyle = accent;
+  context.lineWidth = 1.2;
+  geometry.paths.forEach(path => {
+    context.beginPath();
+    path.forEach((point, index) => {
+      const [x, y] = fitEntryPoint(point, width, height);
+      if (index === 0) context.moveTo(x, y);
+      else context.lineTo(x, y);
+    });
+    context.stroke();
+  });
+  context.fillStyle = "#070808";
+  geometry.nodes.forEach(point => {
+    const [x, y] = fitEntryPoint(point, width, height);
+    context.fillRect(x - 5, y - 5, 10, 10);
+    context.strokeRect(x - 5, y - 5, 10, 10);
+  });
+  context.restore();
+}
+
+export function MethodField({ activeIndex, reducedMotion, entrySignal }) {
   const canvasRef = useRef(null);
   const pointerRef = useRef({ x: -999, y: -999, active: false });
   const particlesRef = useRef([]);
+  const controllerRef = useRef(null);
+  const entryLifeRef = useRef({ phase: "pending", elapsed: 0, entry: null });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -112,7 +149,30 @@ export function MethodField({ activeIndex, reducedMotion }) {
     let visible = !("IntersectionObserver" in window);
     let previousTime = 0;
     let targets = [];
+    let sourcePoints = [];
     let measured = false;
+    let stage = activeIndex;
+    let reduced = Boolean(reducedMotion);
+    let candidateEntry = entryFor(entrySignal);
+    const life = entryLifeRef.current;
+
+    const reportEntry = () => {
+      const entry = life.entry || candidateEntry;
+      canvas.dataset.entryProject = entry?.projectId || "";
+      canvas.dataset.entryLayer = entry ? String(entry.layerIndex) : "";
+      canvas.dataset.entryState = life.phase;
+    };
+    const setPhase = phase => { life.phase = phase; reportEntry(); };
+    const refreshTargets = () => {
+      targets = Array.from({ length: PARTICLE_COUNT }, (_, index) => targetFor(stage, index, width, height));
+      const entry = life.entry || candidateEntry;
+      sourcePoints = entry ? entry.geometry.points.map(point => fitEntryPoint(point, width, height)) : [];
+    };
+    const takeControl = () => {
+      // Lock the provenance even if a visitor interrupts before the first frame.
+      if (!life.entry) life.entry = candidateEntry;
+      setPhase("interactive");
+    };
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
@@ -126,8 +186,8 @@ export function MethodField({ activeIndex, reducedMotion }) {
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       if (!particlesRef.current.length) {
         particlesRef.current = Array.from({ length: PARTICLE_COUNT }, (_, index) => ({
-          x: seeded(index, 1) * width,
-          y: seeded(index, 2) * height,
+          x: 0,
+          y: 0,
           size: 1.3 + seeded(index, 3) * 2.7,
         }));
       } else if (measured) {
@@ -136,33 +196,58 @@ export function MethodField({ activeIndex, reducedMotion }) {
           particle.y *= height / previousHeight;
         });
       }
+      refreshTargets();
+      if (!measured || life.phase === "pending") {
+        particlesRef.current.forEach((particle, index) => {
+          const point = !reduced && life.phase === "pending" && sourcePoints.length ? sourcePoints[index] : targets[index];
+          [particle.x, particle.y] = point;
+        });
+      }
       measured = true;
-      targets = Array.from({ length: PARTICLE_COUNT }, (_, index) => targetFor(activeIndex, index, width, height));
     };
 
     const render = (time = 0) => {
       frameId = 0;
       if (!visible || document.hidden) return;
       // Keep convergence consistent on both 60 Hz phones and high-refresh displays.
-      const frameScale = previousTime ? Math.min((time - previousTime) / (1000 / 60), 3) : 1;
+      const delta = previousTime ? Math.min(time - previousTime, 50) : 0;
+      const frameScale = delta ? delta / (1000 / 60) : 1;
       previousTime = time;
+      if (life.phase === "pending") {
+        life.entry = candidateEntry;
+        setPhase(!reduced && life.entry ? "transferring" : "settled");
+      }
+      if (reduced && life.phase === "transferring") setPhase("settled");
+      if (life.phase === "transferring") life.elapsed = Math.min(ENTRY_DURATION, life.elapsed + delta);
+      const progress = life.phase === "transferring" ? life.elapsed / ENTRY_DURATION : 1;
+      // A short readable source hold, then one finite redistribution. The clock
+      // accumulates visible frame time only; scrolling back cannot restart it.
+      const t = Math.max(0, Math.min(1, (progress - 0.14) / 0.86));
+      const transfer = t * t * t * (t * (t * 6 - 15) + 10);
       context.fillStyle = "#070808";
       context.fillRect(0, 0, width, height);
-      const accent = ACCENTS[activeIndex];
-      drawStructure(context, activeIndex, width, height, accent, time);
+      const accent = ACCENTS[stage];
+      drawStructure(context, stage, width, height, accent, time, transfer);
+      if (life.phase === "transferring") drawEntryStructure(context, life.entry.geometry, width, height, accent, 1 - transfer);
 
       const particles = particlesRef.current;
       particles.forEach((particle, index) => {
         const [targetX, targetY] = targets[index];
-        const ease = reducedMotion ? 1 : 1 - Math.pow(1 - (0.045 + (index % 5) * 0.006), frameScale);
-        particle.x += (targetX - particle.x) * ease;
-        particle.y += (targetY - particle.y) * ease;
+        if (life.phase === "transferring") {
+          const [sourceX, sourceY] = sourcePoints[index];
+          particle.x = sourceX + (targetX - sourceX) * transfer;
+          particle.y = sourceY + (targetY - sourceY) * transfer;
+        } else {
+          const ease = reduced ? 1 : 1 - Math.pow(1 - (0.045 + (index % 5) * 0.006), frameScale);
+          particle.x += (targetX - particle.x) * ease;
+          particle.y += (targetY - particle.y) * ease;
+        }
 
         const pointer = pointerRef.current;
         const dx = particle.x - pointer.x;
         const dy = particle.y - pointer.y;
         const distance = Math.hypot(dx, dy);
-        if (!reducedMotion && pointer.active && distance < 105 && distance > 0) {
+        if (!reduced && pointer.active && distance < 105 && distance > 0) {
           const force = (1 - distance / 105) * 2.6 * frameScale;
           particle.x += (dx / distance) * force;
           particle.y += (dy / distance) * force;
@@ -171,7 +256,7 @@ export function MethodField({ activeIndex, reducedMotion }) {
 
       context.lineWidth = 0.7;
       particles.forEach((particle, index) => {
-        if (activeIndex === 0) {
+        if (stage === 0 && life.phase !== "transferring") {
           const peer = particles[(index + 4) % particles.length];
           if (Math.hypot(peer.x - particle.x, peer.y - particle.y) < 120) {
             context.strokeStyle = index % 4 === 0 ? accent : "rgba(203, 208, 204, 0.17)";
@@ -181,12 +266,13 @@ export function MethodField({ activeIndex, reducedMotion }) {
             context.stroke();
           }
         }
-        const pulse = reducedMotion ? 0 : Math.sin(time * 0.002 + index) * 0.7;
-        context.fillStyle = index % (6 - Math.min(activeIndex, 2)) === 0 ? accent : "rgba(225, 228, 223, 0.76)";
+        const pulse = reduced ? 0 : Math.sin(time * 0.002 + index) * 0.7;
+        context.fillStyle = index % (6 - Math.min(stage, 2)) === 0 ? accent : "rgba(225, 228, 223, 0.76)";
         context.fillRect(particle.x - particle.size / 2, particle.y - particle.size / 2, particle.size + pulse, particle.size + pulse);
       });
 
-      if (!reducedMotion) frameId = requestAnimationFrame(render);
+      if (life.phase === "transferring" && progress === 1) setPhase("settled");
+      if (!reduced) frameId = requestAnimationFrame(render);
     };
 
     const resume = () => {
@@ -202,11 +288,41 @@ export function MethodField({ activeIndex, reducedMotion }) {
       if (document.hidden) pause();
       else resume();
     };
+    const chamber = canvas.closest(".method-chamber");
+    const onChamberInput = event => {
+      if (event.type === "pointerdown" || event.type === "keydown" || event.target.closest?.('[role="tab"]')) {
+        takeControl();
+        resume();
+      }
+    };
+    controllerRef.current = {
+      takeControl,
+      resume,
+      setStage(next) {
+        if (stage === next) return;
+        stage = next;
+        takeControl();
+        refreshTargets();
+        resume();
+      },
+      setReduced(next) {
+        reduced = Boolean(next);
+        if (reduced && life.phase !== "interactive") setPhase("settled");
+        resume();
+      },
+      setEntry(signal) {
+        if (life.phase !== "pending") return;
+        candidateEntry = entryFor(signal);
+        resize();
+        reportEntry();
+        resume();
+      },
+    };
     const visibilityObserver = "IntersectionObserver" in window ? new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
+      visible = entry.isIntersecting && entry.intersectionRatio >= 0.12;
       if (visible) resume();
       else pause();
-    }, { rootMargin: "80px" }) : null;
+    }, { threshold: [0, 0.12] }) : null;
     const observer = new ResizeObserver(() => {
       resize();
       resume();
@@ -214,24 +330,38 @@ export function MethodField({ activeIndex, reducedMotion }) {
     observer.observe(canvas);
     visibilityObserver?.observe(canvas);
     document.addEventListener("visibilitychange", onVisibilityChange);
+    ["pointerdown", "keydown", "pointerover", "focusin"].forEach(name => chamber?.addEventListener(name, onChamberInput, true));
     resize();
+    reportEntry();
     resume();
 
     return () => {
       observer.disconnect();
       visibilityObserver?.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      ["pointerdown", "keydown", "pointerover", "focusin"].forEach(name => chamber?.removeEventListener(name, onChamberInput, true));
+      controllerRef.current = null;
       pause();
     };
-  }, [activeIndex, reducedMotion]);
+  }, []);
+
+  useEffect(() => { controllerRef.current?.setStage(activeIndex); }, [activeIndex]);
+  useEffect(() => { controllerRef.current?.setReduced(reducedMotion); }, [reducedMotion]);
+  useEffect(() => { controllerRef.current?.setEntry(entrySignal); }, [entrySignal?.projectId, entrySignal?.layerIndex]);
 
   return (
     <canvas
       ref={canvasRef}
       className="method-field-canvas"
       aria-hidden="true"
+      data-entry-project=""
+      data-entry-layer=""
+      data-entry-state="pending"
+      onPointerDown={() => { controllerRef.current?.takeControl(); controllerRef.current?.resume(); }}
       onPointerMove={(event) => {
         if (reducedMotion || event.pointerType === "touch") return;
+        controllerRef.current?.takeControl();
+        controllerRef.current?.resume();
         const rect = event.currentTarget.getBoundingClientRect();
         pointerRef.current = { x: event.clientX - rect.left, y: event.clientY - rect.top, active: true };
       }}
