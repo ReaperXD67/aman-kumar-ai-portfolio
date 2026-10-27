@@ -51,12 +51,18 @@ export function CinematicContinuation({ children, continuation }) {
         const headerBottom = document.querySelector(".site-header")?.getBoundingClientRect().bottom || 76;
         const stage = node.querySelector(".continuation-stage").getBoundingClientRect();
         const project = rectangle => viewportFrame(rectangle, y, stage);
+        // Measure the real tray, including its safe-area padding and landscape
+        // height. A fixed reserve can be shorter than a phone's bottom inset.
+        const docks = [...document.querySelectorAll(".signal-mobile-dock,.signal-dock")]
+          .map(element => element.getBoundingClientRect())
+          .filter(rectangle => rectangle.width > 0 && rectangle.height > 0)
+          .map(rectangle => ({ left: rectangle.left - stage.left, top: rectangle.top - stage.top, width: rectangle.width, height: rectangle.height }));
         shared.scene = {
           from: project(route.from), to: project(route.to), progress: route.progress,
           act: route.act, phase: route.phase, points: shared.points, accent: shared.accent || "#d8ff4f",
           exclusions: [...exclusions.map(project),
             { left: -stage.left, top: -stage.top, width: window.innerWidth, height: headerBottom },
-            { left: -stage.left, top: height - 84 - stage.top, width: window.innerWidth, height: 84 }],
+            ...docks],
         };
         const method = stops.find(stop => stop.act === "method");
         const contact = stops.find(stop => stop.act === "contact");

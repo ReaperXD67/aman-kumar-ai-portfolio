@@ -663,6 +663,7 @@ main { overflow-x: clip; overflow-y: visible; }
   .education-signal { grid-template-columns: 42px 1fr; }
   .education-signal p { grid-column: 2; }
   .proof-vault-grid > article { grid-template-rows: minmax(390px, 0.9fr) auto; }
+  .artifact-preview { min-height: 390px; }
   .artifact-copy { min-height: 380px; padding: 28px; }
   .contact-section { padding-right: 18px; padding-left: 18px; }
   .artifact-dialog { width: calc(100vw - 24px); height: calc(100svh - 24px); }

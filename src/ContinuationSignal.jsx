@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
+import { createContinuationVolume } from "./continuation-geometry.js";
 
-const TAU = Math.PI * 2;
 const ACTS = { method: 0, portrait: 1, record: 2, contact: 3 };
 const FACETS = 84;
 const clamp = value => Math.min(1, Math.max(0, value));
@@ -11,37 +11,6 @@ const wrap = value => ((value % 1) + 1) % 1;
 function validFrame(frame) {
   return frame && [frame.left, frame.top, frame.width, frame.height].every(Number.isFinite)
     && frame.width > 0 && frame.height > 0;
-}
-
-/** A closed, chamfered contour entirely outside the native artifact rectangle. */
-function contour(frame, distance, padding, output) {
-  const left = frame.left - padding, top = frame.top - padding;
-  const width = frame.width + padding * 2, height = frame.height + padding * 2;
-  // A larger bevel could cut through the native rectangle at its corners.
-  const bevel = Math.min(padding * 1.3, 18, width * .12, height * .12);
-  const horizontal = Math.max(0, width - bevel * 2);
-  const vertical = Math.max(0, height - bevel * 2);
-  const diagonal = bevel * Math.SQRT2;
-  let arc = wrap(distance) * (horizontal * 2 + vertical * 2 + diagonal * 4);
-  let x, y, dx, dy, length;
-  for (let side = 0; side < 8; side += 1) {
-    length = side % 2 ? diagonal : side % 4 === 0 ? horizontal : vertical;
-    if (arc <= length || side === 7) {
-      const t = length ? clamp(arc / length) : 0;
-      if (side === 0) { x = left + bevel + horizontal * t; y = top; dx = 1; dy = 0; }
-      else if (side === 1) { x = left + width - bevel + bevel * t; y = top + bevel * t; dx = Math.SQRT1_2; dy = Math.SQRT1_2; }
-      else if (side === 2) { x = left + width; y = top + bevel + vertical * t; dx = 0; dy = 1; }
-      else if (side === 3) { x = left + width - bevel * t; y = top + height - bevel + bevel * t; dx = -Math.SQRT1_2; dy = Math.SQRT1_2; }
-      else if (side === 4) { x = left + width - bevel - horizontal * t; y = top + height; dx = -1; dy = 0; }
-      else if (side === 5) { x = left + bevel - bevel * t; y = top + height - bevel * t; dx = -Math.SQRT1_2; dy = -Math.SQRT1_2; }
-      else if (side === 6) { x = left; y = top + height - bevel - vertical * t; dx = 0; dy = -1; }
-      else { x = left + bevel * t; y = top + bevel - bevel * t; dx = Math.SQRT1_2; dy = -Math.SQRT1_2; }
-      output.x = x; output.y = y; output.dx = dx; output.dy = dy;
-      return output;
-    }
-    arc -= length;
-  }
-  return output;
 }
 
 /** Retain the source point's nearest boundary, rather than inventing a cloud. */
@@ -57,18 +26,6 @@ function sourceArc(point, frame, fallback) {
   return (frame.width * 2 + frame.height + (1 - y) * frame.height) / total;
 }
 
-function traceContour(context, frame, padding, wave, phase, scratch, start = 0, span = 1, steps = 144) {
-  context.beginPath();
-  for (let step = 0; step <= steps; step += 1) {
-    const u = start + span * step / steps;
-    const offset = padding + Math.sin(u * TAU * 3 + phase) * wave;
-    contour(frame, u, offset, scratch);
-    if (step) context.lineTo(scratch.x, scratch.y);
-    else context.moveTo(scratch.x, scratch.y);
-  }
-  context.stroke();
-}
-
 function drawFrame(context, scene, points, width, height, reduced) {
   if (!validFrame(scene?.from) || !validFrame(scene?.to)) return;
   const t = reduced ? 1 : ease(Number.isFinite(scene.progress) ? scene.progress : 0);
@@ -76,18 +33,49 @@ function drawFrame(context, scene, points, width, height, reduced) {
     left: mix(scene.from.left, scene.to.left, t), top: mix(scene.from.top, scene.to.top, t),
     width: mix(scene.from.width, scene.to.width, t), height: mix(scene.from.height, scene.to.height, t),
   };
-  if (frame.left > width + 24 || frame.top > height + 24 || frame.left + frame.width < -24 || frame.top + frame.height < -24) return;
-  const narrow = width < 700, lanes = narrow ? 4 : 8;
+  if (frame.left > width + 90 || frame.top > height + 90 || frame.left + frame.width < -90 || frame.top + frame.height < -90) return;
+  const narrow = width < 700;
   // Semantic copy changes halfway through a passage; only the interval index
   // addresses geometry, so that label change cannot jump the carrier.
   const phase = Number.isFinite(scene.phase) ? Math.max(0, Math.min(3, Math.trunc(scene.phase))) : ACTS[scene.act] ?? 0;
-  const travel = (phase + t) / 4;
+  const coordinate = reduced ? Math.max(0, Math.min(4, scene.phase || 0)) : phase + t;
+  const travel = coordinate / 4;
   const accent = /^#[\da-f]{3,8}$/i.test(scene.accent || "") ? scene.accent : "#d8ff4f";
-  const scratch = { x: 0, y: 0, dx: 0, dy: 0 };
-  const fold = reduced ? 0 : Math.sin(t * Math.PI);
   const perimeter = Math.max(1, (frame.width + frame.height) * 2);
+  const volume = createContinuationVolume(frame, coordinate, width, reduced);
+  const { rings, panels, segments } = volume;
+  const trace = vertices => {
+    vertices.forEach((point, index) => index ? context.lineTo(point.x, point.y) : context.moveTo(point.x, point.y));
+  };
+  const ringPoint = (ring, u) => {
+    const address = wrap(u) * segments, index = Math.floor(address), amount = address - index;
+    const from = ring.points[index], to = ring.points[index + 1];
+    return { x: mix(from.x, to.x, amount), y: mix(from.y, to.y, amount) };
+  };
 
-  // Machined edge, with a shallow reflective return. No fill covers the image.
+  // The mesh has genuine z/perspective and torsion, but its aperture is empty.
+  // This is a single hole, not an overlapping even-odd exclusion mask.
+  context.save();
+  context.beginPath(); context.rect(0, 0, width, height);
+  context.rect(frame.left, frame.top, frame.width, frame.height);
+  context.clip("evenodd");
+
+  // Transparent folded membranes reveal the volume between the projected rails.
+  // Batch material bands instead of issuing a fill for every individual facet.
+  for (let band = 0; band < 4; band++) {
+    context.beginPath();
+    for (const panel of panels) {
+      if (Math.min(3, Math.floor(panel.light * 4)) !== band) continue;
+      trace(panel.points); context.closePath();
+    }
+    context.fillStyle = `rgba(169,197,181,${.018 + band * .014})`;
+    context.fill();
+  }
+  context.beginPath();
+  for (const panel of panels) if (panel.accent) { trace(panel.points); context.closePath(); }
+  context.fillStyle = accent; context.globalAlpha = reduced ? .025 : .055; context.fill(); context.globalAlpha = 1;
+
+  // Cool metal catches light differently across the near and far depth rails.
   const metal = context.createLinearGradient(frame.left, frame.top, frame.left + frame.width, frame.top + frame.height);
   metal.addColorStop(0, "rgba(209,225,219,.77)");
   metal.addColorStop(.22, "rgba(75,99,95,.48)");
@@ -96,18 +84,21 @@ function drawFrame(context, scene, points, width, height, reduced) {
   metal.addColorStop(1, "rgba(163,185,174,.62)");
   context.lineJoin = "bevel";
   context.lineCap = "butt";
-  context.strokeStyle = metal; context.lineWidth = 1.4;
-  traceContour(context, frame, 3.5, 0, 0, scratch);
-  context.strokeStyle = "rgba(110,143,131,.28)"; context.lineWidth = .7;
-  traceContour(context, frame, 5.5, 0, 0, scratch);
+  for (let lane = 0; lane < rings.length; lane++) {
+    context.globalAlpha = lane === 0 || lane === rings.length - 1 ? .9 : .36 + lane / rings.length * .2;
+    context.strokeStyle = lane === rings.length - 2 ? accent : metal;
+    context.lineWidth = lane === 0 ? 1.5 : lane === rings.length - 1 ? 1.15 : .65;
+    context.beginPath(); trace(rings[lane].points); context.stroke();
+  }
+  context.globalAlpha = 1;
 
-  // A woven return changes torsion with scroll, confined to an 18px edge band.
-  for (let lane = 0; lane < lanes; lane += 1) {
-    const padding = 7 + lane * (narrow ? 2.1 : 1.25);
-    context.globalAlpha = .26 + .2 * (lane % 3 === 0);
-    context.strokeStyle = lane % 3 === 0 ? accent : metal;
-    context.lineWidth = lane % 3 === 0 ? .8 : .6;
-    traceContour(context, frame, padding, fold * (narrow ? .65 : 1.3), travel * TAU * 1.8 + lane * .8, scratch);
+  // These depth ribs change azimuth across the extrusion: the object folds,
+  // rather than a set of two-dimensional outlines merely changing size.
+  for (let rib = 0; rib < segments; rib += narrow ? 8 : 6) {
+    context.beginPath(); trace(rings.map(ring => ring.points[rib]));
+    context.strokeStyle = rib % 3 === 0 ? accent : "rgba(175,201,184,.48)";
+    context.globalAlpha = rib % 3 === 0 ? .48 : .34;
+    context.lineWidth = .8; context.stroke();
   }
   context.globalAlpha = 1;
 
@@ -120,43 +111,27 @@ function drawFrame(context, scene, points, width, height, reduced) {
     const target = uniform + .035 * (phase + 1);
     const delta = wrap(target - source + .5) - .5;
     const u = source + delta * t;
-    const padding = 6.2 + (index % lanes) * (narrow ? 2.1 : 1.25);
-    contour(frame, u, padding, scratch);
+    const ring = rings[index % rings.length];
+    const point = ringPoint(ring, u), next = ringPoint(ring, u + 2 / perimeter);
     const light = Math.max(0, 1 - Math.abs(wrap(u - travel * .88 + .5) - .5) * 18);
     context.strokeStyle = light > .12 ? accent : "rgba(192,211,200,.61)";
     context.globalAlpha = .27 + light * .65;
     context.lineWidth = light > .12 ? 1.8 : 1;
     context.beginPath();
-    const length = 1.2 + light * 3;
-    context.moveTo(scratch.x - scratch.dx * length, scratch.y - scratch.dy * length);
-    context.lineTo(scratch.x + scratch.dx * length, scratch.y + scratch.dy * length);
+    context.moveTo(point.x, point.y);
+    context.lineTo(next.x, next.y);
     context.stroke();
   }
   context.globalAlpha = 1;
 
   // A finite scroll-addressed packet; it never autoplays or requests more frames.
   const packet = travel * .88;
+  const packetRing = rings[Math.floor(rings.length * .55)], packetSpan = Math.min(.055, 46 / perimeter);
   context.strokeStyle = accent; context.lineWidth = 2;
-  traceContour(context, frame, 3.5, 0, 0, scratch, packet, Math.min(.055, 46 / perimeter), 15);
+  context.beginPath(); trace(Array.from({ length: 16 }, (_, index) => ringPoint(packetRing, packet + packetSpan * index / 15))); context.stroke();
   context.strokeStyle = "rgba(239,248,226,.96)"; context.lineWidth = 2.4;
-  traceContour(context, frame, 3.5, 0, 0, scratch, packet + Math.min(.055, 46 / perimeter), Math.min(.008, 5 / perimeter), 3);
-
-  // Eight precision corner witnesses are part of the same outside edge band.
-  for (let corner = 0; corner < 4; corner += 1) {
-    const right = corner % 2, bottom = corner > 1;
-    const x = frame.left + (right ? frame.width + 19 : -19);
-    const y = frame.top + (bottom ? frame.height + 19 : -19);
-    const dx = right ? -1 : 1, dy = bottom ? -1 : 1;
-    context.strokeStyle = "rgba(146,174,160,.58)";
-    context.lineWidth = 1;
-    context.beginPath(); context.moveTo(x + dx * 12, y); context.lineTo(x, y); context.lineTo(x, y + dy * 12); context.stroke();
-    const witness = clamp(1 - Math.abs(corner - phase - t));
-    if (witness) {
-      context.globalAlpha = witness;
-      context.strokeStyle = accent; context.stroke();
-      context.globalAlpha = 1;
-    }
-  }
+  context.beginPath(); trace([ringPoint(packetRing, packet + packetSpan), ringPoint(packetRing, packet + packetSpan + Math.min(.008, 5 / perimeter))]); context.stroke();
+  context.restore();
 
   // Clear each forbidden rectangle independently: overlaps remain excluded,
   // unlike an even-odd hole mask that can reveal their overlapping region.
@@ -182,6 +157,8 @@ export function ContinuationSignal({ motion }) {
       if (!current.visible || document.hidden) return;
       canvas.dataset.continuationAct = current.scene?.act || "method";
       canvas.dataset.continuationAccent = current.scene?.accent || current.accent || "#d8ff4f";
+      canvas.dataset.continuationGeometry = current.reduced ? "settled-aperture" : "perspective-torsion-volume";
+      canvas.dataset.continuationPhase = String(current.scene?.phase || 0);
       drawFrame(context, current.scene, current.scene?.points || current.points, width, height, current.reduced);
     };
     const invalidate = () => {

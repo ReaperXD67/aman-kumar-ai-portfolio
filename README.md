@@ -15,7 +15,7 @@
 
 Most portfolios list claims. This one lets visitors inspect the system behind them.
 
-The opening carries a fluid **Decision Loom** into a curved project world through one shared WebGL renderer and camera. The final KarixMC capture docks into its interactive **Engineering X-ray** lens; the proof band follows selected work. The inspected architecture seeds the **Validation Chamber**, whose output becomes a registration frame carried through Aman's portrait, career evidence, résumé and contact terminal. These surfaces share a dark world while their native controls and readable content remain in normal flow. The **Systems Kernel** remains the portrait's optional second view.
+The opening carries a fluid **Decision Loom** into a curved project world through one shared WebGL renderer and camera. The final KarixMC capture docks into its interactive **Engineering X-ray** lens; the proof band follows selected work. The inspected architecture seeds the **Validation Chamber**, whose output becomes a perspective-projected aperture volume around Aman's portrait, career evidence, résumé and contact terminal. These surfaces share a dark world while their native controls and readable content remain in normal flow. The **Systems Kernel** remains the portrait's optional second view.
 
 ![Aman Kumar — AI Engineer and Full-Stack Developer](public/assets/portfolio-social-preview-v3.png)
 
@@ -29,7 +29,7 @@ The opening carries a fluid **Decision Loom** into a curved project world throug
 | **Validation Chamber** | The selected project's actual circuit nodes and routes seed 84 particles, then transfer once into the active principle's pattern. Pointer or principle-tab input takes control immediately. As the chamber leaves the viewport, its visible points resolve into the output boundary that continues toward the portrait. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
 | **Person / System** | The carrier meets the portrait's native frame. A finite 2.85-second raster scan assembles Aman's approved portrait, then holds a clear photograph. Replay or switch to the interactive kernel with keyboard and touch controls. |
-| **Connected ending** | A transparent contour and 84 facets follow measured portrait, career, résumé-preview and contact-form bounds. Eight desktop / four phone woven edges carry one scroll-addressed packet beneath content, with strict text/control exclusions. Contact finishes as an inset paper form within the shared dark surface. |
+| **Connected ending** | A perspective-projected 3D shell twists from a rounded portrait volume through evidence prisms into the contact aperture. Depth-informed material panels, rails and 84 facets follow measured native frames beneath content; actual text, header and action-tray bounds remain excluded. Contact finishes as an inset paper form within the shared dark surface. |
 | **Living résumé** | One stable runtime manifest keeps the canonical one-page résumé replaceable without rewriting interface code. Selectable text, embedded fonts, and source links remain independently verifiable. |
 | **Signal Operating System** | Persistent GitHub, LinkedIn, X, and résumé access plus `/` command search, a recruiter quick-read, native sharing, and a mobile action tray. |
 
@@ -46,7 +46,7 @@ The opening carries a fluid **Decision Loom** into a curved project world throug
 - **Interface:** React 19, Vite, TypeScript/JavaScript, responsive semantic UI
 - **Spatial system:** Three.js, React Three Fiber, Drei, postprocessing
 - **Motion:** GSAP, Motion, scroll-linked timelines, reduced-motion fallbacks
-- **Performance:** one demand-rendered opening stage capped at 1.8 million base pixels; the standalone hero retains a 2.2-million-pixel budget. The ending's separate transparent 2D carrier caps backing pixels at 1.5 million and requests no continuous animation loop. GPU deformation, shared ribbon geometry, 6,800 desktop / 2,800 phone signals, instanced gates, offscreen/hidden-tab suspension, pause controls and finite portrait/trace/Method transfers bound the work. The main portrait is approximately 149 KiB with a 4.6 KiB first-screen thumbnail.
+- **Performance:** one demand-rendered opening stage capped at 1.8 million base pixels; the standalone hero retains a 2.2-million-pixel budget. The ending projects its small 3D mesh into a separate transparent Canvas 2D stage capped at 1.5 million backing pixels, with no extra WebGL context or continuous animation loop. GPU deformation, shared ribbon geometry, 6,800 desktop / 2,800 phone signals, instanced gates, offscreen/hidden-tab suspension, pause controls and finite portrait/trace/Method transfers bound the work. The main portrait is approximately 149 KiB with a 4.6 KiB first-screen thumbnail.
 - **Typography:** Space Grotesk + JetBrains Mono
 - **Delivery:** Vercel production deployment, Sites-compatible worker output, automated build verification
 
@@ -68,7 +68,7 @@ npm run test:motion
 
 The build must emit `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
 
-`test:motion` checks 18 pure opening/ending route, capture-exclusion, contain-fit and Loom-geometry invariants. Together with the 18 Sites/profile checks, the commands cover 36 Node tests. These source/math checks complement browser verification; they do not establish visual quality or deployment status.
+`test:motion` checks 23 pure opening/ending route, spatial-shell, capture-exclusion, contain-fit and Loom-geometry invariants. Together with the 18 Sites/profile checks, the commands cover 41 Node tests. These source/math checks complement browser verification; they do not establish visual quality or deployment status.
 
 ## Release integrity
 
@@ -80,7 +80,7 @@ The shared résumé resolver validates the runtime manifest, refreshes local doc
 
 The [motion upgrade record](docs/motion-upgrade-2026-10-27.md) covers the full-stage hero, project transmissions, real GitHub contribution animations, installed official GSAP guides, research provenance and verification. The [earlier identity delivery](docs/profile-upgrade-2026-10-27.md) records the portrait, canonical résumé and saved LinkedIn copy. Existing LinkedIn and GitHub account photos are intentionally retained.
 
-The opening uses a shared renderer and blended viewport lighting; its capture dock clips around measured narrative plates before reaching Work. The later carrier follows native artifact bounds rather than carrying a foreground portrait or image across text. Method, identity, career, proof and contact share one dark surface, with readable evidence panels and an inset contact form. See the [continuity research](docs/continuous-experience-research-2026-10-28.md), [Loom geometry contract](docs/continuous-loom-geometry-2026-10-28.md), [opening verification](docs/continuous-experience-verification-2026-10-28.md), and [ending integration record](docs/cinematic-ending-verification-2026-10-28.md) for implementation and verification scope. A source or math check is not a browser or deployment result.
+The opening uses a shared renderer and blended viewport lighting; its capture dock clips around measured narrative plates before reaching Work. Its mobile captions, footer and progress reserve space for the fixed professional-action tray. The later 3D shell follows native artifact bounds without moving a foreground portrait or image across text, and its exclusions measure the tray's actual safe-area-aware rectangle. Method, identity, career, proof and contact share one dark surface, with readable evidence panels and an inset contact form. See the [continuity research](docs/continuous-experience-research-2026-10-28.md), [Loom geometry contract](docs/continuous-loom-geometry-2026-10-28.md), [opening verification](docs/continuous-experience-verification-2026-10-28.md), and [ending integration record](docs/cinematic-ending-verification-2026-10-28.md) for implementation and verification scope. A source or math check is not a browser or deployment result.
 
 The [hero research](docs/immersive-hero-research-2026-10-27.md), [curved camera research](docs/immersive-scroll-research-2026-10-27.md), and [project handoff research](docs/project-transition-research-2026-10-27.md) document the references behind the original geometry and owned artifacts. Explicit project selection brings an offscreen stage into view before its handoff plays. GitHub ends with an original Contribution Loom made from the actual daily calendar; the snake and skyline remain optional closed disclosures after it.
 

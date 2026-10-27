@@ -37,6 +37,7 @@
 .cinematic-unavailable p { font-size: 15px; line-height: 1.6; }
 @media (max-width: 700px) {
   .cinematic-grade-hero { background: linear-gradient(0deg, #030505, #030505eb 25%, transparent 55%); }
+  .cinematic-hero-layer .portrait-signature { position: relative; z-index: 1; background: #030505; }
   .cinematic-opening .descent-flight[data-shared-scene="true"] { height: 380svh; }
   .cinematic-opening .flight-exit.flight-arrival { left: 20px; right: 20px; bottom: 13vh; max-width: 320px; }
   .cinematic-opening .flight-arrival h2 { font-size: 42px; }
@@ -46,5 +47,8 @@
   .cinematic-opening .flight-exit.flight-arrival { bottom: 80px; max-width: 38vw; }
   .cinematic-opening .flight-arrival h2 { font-size: 36px; }
   .cinematic-opening .flight-arrival p { font-size: 12px; margin-top: 12px; }
+}
+@media (max-width: 900px) {
+  .cinematic-opening .flight-exit.flight-arrival { bottom: max(13vh, calc(var(--flight-dock-clearance) + 56px)); }
 }
 @media (prefers-reduced-motion: reduce) { .cinematic-capture-dock { display: none; } }

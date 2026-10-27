@@ -22,6 +22,9 @@
 .flight-chapter > span { display: block; max-width: 32ch; margin-top: 22px; color: #d5deda; font-size: clamp(15px, 1.35vw, 20px); line-height: 1.5; }
 .flight-chapter[data-side="right"] > span { margin-left: auto; }
 .flight-chapter > small { display: block; margin-top: 17px; color: #a5b7b4; font: 8px/1.7 var(--mono); letter-spacing: .055em; }
+/* The camera can bring a reflective gate or a bright capture behind a caption.
+   Its plate belongs to the narrative stack, without changing measured layout. */
+.flight-intro::before, .flight-chapter::before { content: ""; position: absolute; z-index: -1; inset: -14px -16px; background: #030505; pointer-events: none; }
 .flight-exit { position: absolute; z-index: 4; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 90px 24px 60px; color: #f3f5ee; text-align: center; visibility: hidden; opacity: 0; background: #0305058c; }
 .flight-exit h2 { margin: 0; font-size: clamp(54px, 8vw, 118px); line-height: .9; letter-spacing: -.04em; font-weight: 500; }
 .flight-exit p { margin: 27px 0 0; color: #cbd4d0; font-size: 18px; line-height: 1.5; }
@@ -81,6 +84,18 @@
   .flight-exit h2 { font-size: 55px; }
   .flight-exit p { margin-top: 15px; font-size: 14px; }
   .flight-exit a { margin-top: 17px; }
+}
+/* This pinned viewport shares the screen with the professional action tray.
+   Keep its captions and progress above that tray on phones and tablets. */
+@media (max-width: 900px) {
+  .descent-flight { --flight-dock-clearance: calc(62px + env(safe-area-inset-bottom)); }
+  .flight-progress { bottom: var(--flight-dock-clearance); }
+  .flight-footer { bottom: calc(var(--flight-dock-clearance) + 18px); }
+  .flight-intro { bottom: max(15vh, calc(var(--flight-dock-clearance) + 56px)); }
+  .flight-chapter, .flight-chapter[data-side="right"] { bottom: max(10vh, calc(var(--flight-dock-clearance) + 56px)); }
+}
+@media (max-height: 560px) and (min-width: 700px) and (max-width: 900px) {
+  .descent-flight { --flight-dock-clearance: calc(54px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .descent-section.descent-flight { height: auto; }
