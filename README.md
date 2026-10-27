@@ -68,7 +68,7 @@ npm run test:motion
 
 The build must emit `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
 
-`test:motion` checks 17 pure opening/ending route, capture-exclusion, contain-fit and Loom-geometry invariants. Together with the 18 Sites/profile checks, the commands cover 35 Node tests. These source/math checks complement browser verification; they do not establish visual quality or deployment status.
+`test:motion` checks 18 pure opening/ending route, capture-exclusion, contain-fit and Loom-geometry invariants. Together with the 18 Sites/profile checks, the commands cover 36 Node tests. These source/math checks complement browser verification; they do not establish visual quality or deployment status.
 
 ## Release integrity
 

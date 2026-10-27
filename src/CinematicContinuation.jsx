@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ContinuationSignal } from "./ContinuationSignal.jsx";
 import { useReducedMotion } from "./useMotionPreference.js";
-import { methodOutputProgress, readContinuation, viewportFrame } from "./continuation-motion.js";
+import { documentFrame, methodOutputProgress, readContinuation, viewportFrame } from "./continuation-motion.js";
 import { smoothRange } from "./cinematic-motion.js";
 import "./cinematic-continuation.css";
 
@@ -21,18 +21,19 @@ export function CinematicContinuation({ children, continuation }) {
   useEffect(() => {
     const node = root.current, shared = continuation.current;
     let frame = 0, needsMeasure = true, visible = false, disposed = false;
-    let stops = [], exclusions = [];
+    let localStops = [], localExclusions = [], measuredOrigin = { left: 0, top: 0 };
     shared.reduced = Boolean(reducedMotion);
     const box = element => {
       const rect = element.getBoundingClientRect();
-      return { left: rect.left, top: rect.top + window.scrollY, width: rect.width, height: rect.height };
+      return { left: rect.left - measuredOrigin.left, top: rect.top - measuredOrigin.top, width: rect.width, height: rect.height };
     };
     const measure = () => {
-      stops = STOPS.flatMap(([selector, act]) => {
+      measuredOrigin = node.getBoundingClientRect();
+      localStops = STOPS.flatMap(([selector, act]) => {
         const element = node.querySelector(selector);
         return element ? [{ ...box(element), act }] : [];
       });
-      exclusions = [...node.querySelectorAll(WORDS)].map(box);
+      localExclusions = [...node.querySelectorAll(WORDS)].map(box);
       needsMeasure = false;
     };
     const sync = () => {
@@ -40,6 +41,10 @@ export function CinematicContinuation({ children, continuation }) {
       if (disposed) return;
       if (needsMeasure) measure();
       const y = window.scrollY, height = window.innerHeight;
+      const rootBox = node.getBoundingClientRect();
+      const origin = { left: rootBox.left, top: rootBox.top + y };
+      const stops = localStops.map(rectangle => documentFrame(rectangle, origin));
+      const exclusions = localExclusions.map(rectangle => documentFrame(rectangle, origin));
       const route = readContinuation(y, stops, height, Boolean(reducedMotion));
       shared.visible = visible && !document.hidden;
       if (route) {
@@ -66,6 +71,8 @@ export function CinematicContinuation({ children, continuation }) {
     const refresh = () => { needsMeasure = true; schedule(); };
     const observer = new ResizeObserver(refresh);
     observer.observe(node);
+    // Lazy opening content can move this entire owner without resizing it.
+    if (node.parentElement) observer.observe(node.parentElement);
     const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); }, { rootMargin: "100px" });
     intersection.observe(node);
     window.addEventListener("scroll", schedule, { passive: true });

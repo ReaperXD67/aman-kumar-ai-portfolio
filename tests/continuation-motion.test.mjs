@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { methodOutputProgress, readContinuation, viewportFrame } from "../src/continuation-motion.js";
+import { documentFrame, methodOutputProgress, readContinuation, viewportFrame } from "../src/continuation-motion.js";
 
 const stops = [
   { left: 48, top: 600, width: 880, height: 530, act: "method" },
@@ -60,4 +60,15 @@ test("reduced motion selects a settled native frame without an intermediate spat
     assert.equal(route.progress, 1);
   }
   assert.equal(readContinuation(0, [], 800), null);
+});
+
+test("late loading above the ending cannot leave its frame at a stale document position", () => {
+  const local = stops.map(stop => ({ ...stop, top: stop.top - 600 }));
+  const before = local.map(stop => documentFrame(stop, { left: 0, top: 600 }));
+  const after = local.map(stop => documentFrame(stop, { left: 0, top: 1470 }));
+  const oldRoute = readContinuation(5600, before, 1000);
+  const shiftedRoute = readContinuation(6470, after, 1000);
+  assert.equal(shiftedRoute.progress, oldRoute.progress);
+  assert.equal(shiftedRoute.act, oldRoute.act);
+  assert.deepEqual(viewportFrame(shiftedRoute.to, 6470), viewportFrame(oldRoute.to, 5600));
 });

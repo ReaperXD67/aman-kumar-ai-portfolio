@@ -42,7 +42,7 @@ Cinematic intelligence interface: near-black canvas, white/graphite typography, 
 - Continuous ticker and WebGL rendering pause or become static under reduced-motion/offscreen conditions.
 - `prefers-reduced-motion` disables continuous movement, bloom, and decorative transitions while preserving the final readable state.
 
-The [continuity research](docs/continuous-experience-research-2026-10-28.md) and [Loom geometry contract](docs/continuous-loom-geometry-2026-10-28.md) describe ownership and source-level invariants. `npm run test:motion` covers 17 pure checks, including arrival exclusions and the ending route; the Sites/profile suites add 18 checks. The [opening verification](docs/continuous-experience-verification-2026-10-28.md) and [ending integration record](docs/cinematic-ending-verification-2026-10-28.md) distinguish implementation/math evidence from browser and deployment results.
+The [continuity research](docs/continuous-experience-research-2026-10-28.md) and [Loom geometry contract](docs/continuous-loom-geometry-2026-10-28.md) describe ownership and source-level invariants. `npm run test:motion` covers 18 pure checks, including arrival exclusions and the ending route; the Sites/profile suites add 18 checks. The [opening verification](docs/continuous-experience-verification-2026-10-28.md) and [ending integration record](docs/cinematic-ending-verification-2026-10-28.md) distinguish implementation/math evidence from browser and deployment results.
 
 ## Content Rules
 

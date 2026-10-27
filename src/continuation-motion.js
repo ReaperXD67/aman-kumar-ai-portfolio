@@ -21,6 +21,11 @@ export function viewportFrame(frame, scrollY, origin = { left: 0, top: 0 }) {
   return { left: frame.left - origin.left, top: frame.top - scrollY - origin.top, width: frame.width, height: frame.height };
 }
 
+/** Local artifact offsets survive a late-loading section above their owner. */
+export function documentFrame(frame, origin) {
+  return { ...frame, left: frame.left + origin.left, top: frame.top + origin.top };
+}
+
 /** The field becomes an output frame only as its lower part leaves the view. */
 export function methodOutputProgress(scrollY, frame, height) {
   const start = frame.top + frame.height - height * .58;

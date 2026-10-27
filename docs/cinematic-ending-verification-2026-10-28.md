@@ -25,6 +25,7 @@ The user's screenshot showed the transported Karix capture covering “From prod
 - The contact form accepted a test name and keyboard focus moved to the email field; the temporary value was cleared. No submission or external message was performed. The opening WebGL canvas was absent while contact was in view.
 - At 390 × 844, the portrait and its controls remained readable; portrait buttons measured approximately 45px high. The contact form retained 51px inputs and a 58px submit control. Neither inspected phone surface had horizontal page overflow.
 - At 320 × 800, the final submit action remained above the mobile tray at the page end, followed by the native footer. The 844 × 390 landscape layout retained direct Method tab selection and reverse scrolling. No browser console errors were recorded in the local preview. An explicit principle selection also updates the carrier accent while its simulation is offscreen.
+- A cold production contact entry exposed stale absolute coordinates when the lazy opening changed height above the ending. Artifact offsets now remain local to their owner and resolve against its current document origin on every update. The parent main layout is observed as well, so a shift above the owner refreshes the route even when the ending's own height does not change. A regression check covers this displacement.
 
 ## Automated verification
 
@@ -35,7 +36,7 @@ npm run test:sites
 npm run test:profile
 ```
 
-There are 35 passing Node checks: 17 motion/geometry checks plus the existing 18 Sites/profile checks. The additions cover responsive narrative exclusion, union of overlapping holes, transformed clip coordinates, ordered ending stages, reverse determinism, field-exit timing, native/sticky frame projection and reduced-motion frame selection. Build output retains all required Sites files; no new dependency or change to the protected worker/hosting preparation was required.
+There are 36 passing Node checks: 18 motion/geometry checks plus the existing 18 Sites/profile checks. The additions cover responsive narrative exclusion, union of overlapping holes, transformed clip coordinates, ordered ending stages, reverse determinism, field-exit timing, native/sticky frame projection and reduced-motion frame selection. Build output retains all required Sites files; no new dependency or change to the protected worker/hosting preparation was required.
 
 Renderer source/mocked checks also covered outside-frame geometry, finite drawing, coalesced demand frames, hidden/resume/cleanup and the backing-pixel cap. Those checks are distinct from browser observations. Reduced-motion behavior was reviewed through the pure route checks and component paths; the browser session did not emulate an operating-system preference or inject GPU loss. No frame-rate guarantee is asserted. Vite retains its existing large shared-chunk warning.
 
