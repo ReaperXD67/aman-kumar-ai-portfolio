@@ -45,6 +45,7 @@ export function dampSignalCoordinate(current, target, dt) {
 export const signalCurrentVertex = /* glsl */ `
 precision highp float;
 attribute vec4 aSeed;
+attribute vec3 aPortraitColor;
 uniform float uCoordinate;
 uniform float uTime;
 uniform float uScroll;
@@ -73,7 +74,7 @@ vec3 anchorInView(vec2 css) {
 vec3 currentPath(float t, float coordinate, float time, float lane, float depth, out vec3 tangent) {
   // Every strand begins on the photograph itself. The fan spans the lower
   // portrait edge rather than collapsing the whole person into one nozzle.
-  float peelHeight = clamp(uPeel.y - uPeel.x, 0.0, uViewport.y * 1.25);
+  float peelHeight = max(uPeel.y - uPeel.x, 0.0);
   // The center inherits the native port's offscreen bound; otherwise a long
   // record section could pull the whole fan thousands of pixels out of view.
   float peelY = uSource.y + (.01 + lane * .18) * peelHeight;
@@ -99,15 +100,22 @@ vec3 currentPath(float t, float coordinate, float time, float lane, float depth,
     3.0 * t * t * (receiver - second);
   float envelope = sin(t * 3.14159265359);
   float envelopeDerivative = 3.14159265359 * cos(t * 3.14159265359);
-  float width = mix(.64, .26, phone) * (1.0 + curl * .12);
+  // A tightening final turn gathers the same coloured grain at the receiver.
+  float gatherPosition = clamp((t - .68) / .29, 0.0, 1.0);
+  float gather = gatherPosition * gatherPosition * (3.0 - 2.0 * gatherPosition);
+  float gatherDerivative = 6.0 * gatherPosition * (1.0 - gatherPosition) / .29;
+  float baseWidth = mix(.64, .26, phone) * (1.0 + curl * .12);
+  float width = baseWidth * (1.0 - .4 * gather);
+  float widthDerivative = -.4 * baseWidth * gatherDerivative;
   float filament = lane * width * envelope;
-  float filamentDerivative = lane * width * envelopeDerivative;
+  float filamentDerivative = lane * (widthDerivative * envelope + width * envelopeDerivative);
   float frequency = 8.0 + coordinate * .55;
-  float helix = t * frequency + lane * 2.2 + time * .12;
+  float helix = t * frequency + lane * 2.2 + time * .12 + gather * 5.5;
+  float helixDerivative = frequency + gatherDerivative * 5.5;
   float c = cos(helix), s = sin(helix);
   spine += vec3(filament * c, filament * s, depth * .68 * envelope);
-  tangent += vec3(filamentDerivative * c - filament * s * frequency,
-    filamentDerivative * s + filament * c * frequency, depth * .68 * envelopeDerivative);
+  tangent += vec3(filamentDerivative * c - filament * s * helixDerivative,
+    filamentDerivative * s + filament * c * helixDerivative, depth * .68 * envelopeDerivative);
   // On phones the attached stream follows the photograph's exterior gutter,
   // then releases into the open space below it instead of leaving the screen.
   float viewDepth = max(-spine.z, .01);
@@ -139,7 +147,7 @@ void main() {
   float reduced = step(.5, uReduced);
   float coordinate = mix(clamp(uCoordinate, 0.0, 4.0), 1.35, reduced);
   float time = uTime * (1.0 - reduced);
-  float lane = (floor(aSeed.y * 31.0) - 15.0) / 15.0;
+  float lane = aSeed.y * 2.0 - 1.0;
   float depth = aSeed.z * 2.0 - 1.0;
   float travel = time * .042 + uScroll * .22 * (1.0 - reduced);
   float t = fract(aSeed.x + travel + lane * .007);
@@ -165,10 +173,8 @@ void main() {
   gl_PointSize = clamp(pointSize * uPixelRatio * (1.0 + vSoftness), 1.0, 11.0 * uPixelRatio);
 
   float packet = pow(.5 + .5 * sin(TAU * (t - travel * 1.7 + lane * .09)), 8.0);
-  vec3 gold = vec3(1.0, .66, .21), ivory = vec3(1.0, .97, .78);
-  vColor = mix(gold, ivory, smoothstep(.04, .48, t));
-  if (aSeed.y > .81) vColor = mix(vColor, vec3(.76, 1.0, .26), .55 + packet * .3);
-  vColor = mix(vColor * .8, vColor, packet);
+  // Birth colour is sampled from the real image and retained to contact.
+  vColor = aPortraitColor * mix(.90, 1.08, packet);
   vAlpha = mix(.40 + packet * .4, .48, root) * (1.0 - vSoftness * .4);
   vec2 screen = (clip.xy / max(clip.w, .01) * .5 + .5) * uViewport;
   screen.y = uViewport.y - screen.y;
@@ -177,7 +183,7 @@ void main() {
     if (index >= uRectCount) break;
     vAlpha *= smoothstep(6.0, feather, rectDistance(screen, uRects[index]));
   }
-  float peelHeight = clamp(uPeel.y - uPeel.x, 0.0, uViewport.y * 1.25);
+  float peelHeight = max(uPeel.y - uPeel.x, 0.0);
   vec2 edgePoint = vec2(uSource.x, clamp(screen.y, uSource.y - peelHeight * .17, uSource.y + peelHeight * .19));
   float sourcePort = (1.0 - smoothstep(3.0, 30.0, distance(screen, edgePoint))) * uSource.w;
   float targetPort = (1.0 - smoothstep(5.0, 34.0, distance(screen, uReceiver.xy))) * uReceiver.w;

@@ -15,7 +15,7 @@
 
 Most portfolios list claims. This one lets visitors inspect the system behind them.
 
-The opening carries a fluid **Decision Loom** into a curved project world through one shared WebGL renderer and camera. The final KarixMC capture docks into its interactive **Engineering X-ray** lens; the proof band follows selected work. The inspected architecture seeds the **Validation Chamber**. The ending's **Signal Current** attaches to the real portrait's illuminated edge, follows a continuous 3D curve through the reading passage and enters a measured receiver on the contact form. These surfaces share a dark world while their native controls and readable content remain in normal flow. The **Systems Kernel** remains the portrait's optional second view.
+The opening carries a fluid **Decision Loom** into a curved project world through one shared WebGL renderer and camera. The final KarixMC capture docks into its interactive **Engineering X-ray** lens; the proof band follows selected work. The inspected architecture seeds the **Validation Chamber**. The ending's **Signal Current** peels from the real portrait in colours sampled from the photograph, follows scrolling through a continuous 3D curve and gathers at the contact form. These surfaces share a dark world while their native controls and readable content remain in normal flow. The **Systems Kernel** remains the portrait's optional second view.
 
 ![Aman Kumar — AI Engineer and Full-Stack Developer](public/assets/portfolio-social-preview-v3.png)
 
@@ -29,7 +29,7 @@ The opening carries a fluid **Decision Loom** into a curved project world throug
 | **Validation Chamber** | The selected project's actual circuit nodes and routes seed 84 particles, then transfer once into the active principle's pattern. Pointer or principle-tab input takes control immediately. Its native field retains a finite boundary exit; Signal Current continues the reading route with independent GPU geometry. |
 | **Systems Kernel** | A voxel/pixel boot sequence compiles neural, agent, and infrastructure topology into one role-specific artifact. |
 | **Person / System** | A finite 2.85-second raster scan assembles Aman's approved portrait, then holds a clear photograph. Particles peel from a gold seam spanning 52–88% of its right edge after assembly; the face stays fixed. Replay or switch to the interactive kernel with keyboard and touch controls. |
-| **Signal Current** | One foreground points object carries 12,000 desktop / 4,000 phone particles from a distributed 31-strand portrait peel into the measured contact receiver. A moving root cohort, broader helical volume and scroll-driven travel connect the camera's orbit/dolly to native scrolling. Opaque native surfaces sit above the current; shader guards also protect the photograph, form and reading route. Contact stays connected until the footer enters. A Method button and command-palette action pause flow; reduced motion shows a still. |
+| **Signal Current** | One foreground points object carries 12,000 desktop / 4,000 phone particles from a continuous portrait-edge peel into the measured contact receiver. Each particle retains a colour sampled at its birth point in the photograph. A moving root cohort, helical volume and tightening final curl connect scroll-driven travel to the camera's orbit/dolly. Opaque native surfaces and shader guards protect the photograph, text and form. Contact stays connected until the footer enters. A Method button and command-palette action pause flow; reduced motion shows a still. |
 | **Living résumé** | One stable runtime manifest keeps the canonical one-page résumé replaceable without rewriting interface code. Selectable text, embedded fonts, and source links remain independently verifiable. |
 | **Signal Operating System** | Persistent GitHub, LinkedIn, X, and résumé access plus `/` command search, a recruiter quick-read, native sharing, and a mobile action tray. |
 
@@ -48,10 +48,11 @@ The opening carries a fluid **Decision Loom** into a curved project world throug
 - **Motion:** GSAP, Motion, scroll-linked timelines, reduced-motion fallbacks
 - **Rendering:** the demand-rendered opening caps base pixels at 1.8 million; the standalone hero retains 2.2 million. Signal Current caps backing pixels at 1.2 million and DPR at 1.35. Static seeds and an analytic path derivative avoid CPU mesh rebuilds and a second path evaluation per particle. Masks and camera matrices are cached when unchanged; diagnostics update at 150ms intervals or on state changes. Flow suspends offscreen, in hidden tabs or on pause.
 - **Loading:** the ending renderer loads within 900px of its range, with direct ending links ready immediately. Those links avoid initially mounting the opening renderer. The full portrait loads lazily at approximately 149 KiB; the first-screen thumbnail is 4.6 KiB. Native text, links and controls render independently of the spatial scenes.
+- **Portrait colour:** a cached 64 × 64 read of the already-decoded photograph supplies a static RGB particle attribute. Sampling uses the native cover crop and birth locations across the right edge. The existing thumbnail supplies colours on a cold contact link until the full portrait is available. Normal alpha blending retains those hues; sampling introduces no asset request, GPU texture or per-frame image read.
 - **Typography:** Space Grotesk + JetBrains Mono
 - **Delivery:** Vercel production deployment, Sites-compatible worker output, automated build verification
 
-The current production entry bundle is 667,034 bytes raw / 216,724 bytes with reproducible Python gzip, down from 1,415,077 / 410,220 bytes (52.9% / 47.2%). This measures the entry bootstrap, not total page transfer or frame rate; scene chunks load separately.
+The preceding loading optimization reduced the entry bootstrap from 1,415,077 to 667,034 raw bytes (52.9%), with scene chunks loaded separately. This is a prior release baseline, not a measurement of total transfer, loading time or frame rate for the colour revision.
 
 ## Run locally
 
@@ -71,7 +72,7 @@ npm run test:motion
 
 The build must emit `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
 
-`test:motion` passes 29 source/math checks covering the opening and ending routes, distributed portrait-edge registration, contact and footer exit, Signal Current seeds/camera/damping, capture protection, contain-fit and Loom invariants. Four Sites checks and fourteen profile checks bring the local Node total to 47; the production build passes. The browser confirmation pass verifies native surface layering through fast mobile scrolling, with clear portrait, text and form surfaces. See the [current verification record](docs/signal-current-verification-2026-10-28.md) for browser and release outcomes. Automated checks alone do not establish visual quality or deployment status.
+`test:motion` includes 33 source/math checks covering native portrait crop and RGB sampling, edge registration, contact and footer exit, Signal Current seeds/camera/damping, capture protection, contain-fit and Loom invariants. Four Sites checks and fourteen profile checks bring the suite total to 51. Build, browser and release verification for the colour revision are recorded in the [current verification record](docs/signal-current-verification-2026-10-28.md); the production build and desktop/mobile browser checks pass. Automated checks alone do not establish visual quality or deployment status.
 
 ## Release integrity
 

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { captureClipPath } from "./cinematic-motion.js";
 import { createSignalSeeds, dampSignalCoordinate, readSignalCamera, signalCurrentFragment, signalCurrentVertex } from "./signal-current.js";
+import { createPortraitColours, portraitCoverCrop } from "./portrait-colours.js";
 
 /** A single GPU current follows the reading route. Native content is protected
  * immediately; only the decorative camera and current settle behind scrolling. */
@@ -15,6 +16,9 @@ export function ContinuationSignal({ motion }) {
     let narrow, signature = "", coordinate = null, sourcePresence = null, lastTimestamp = 0, activeTime = 0;
     let protectedScene = null, cameraCoordinate = null, cameraAspect = null, cameraReduced = null, pose;
     let diagnosticAt = -Infinity, diagnosticState = "", opacity = null;
+    let seedValues, palette = null, sampleCanvas, sampler, failedPaletteKey = "";
+    const owner = canvas.closest(".cinematic-continuation");
+    const watchedImages = new Set();
     const target = new THREE.Vector3();
     const rectangles = Array.from({ length: 24 }, () => new THREE.Vector4());
     const uniforms = {
@@ -27,6 +31,66 @@ export function ContinuationSignal({ motion }) {
       uPeel: { value: new THREE.Vector2() }, uScroll: { value: 0 },
     };
 
+    const applyPalette = () => {
+      if (!geometry || !seedValues) return;
+      const colours = createPortraitColours(seedValues, palette?.pixels, palette ? 64 : 0, palette ? 64 : 0);
+      const attribute = geometry.getAttribute("aPortraitColor");
+      if (attribute?.array.length === colours.length) {
+        attribute.array.set(colours); attribute.needsUpdate = true;
+      } else geometry.setAttribute("aPortraitColor", new THREE.BufferAttribute(colours, 3));
+      canvas.dataset.continuationPalette = palette?.kind || "fallback";
+    };
+    const imageLoaded = () => {
+      if (disposed) return;
+      refreshPalette();
+      // A paused or reduced-motion still also needs one frame after image load.
+      invalidate();
+    };
+    const refreshPalette = () => {
+      const full = owner?.querySelector(".raster-portrait > img");
+      const thumbnail = document.querySelector(".portrait-signature-image img");
+      const candidates = [full, thumbnail].filter(Boolean);
+      for (const image of watchedImages) {
+        if (candidates.includes(image)) continue;
+        image.removeEventListener("load", imageLoaded); watchedImages.delete(image);
+      }
+      for (const image of candidates) {
+        if (watchedImages.has(image)) continue;
+        image.addEventListener("load", imageLoaded); watchedImages.add(image);
+      }
+      const frame = owner?.querySelector(".portrait-instrument-stage");
+      const frameWidth = frame?.clientWidth, frameHeight = frame?.clientHeight;
+      if (!frameWidth || !frameHeight) return;
+      const frameKey = `${Math.round(frameWidth)}/${Math.round(frameHeight)}`;
+      const ready = image => image?.complete && image.naturalWidth > 0 && image.naturalHeight > 0;
+      // Retain the full-photo palette when System temporarily removes its IMG.
+      if (!ready(full) && palette?.kind === "portrait" && palette.frameKey === frameKey) return;
+      const image = ready(full) ? full : ready(thumbnail) ? thumbnail : null;
+      if (!image) return;
+      const kind = image === full ? "portrait" : "portrait-thumbnail";
+      const key = `${kind}/${image.currentSrc || image.src}/${image.naturalWidth}/${image.naturalHeight}/${frameKey}`;
+      if (palette?.key === key || failedPaletteKey === key) return;
+      const crop = portraitCoverCrop(image.naturalWidth, image.naturalHeight, frameWidth, frameHeight);
+      if (!crop) return;
+      try {
+        if (!sampleCanvas) {
+          sampleCanvas = document.createElement("canvas"); sampleCanvas.width = 64; sampleCanvas.height = 64;
+          sampler = sampleCanvas.getContext("2d", { willReadFrequently: true });
+        }
+        if (!sampler) { failedPaletteKey = key; return; }
+        // Read only the already-decoded source image. No texture, fetch, decode
+        // request, assembly pixels, editorial overlay or per-frame readback.
+        sampler.clearRect(0, 0, 64, 64);
+        sampler.drawImage(image, ...crop, 0, 0, 64, 64);
+        palette = { key, kind, frameKey, pixels: sampler.getImageData(0, 0, 64, 64).data };
+        failedPaletteKey = "";
+        applyPalette();
+      } catch {
+        failedPaletteKey = key;
+        // Unavailable/tainted readback leaves the native photograph untouched.
+        // Keep the previous real-photo palette, or the conservative fallback.
+      }
+    };
     const makeGeometry = () => {
       const phone = width < 700;
       if (geometry && narrow === phone) return;
@@ -34,9 +98,11 @@ export function ContinuationSignal({ motion }) {
       geometry?.dispose();
       const count = phone ? 4_000 : 12_000;
       const seeds = createSignalSeeds(count);
+      seedValues = seeds.seeds;
       geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(seeds.positions, 3));
       geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds.seeds, 4));
+      applyPalette();
       if (points) points.geometry = geometry;
       canvas.dataset.continuationPointcount = String(count);
     };
@@ -53,7 +119,7 @@ export function ContinuationSignal({ motion }) {
         material = new THREE.ShaderMaterial({
           uniforms, vertexShader: signalCurrentVertex, fragmentShader: signalCurrentFragment,
           transparent: true, depthWrite: false, depthTest: false,
-          blending: THREE.AdditiveBlending, toneMapped: false,
+          blending: THREE.NormalBlending, toneMapped: false,
         });
         points = new THREE.Points(geometry, material); points.frustumCulled = false; scene.add(points);
         canvas.dataset.continuationRenderer = "webgl";
@@ -96,6 +162,7 @@ export function ContinuationSignal({ motion }) {
       if (current.sceneDirty || current.scrollY !== window.scrollY || current.width !== window.innerWidth || current.height !== window.innerHeight) current.refreshScene?.();
       const shot = current.scene;
       if (!current.visible || document.hidden || !shot) { suspend(); return; }
+      if (shot !== protectedScene) refreshPalette();
       if (!initialize()) return;
       makeGeometry();
       if (!shot.ports) { renderer.clear(); return; }
@@ -193,6 +260,8 @@ export function ContinuationSignal({ motion }) {
     resize();
     return () => {
       disposed = true; cancelAnimationFrame(request); observer.disconnect();
+      for (const image of watchedImages) image.removeEventListener("load", imageLoaded);
+      watchedImages.clear(); palette = null; sampleCanvas = null; sampler = null;
       document.removeEventListener("visibilitychange", invalidate);
       canvas.removeEventListener("webglcontextlost", contextLost); canvas.removeEventListener("webglcontextrestored", contextRestored);
       if (motion.current.invalidate === invalidate) motion.current.invalidate = null;

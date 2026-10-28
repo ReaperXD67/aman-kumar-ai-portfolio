@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "test:profile": "node --test tests/profile-assets.test.mjs tests/resume-manifest.test.mjs",
-    "test:motion": "node --test tests/cinematic-motion.test.mjs tests/loom-geometry.test.mjs tests/continuation-motion.test.mjs tests/signal-current.test.mjs tests/portrait-current-route.test.mjs"
+    "test:motion": "node --test tests/cinematic-motion.test.mjs tests/loom-geometry.test.mjs tests/continuation-motion.test.mjs tests/signal-current.test.mjs tests/portrait-current-route.test.mjs tests/portrait-colours.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
