@@ -13,6 +13,8 @@ import {
   GithubLogo,
   LinkedinLogo,
   MagnifyingGlass,
+  Pause,
+  Play,
   ShareNetwork,
   X,
   XLogo,
@@ -96,7 +98,7 @@ function useActiveSection() {
   return activeSection;
 }
 
-export function SignalOperatingSystem({ panel, onPanelChange, resume }) {
+export function SignalOperatingSystem({ panel, onPanelChange, resume, currentPaused, onToggleCurrent }) {
   const reducedMotion = useReducedMotion();
   const activeSection = useActiveSection();
   const dialogRef = useRef(null);
@@ -201,6 +203,7 @@ export function SignalOperatingSystem({ panel, onPanelChange, resume }) {
     { label: "Email Aman", detail: EMAIL, group: "CONTACT", icon: EnvelopeSimple, run: () => { window.location.href = `mailto:${EMAIL}`; onPanelChange(null); } },
     { label: "Copy email address", detail: "Place the direct contact address on your clipboard", group: "CONTACT", icon: Copy, run: () => copyText(EMAIL, "EMAIL ADDRESS COPIED") },
     { label: "Share this portfolio", detail: "Use the native share sheet or copy the production URL", group: "SHARE", icon: ShareNetwork, run: sharePortfolio },
+    ...(!reducedMotion ? [{ label: currentPaused ? "Resume signal current" : "Pause signal current", detail: "Control the flowing background from Method to contact", aliases: "animation motion stop play", group: "DISPLAY", icon: currentPaused ? Play : Pause, run: () => { onToggleCurrent(); onPanelChange(null); } }] : []),
   ];
 
   const filteredActions = actions.filter((action) => commandMatches(action, query))

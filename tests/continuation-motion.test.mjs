@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { continuationCoordinate, documentFrame, methodOutputProgress, ownerClipExclusions, readContinuation, safeFilmFocus, viewportFrame } from "../src/continuation-motion.js";
+import { continuationCoordinate, documentFrame, methodOutputProgress, ownerClipExclusions, readContinuation, viewportFrame } from "../src/continuation-motion.js";
 
 const stops = [
   { left: 48, top: 600, width: 880, height: 530, act: "method" },
@@ -73,7 +73,7 @@ test("late loading above the ending cannot leave its frame at a stale document p
   assert.deepEqual(viewportFrame(shiftedRoute.to, 6470), viewportFrame(oldRoute.to, 5600));
 });
 
-test("the film clock is monotone and passes through interior artifacts without braking", () => {
+test("the ending clock is monotone and passes through interior artifacts without braking", () => {
   const knots = stops.map(stop => stop.top + stop.height / 2);
   let previous = -1;
   for (let focus = knots[0] - 100; focus <= knots.at(-1) + 100; focus += 2) {
@@ -91,30 +91,7 @@ test("the film clock is monotone and passes through interior artifacts without b
   }
 });
 
-test("negative-space focus yields finite settled composition for empty or fully occluded phones", () => {
-  const viewport = { width: 390, height: 844 };
-  const empty = safeFilmFocus(viewport, []);
-  assert(Math.abs(empty.x - .5) < .001 && Math.abs(empty.y - .5) < .001);
-  assert(empty.available);
-  const covered = safeFilmFocus(viewport, [{ left: -20, top: -20, width: 430, height: 884 }]);
-  assert.deepEqual(covered, { x: .5, y: .5, clearance: 0, available: false, support: 0 });
-});
-
-test("composition shifts continuously when competing free regions change size", () => {
-  const viewport = { width: 390, height: 844 };
-  let previous;
-  for (let shift = -90; shift <= 90; shift++) {
-    const holes = [{ left: 18, top: 220 + shift, width: 354, height: 360 },
-      { left: 0, top: 0, width: 390, height: 66 }, { left: 0, top: 782, width: 390, height: 62 }];
-    const focus = safeFilmFocus(viewport, holes);
-    assert([focus.x, focus.y, focus.clearance, focus.support].every(Number.isFinite));
-    if (previous) assert(Math.hypot(focus.x - previous.x, focus.y - previous.y) < .01,
-      "the focus must not snap between the top and bottom free region");
-    previous = focus;
-  }
-});
-
-test("a sticky film cannot paint outside its owner into the footer or previous section", () => {
+test("a sticky current cannot paint outside its owner into the footer or previous section", () => {
   const stage = { left: 0, top: 0, width: 390, height: 844 };
   const contains = (rectangles, x, y) => rectangles.some(rectangle => x >= rectangle.left
     && x < rectangle.left + rectangle.width && y >= rectangle.top && y < rectangle.top + rectangle.height);

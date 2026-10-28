@@ -1,5 +1,7 @@
 # Continuous ending film and mobile text safety
 
+Historical record: the sheet and earlier contour implementations below have been superseded by [Signal Current](signal-current-verification-2026-10-28.md).
+
 28 October 2026. Continues the opening described in [the continuity record](continuous-experience-verification-2026-10-28.md).
 
 ## Current direction and ownership

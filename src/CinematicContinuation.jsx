@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ContinuationSignal } from "./ContinuationSignal.jsx";
 import { useReducedMotion } from "./useMotionPreference.js";
-import { documentFrame, methodOutputProgress, ownerClipExclusions, readContinuation, safeFilmFocus, viewportFrame } from "./continuation-motion.js";
+import { documentFrame, methodOutputProgress, ownerClipExclusions, readContinuation, viewportFrame } from "./continuation-motion.js";
 import { smoothRange } from "./cinematic-motion.js";
 import "./cinematic-continuation.css";
 
@@ -15,9 +15,13 @@ const STOPS = [
 const PROTECTED = ".signal-band,.method-heading,.method-visual,.method-readout,.method-stage-rail,.identity-kernel-frame,.identity-copy,.career-heading,.career-console,.education-signal,.proof-vault-heading,.artifact-preview,.artifact-copy,.contact-intro,.contact-form";
 
 /** Native content supplies a reading clock and occlusion, never sculpture shape. */
-export function CinematicContinuation({ children, continuation }) {
+export function CinematicContinuation({ children, continuation, paused = false }) {
   const root = useRef(null);
   const reducedMotion = useReducedMotion();
+  useEffect(() => {
+    continuation.current.paused = paused;
+    continuation.current.invalidate?.();
+  }, [continuation, paused]);
   useEffect(() => {
     const node = root.current, shared = continuation.current;
     let frame = 0, needsMeasure = true, visible = false, disposed = false;
@@ -36,11 +40,13 @@ export function CinematicContinuation({ children, continuation }) {
       localExclusions = [...node.querySelectorAll(PROTECTED)].map(box);
       needsMeasure = false;
     };
-    const sync = () => {
+    const sync = (notify = true) => {
+      cancelAnimationFrame(frame);
       frame = 0;
       if (disposed) return;
       if (needsMeasure) measure();
       const y = window.scrollY, height = window.innerHeight;
+      shared.scrollY = y;
       const rootBox = node.getBoundingClientRect();
       const origin = { left: rootBox.left, top: rootBox.top + y };
       const stops = localStops.map(rectangle => documentFrame(rectangle, origin));
@@ -58,15 +64,18 @@ export function CinematicContinuation({ children, continuation }) {
           .filter(rectangle => rectangle.width > 0 && rectangle.height > 0)
           .map(rectangle => ({ left: rectangle.left - stage.left, top: rectangle.top - stage.top, width: rectangle.width, height: rectangle.height }));
         const viewport = { width: Math.max(1, stage.width), height: Math.max(1, stage.height) };
-        const protectedFrames = [...exclusions.map(project),
+        const hardExclusions = [
           { left: -stage.left, top: -stage.top, width: window.innerWidth, height: headerBottom },
           ...docks, ...ownerClipExclusions(rootBox, stage)];
+        // Face, copy and evidence dim the current before it reaches them.
+        // Only the owner's limits and fixed UI require a hard clip.
+        const protectedFrames = exclusions.map(project).filter(rectangle => rectangle.top < viewport.height + 100
+          && rectangle.top + rectangle.height > -100);
         shared.scene = {
           from: project(route.from), to: project(route.to), progress: route.progress,
-          // This is the one eased clock. The film and camera consume it directly.
-          coordinate: route.coordinate, viewport, focus: safeFilmFocus(viewport, protectedFrames),
+          coordinate: route.coordinate, viewport,
           act: route.act, phase: route.phase, points: shared.points, accent: shared.accent || "#d8ff4f",
-          exclusions: protectedFrames,
+          exclusions: protectedFrames, hardExclusions,
         };
         const method = stops.find(stop => stop.act === "method");
         const contact = stops.find(stop => stop.act === "contact");
@@ -76,9 +85,13 @@ export function CinematicContinuation({ children, continuation }) {
         node.dataset.continuationCoordinate = route.coordinate.toFixed(4);
         node.style.setProperty("--contact-arrival", contact ? String(smoothRange(y + height * .72, contact.top, contact.top + Math.min(contact.height, height) * .5)) : "1");
       }
-      shared.invalidate?.();
+      if (notify) shared.invalidate?.();
     };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(sync); };
+    // A live GPU frame can precede the scheduled scroll callback. Let it refresh
+    // protection first, without scheduling a second renderer or damping masks.
+    const refreshScene = () => sync(false);
+    shared.refreshScene = refreshScene;
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(() => sync()); };
     const refresh = () => { needsMeasure = true; schedule(); };
     const observer = new ResizeObserver(refresh);
     observer.observe(node);
@@ -95,6 +108,7 @@ export function CinematicContinuation({ children, continuation }) {
       disposed = true; observer.disconnect(); intersection.disconnect(); cancelAnimationFrame(frame);
       window.removeEventListener("scroll", schedule); window.removeEventListener("resize", refresh);
       document.removeEventListener("visibilitychange", schedule); shared.visible = false;
+      if (shared.refreshScene === refreshScene) shared.refreshScene = null;
     };
   }, [continuation, reducedMotion]);
   return <div ref={root} className="cinematic-continuation" data-continuation-act="method">

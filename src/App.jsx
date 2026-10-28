@@ -14,6 +14,8 @@ import {
   Database,
   GithubLogo,
   List,
+  Pause,
+  Play,
   ShieldCheck,
   Stack,
   X,
@@ -270,7 +272,7 @@ function Work({ onProofChange }) {
   return <ProjectXRay projects={PROJECTS} cinematicEntry onProofChange={onProofChange} />;
 }
 
-function Method({ entrySignal, continuation }) {
+function Method({ entrySignal, continuation, currentPaused, onToggleCurrent }) {
   const reducedMotion = useReducedMotion();
   const [activeCapability, setActiveCapability] = useState(0);
   const current = CAPABILITIES[activeCapability];
@@ -279,7 +281,12 @@ function Method({ entrySignal, continuation }) {
     <section className="method-section section" id="method">
       <div className="method-heading">
         <h2><span>Magic is cheap.</span><em>Proof is the product.</em></h2>
-        <p>The architecture you inspected continues into this chamber. Every principle reorganizes the same signal—from evidence and control to the interface people use.</p>
+        <div className="method-heading-context"><p>The architecture you inspected continues into this chamber. Every principle reorganizes the same signal—from evidence and control to the interface people use.</p>
+          {!reducedMotion && <button type="button" className="signal-current-toggle" aria-pressed={currentPaused} onClick={onToggleCurrent}>
+            {currentPaused ? <Play size={14} /> : <Pause size={14} />}
+            {currentPaused ? "Resume signal current" : "Pause signal current"}
+          </button>}
+        </div>
       </div>
       <div className="method-chamber" style={{ "--method-accent": ["#ff5f38", "#d8ff4f", "#7ea8ff", "#f2f2ec"][activeCapability] }}>
         <div className="method-visual" role="img" aria-label={`Live system view: ${current.title}`}>
@@ -339,6 +346,7 @@ export function App() {
   const resume = useResumeManifest();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signalPanel, setSignalPanel] = useState(null);
+  const [currentPaused, setCurrentPaused] = useState(false);
   const [entrySignal, setEntrySignal] = useState({ projectId: "karixmc", layerIndex: 1 });
   const continuation = useRef({ visible: false, reduced: false, methodExit: 0, points: [], accent: "#d8ff4f", scene: null, invalidate: null });
   const { scrollYProgress } = useScroll();
@@ -371,12 +379,12 @@ export function App() {
       <a className="skip-link" href="#main-content">Skip to portfolio content</a>
       <motion.div className="scroll-progress" style={{ scaleX }} aria-hidden="true" />
       <AppHeader menuOpen={menuOpen} setMenuOpen={setMenuOpen} onOpenSignal={() => setSignalPanel("command")} />
-      <SignalOperatingSystem panel={signalPanel} onPanelChange={setSignalPanel} resume={resume} />
+      <SignalOperatingSystem panel={signalPanel} onPanelChange={setSignalPanel} resume={resume} currentPaused={currentPaused} onToggleCurrent={() => setCurrentPaused(value => !value)} />
       <main id="main-content">
         <CinematicOpening><Work onProofChange={setEntrySignal} /></CinematicOpening>
-        <CinematicContinuation continuation={continuation}>
+        <CinematicContinuation continuation={continuation} paused={currentPaused}>
           <SignalBand />
-          <Method entrySignal={entrySignal} continuation={continuation} />
+          <Method entrySignal={entrySignal} continuation={continuation} currentPaused={currentPaused} onToggleCurrent={() => setCurrentPaused(value => !value)} />
           <IdentityVault resume={resume} />
           <Contact />
         </CinematicContinuation>

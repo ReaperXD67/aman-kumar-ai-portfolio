@@ -2,7 +2,7 @@ import { clamp01 } from "./cinematic-motion.js";
 
 const center = frame => frame.top + frame.height / 2;
 
-/** One monotone clock for the whole film. Interior knots retain camera velocity;
+/** One monotone clock for the whole ending. Interior knots retain camera velocity;
  * easing each interval independently would visibly brake at every artifact. */
 export function continuationCoordinate(focus, stops) {
   if (stops.length < 2) return 0;
@@ -38,43 +38,6 @@ export function readContinuation(scrollY, stops, height, reduced = false) {
     coordinate: continuationCoordinate(focus, stops) };
 }
 
-/** A continuous composition hint from actual negative space, not a fitted box.
- * Soft coverage weights prevent snapping between competing empty regions.
- * The centroid may lie within content, so the renderer MUST still clip every
- * exclusion. Availability is metadata, never permission to cover text. */
-export function safeFilmFocus(viewport, exclusions, padding = 8) {
-  const width = Math.max(1, viewport.width), height = Math.max(1, viewport.height);
-  const holes = exclusions.flatMap(rectangle => {
-    if (![rectangle?.left, rectangle?.top, rectangle?.width, rectangle?.height].every(Number.isFinite)
-      || rectangle.width <= 0 || rectangle.height <= 0) return [];
-    const left = Math.max(0, rectangle.left - padding), top = Math.max(0, rectangle.top - padding);
-    const right = Math.min(width, rectangle.left + rectangle.width + padding);
-    const bottom = Math.min(height, rectangle.top + rectangle.height + padding);
-    return right > left && bottom > top ? [{ left, top, right, bottom }] : [];
-  });
-  let total = 0, sumX = 0, sumY = 0, clearance = 0;
-  const columns = 17, rows = 13, feather = 32;
-  for (let row = 0; row < rows; row++) for (let column = 0; column < columns; column++) {
-    const x = (column + .5) / columns * width, y = (row + .5) / rows * height;
-    let distance = Math.min(x, width - x, y, height - y);
-    for (const hole of holes) {
-      const dx = Math.max(hole.left - x, x - hole.right, 0);
-      const dy = Math.max(hole.top - y, y - hole.bottom, 0);
-      distance = Math.min(distance, Math.hypot(dx, dy));
-    }
-    clearance = Math.max(clearance, distance);
-    const t = clamp01(distance / feather), weight = t * t * (3 - 2 * t);
-    total += weight; sumX += x / width * weight; sumY += y / height * weight;
-  }
-  const support = total / (columns * rows);
-  // Blend toward a fixed composition as space disappears, so an empty field
-  // never creates an unstable division or a last-pixel camera relocation.
-  const influence = Math.min(1, support * 3);
-  return { x: .5 + (total ? sumX / total - .5 : 0) * influence,
-    y: .5 + (total ? sumY / total - .5 : 0) * influence,
-    clearance, available: clearance >= 48, support };
-}
-
 export function viewportFrame(frame, scrollY, origin = { left: 0, top: 0 }) {
   return { left: frame.left - origin.left, top: frame.top - scrollY - origin.top, width: frame.width, height: frame.height };
 }
@@ -86,7 +49,7 @@ export function documentFrame(frame, origin) {
 
 /** A sticky stage can outlive its owner because of its negative margin.
  * Exclude the complement of the owner's visible intersection in stage pixels,
- * so the film cannot paint into the preceding content or following footer. */
+ * so the current cannot paint into the preceding content or following footer. */
 export function ownerClipExclusions(owner, stage) {
   const width = Math.max(1, stage.width), height = Math.max(1, stage.height);
   if (![owner?.left, owner?.top, owner?.width, owner?.height].every(Number.isFinite)
