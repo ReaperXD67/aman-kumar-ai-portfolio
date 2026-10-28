@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { captureClipPath, smoothRange } from "./cinematic-motion.js";
+import { captureClipPath } from "./cinematic-motion.js";
 import { createSignalSeeds, dampSignalCoordinate, readSignalCamera, signalCurrentFragment, signalCurrentVertex } from "./signal-current.js";
 
 /** A single GPU current follows the reading route. Native content is protected
@@ -12,7 +12,7 @@ export function ContinuationSignal({ motion }) {
     if (!canvas || !motion?.current) return undefined;
     let request = 0, disposed = false, unavailable = false, lost = false;
     let width = 1, height = 1, ratio = 1, renderer, scene, camera, points, geometry, material;
-    let narrow, signature = "", coordinate = null, lastTimestamp = 0, activeTime = 0;
+    let narrow, signature = "", coordinate = null, sourcePresence = null, lastTimestamp = 0, activeTime = 0;
     const target = new THREE.Vector3();
     const rectangles = Array.from({ length: 24 }, () => new THREE.Vector4());
     const uniforms = {
@@ -20,6 +20,8 @@ export function ContinuationSignal({ motion }) {
       uPixelRatio: { value: 1 }, uReduced: { value: 0 },
       uRects: { value: rectangles }, uRectCount: { value: 0 },
       uViewport: { value: new THREE.Vector2(1, 1) },
+      uSource: { value: new THREE.Vector4() }, uReceiver: { value: new THREE.Vector4() },
+      uPortrait: { value: new THREE.Vector4() }, uContact: { value: new THREE.Vector4() },
     };
 
     const makeGeometry = () => {
@@ -52,7 +54,7 @@ export function ContinuationSignal({ motion }) {
         });
         points = new THREE.Points(geometry, material); points.frustumCulled = false; scene.add(points);
         canvas.dataset.continuationRenderer = "webgl";
-        canvas.dataset.continuationGeometry = "gpu-signal-current";
+        canvas.dataset.continuationGeometry = "portrait-contact-current";
         return true;
       } catch {
         unavailable = true; canvas.dataset.continuationRenderer = "unavailable";
@@ -80,7 +82,7 @@ export function ContinuationSignal({ motion }) {
       if (clip !== signature) { canvas.style.clipPath = clip; signature = clip; }
     };
     const suspend = () => {
-      cancelAnimationFrame(request); request = 0; lastTimestamp = 0; coordinate = null;
+      cancelAnimationFrame(request); request = 0; lastTimestamp = 0; coordinate = null; sourcePresence = null;
       renderer?.clear();
     };
     const draw = timestamp => {
@@ -94,6 +96,7 @@ export function ContinuationSignal({ motion }) {
       if (!current.visible || document.hidden || !shot) { suspend(); return; }
       if (!initialize()) return;
       makeGeometry();
+      if (!shot.ports) { renderer.clear(); return; }
       const next = Math.max(0, Math.min(4, Number.isFinite(shot.coordinate) ? shot.coordinate : 0));
       const reduced = Boolean(current.reduced), paused = Boolean(current.paused);
       const delta = lastTimestamp ? Math.min(.05, Math.max(0, (timestamp - lastTimestamp) / 1_000)) : 0;
@@ -101,7 +104,10 @@ export function ContinuationSignal({ motion }) {
       if (coordinate === null || reduced) coordinate = next;
       else coordinate = dampSignalCoordinate(coordinate, next, delta || 1 / 60);
       if (Math.abs(coordinate - next) <= .0001) coordinate = next;
-      const settling = !reduced && coordinate !== next;
+      const sourceTarget = shot.ports.source.ready;
+      if (sourcePresence === null || reduced) sourcePresence = sourceTarget;
+      else sourcePresence = dampSignalCoordinate(sourcePresence, sourceTarget, delta || 1 / 60);
+      const settling = !reduced && (coordinate !== next || sourcePresence !== sourceTarget);
       const flowing = !reduced && !paused;
       if (flowing) activeTime += delta;
       const aspect = width / height;
@@ -112,10 +118,16 @@ export function ContinuationSignal({ motion }) {
       uniforms.uCoordinate.value = coordinate; uniforms.uTime.value = activeTime;
       uniforms.uAspect.value = aspect; uniforms.uPixelRatio.value = ratio; uniforms.uReduced.value = reduced ? 1 : 0;
       uniforms.uViewport.value.set(width, height);
+      const { source, receiver, portrait, contact } = shot.ports;
+      // Attachment pixels follow native scrolling immediately. Only the spatial
+      // spine and camera are damped, so the stream cannot lag off its photo edge.
+      uniforms.uSource.value.set(source.x, source.y, source.side, sourcePresence);
+      uniforms.uReceiver.value.set(receiver.x, receiver.y, 0, receiver.ready);
+      uniforms.uPortrait.value.fromArray(portrait); uniforms.uContact.value.fromArray(contact);
       protectContent(shot);
       // Discharge fully before the footer; a finished current does not linger
       // as a second visual behind the final native actions.
-      const completion = smoothRange(coordinate, 3.93, 4);
+      const completion = Math.max(0, Math.min(1, shot.exit || 0));
       canvas.style.opacity = String(1 - completion);
       canvas.dataset.continuationAct = shot.act || "method";
       canvas.dataset.continuationCoordinate = coordinate.toFixed(4);
@@ -123,7 +135,11 @@ export function ContinuationSignal({ motion }) {
       canvas.dataset.continuationCamera = pose.position.map(value => value.toFixed(3)).join(",");
       canvas.dataset.continuationCompletion = completion.toFixed(3);
       canvas.dataset.continuationTime = activeTime.toFixed(3);
-      canvas.dataset.continuationMotion = reduced ? "reduced" : settling ? "settling" : paused ? "paused" : "flowing";
+      canvas.dataset.continuationSource = [source.x, source.y].map(value => value.toFixed(2)).join(",");
+      canvas.dataset.continuationReceiver = [receiver.x, receiver.y].map(value => value.toFixed(2)).join(",");
+      canvas.dataset.continuationSourceReady = String(source.ready);
+      canvas.dataset.continuationSourceVisibility = sourcePresence.toFixed(3);
+      canvas.dataset.continuationMotion = completion === 1 ? "complete" : reduced ? "reduced" : settling ? "settling" : paused ? "paused" : "flowing";
       renderer.render(scene, camera);
       // Active flow runs only on screen. Paused motion can finish its camera
       // settle, then releases rAF completely; reduced motion is a single still.

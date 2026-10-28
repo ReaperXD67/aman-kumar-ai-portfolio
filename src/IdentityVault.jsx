@@ -371,6 +371,7 @@ export function Contact() {
       </div>
 
       <form className="contact-form" onSubmit={submit}>
+        <span className="contact-current-receiver" aria-hidden="true" />
         <div className="contact-form-top"><span>PROJECT INTAKE / EMAIL HANDOFF</span><strong>AVAILABLE</strong></div>
         <label>
           <span>Your name</span>

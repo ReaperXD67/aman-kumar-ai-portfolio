@@ -15,6 +15,10 @@ test("signal seeds are deterministic immutable inputs with empty position buffer
   assert.deepEqual(first, second);
   assert.notEqual(first.seeds, second.seeds);
   assert.deepEqual(createSignalSeeds(2).seeds, first.seeds.slice(0, 8));
+  assert.equal(first.seeds[0], 0, "the source root includes an exact port seed");
+  assert(first.seeds[3] < .028, "the first seed belongs to the static source cohort");
+  assert.equal(first.seeds[4], 0, "the receiver root includes an exact port seed");
+  assert(first.seeds[7] > .972, "the second seed belongs to the static receiver cohort");
   for (const invalid of [NaN, Infinity, -10]) assert.equal(createSignalSeeds(invalid).seeds.length, 0);
   assert.equal(createSignalSeeds(2.9).positions.length, 6);
 });
