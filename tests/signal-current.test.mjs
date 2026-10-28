@@ -16,11 +16,26 @@ test("signal seeds are deterministic immutable inputs with empty position buffer
   assert.notEqual(first.seeds, second.seeds);
   assert.deepEqual(createSignalSeeds(2).seeds, first.seeds.slice(0, 8));
   assert.equal(first.seeds[0], 0, "the source root includes an exact port seed");
+  assert.equal(first.seeds[1], .5, "the source registration seed stays in the fan's central lane");
   assert(first.seeds[3] < .028, "the first seed belongs to the static source cohort");
   assert.equal(first.seeds[4], 0, "the receiver root includes an exact port seed");
   assert(first.seeds[7] > .972, "the second seed belongs to the static receiver cohort");
   for (const invalid of [NaN, Infinity, -10]) assert.equal(createSignalSeeds(invalid).seeds.length, 0);
   assert.equal(createSignalSeeds(2.9).positions.length, 6);
+});
+
+test("phone and desktop budgets retain root coverage across the entire portrait peel", () => {
+  for (const count of [4000, 12000]) {
+    const { seeds } = createSignalSeeds(count);
+    const edgeBands = new Array(8).fill(0);
+    for (let index = 0; index < count; index++) {
+      if (seeds[index * 4 + 3] < .07) {
+        edgeBands[Math.min(7, Math.floor(seeds[index * 4 + 1] * 8))]++;
+      }
+    }
+    assert(edgeBands.every(samples => samples >= 20), "each edge band has enough persistent samples on a phone too");
+    assert(Math.max(...edgeBands) / Math.min(...edgeBands) < 1.6, "roots must not collect into one sparse nozzle");
+  }
 });
 
 test("the signal camera is finite and has continuous velocity through every section knot", () => {

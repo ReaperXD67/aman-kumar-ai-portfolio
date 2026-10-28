@@ -25,7 +25,9 @@ export function CinematicOpening({ children }) {
   const projection = useRef(null), bridgeCancelled = useRef(false), controlsRef = useRef(null);
   const motion = useRef({ distance: 0, measures: { heroEnd: 1000, flightEnd: 4600, arrivalEnd: 6000 }, invalidate: null, heroNarrative: null, flightNarrative: null });
   const [controls, setControls] = useState({ mode: 0, paused: false });
-  const [visible, setVisible] = useState(true), [failed, setFailed] = useState(false);
+  // Direct ending links can render their native content without first fetching
+  // the opening's separate scene. The visibility observer warms it on return.
+  const [visible, setVisible] = useState(() => !/^#(?:method|about|experience|resume|contact)$/.test(window.location.hash)), [failed, setFailed] = useState(false);
   const fail = useCallback(() => setFailed(true), []);
   const receiveControls = useCallback(next => {
     controlsRef.current = next;
@@ -83,7 +85,7 @@ export function CinematicOpening({ children }) {
 
   useEffect(() => {
     if (reducedMotion || !sensor.current) return undefined;
-    let near = true;
+    let near = visible;
     const update = () => setVisible(near && !document.hidden);
     const observer = new IntersectionObserver(([entry]) => { near = entry.isIntersecting; update(); }, { rootMargin: "180px" });
     observer.observe(sensor.current);

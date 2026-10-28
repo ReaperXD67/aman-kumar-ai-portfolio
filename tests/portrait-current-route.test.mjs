@@ -11,6 +11,7 @@ test("portrait source and contact receiver register to native edges at phone and
     const ports = readPortraitCurrentPorts(portrait, image, contact, viewport);
     assert.equal(ports.source.x, portrait.left + portrait.width + .5);
     assert.equal(ports.source.y, image.top + image.height * .69);
+    assert.deepEqual(ports.peel, [image.top, image.top + image.height]);
     assert.equal(ports.receiver.x, contact.left + Math.min(48, contact.width * .12));
     assert.equal(ports.receiver.y, contact.top - .5);
     assert.deepEqual(ports.portrait, [18, 100, portrait.left + portrait.width, 660]);
@@ -31,6 +32,8 @@ test("native scroll and sticky release move endpoints immediately without changi
     assert.equal(before.receiverActual.y - after.receiverActual.y, delta);
     assert.equal(after.source.y, after.sourceActual.y);
     assert.equal(after.receiver.y, after.receiverActual.y);
+    assert(Math.abs(before.peel[0] - after.peel[0] - delta) < 1e-9);
+    assert(Math.abs(before.peel[1] - after.peel[1] - delta) < 1e-9);
   }
 });
 
@@ -40,6 +43,8 @@ test("offscreen endpoints are bounded while invalid geometry disables attachment
   const ports = readPortraitCurrentPorts(box, box, { ...box, top: 20000 }, viewport);
   assert.equal(ports.source.y, -568 * .75);
   assert.equal(ports.receiver.y, 568 * 1.75);
+  assert.equal(ports.peel[1] - ports.peel[0], box.height);
+  assert(Math.abs(ports.peel[0] + box.height * .69 - ports.source.y) < 1e-9);
   assert.equal(readPortraitCurrentPorts(null, box, box, viewport), null);
   assert.equal(readPortraitCurrentPorts(box, { ...box, width: 0 }, box, viewport), null);
   assert.equal(readPortraitCurrentPorts(box, box, box, { width: NaN, height: 568 }), null);

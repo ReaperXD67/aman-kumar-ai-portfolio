@@ -13,6 +13,8 @@ export function ContinuationSignal({ motion }) {
     let request = 0, disposed = false, unavailable = false, lost = false;
     let width = 1, height = 1, ratio = 1, renderer, scene, camera, points, geometry, material;
     let narrow, signature = "", coordinate = null, sourcePresence = null, lastTimestamp = 0, activeTime = 0;
+    let protectedScene = null, cameraCoordinate = null, cameraAspect = null, cameraReduced = null, pose;
+    let diagnosticAt = -Infinity, diagnosticState = "", opacity = null;
     const target = new THREE.Vector3();
     const rectangles = Array.from({ length: 24 }, () => new THREE.Vector4());
     const uniforms = {
@@ -22,6 +24,7 @@ export function ContinuationSignal({ motion }) {
       uViewport: { value: new THREE.Vector2(1, 1) },
       uSource: { value: new THREE.Vector4() }, uReceiver: { value: new THREE.Vector4() },
       uPortrait: { value: new THREE.Vector4() }, uContact: { value: new THREE.Vector4() },
+      uPeel: { value: new THREE.Vector2() }, uScroll: { value: 0 },
     };
 
     const makeGeometry = () => {
@@ -74,7 +77,6 @@ export function ContinuationSignal({ motion }) {
         rectangles[count++].set(box.left, box.top, right, bottom);
       }
       uniforms.uRectCount.value = count;
-      canvas.dataset.continuationRectcount = String(count);
       // Only owner/chrome bounds need a hard safety cut. Content uses the
       // shader's soft guard, so moving paragraphs no longer slice a solid form.
       const viewport = { left: 0, top: 0, width, height };
@@ -91,7 +93,7 @@ export function ContinuationSignal({ motion }) {
       const current = motion.current;
       // A flowing rAF can precede the director's scroll callback. Refresh its
       // native measurements first so masks never paint a frame behind scrolling.
-      if (current.scrollY !== window.scrollY) current.refreshScene?.();
+      if (current.sceneDirty || current.scrollY !== window.scrollY || current.width !== window.innerWidth || current.height !== window.innerHeight) current.refreshScene?.();
       const shot = current.scene;
       if (!current.visible || document.hidden || !shot) { suspend(); return; }
       if (!initialize()) return;
@@ -111,35 +113,50 @@ export function ContinuationSignal({ motion }) {
       const flowing = !reduced && !paused;
       if (flowing) activeTime += delta;
       const aspect = width / height;
-      const pose = readSignalCamera(coordinate, aspect, reduced);
-      camera.position.set(...pose.position); target.set(...pose.target); camera.up.set(0, 1, 0); camera.lookAt(target);
-      camera.fov = pose.fov; camera.aspect = aspect;
-      camera.updateProjectionMatrix(); camera.updateMatrixWorld();
+      if (coordinate !== cameraCoordinate || aspect !== cameraAspect || reduced !== cameraReduced) {
+        pose = readSignalCamera(coordinate, aspect, reduced);
+        camera.position.set(...pose.position); target.set(...pose.target); camera.up.set(0, 1, 0); camera.lookAt(target);
+        if (camera.fov !== pose.fov || camera.aspect !== aspect) {
+          camera.fov = pose.fov; camera.aspect = aspect; camera.updateProjectionMatrix();
+        }
+        camera.updateMatrixWorld();
+        cameraCoordinate = coordinate; cameraAspect = aspect; cameraReduced = reduced;
+      }
       uniforms.uCoordinate.value = coordinate; uniforms.uTime.value = activeTime;
+      // Pause freezes particle transport, while native ports remain registered
+      // and the camera can finish its existing settle. Reduced motion is a still.
+      if (flowing) uniforms.uScroll.value = coordinate;
+      else if (reduced) uniforms.uScroll.value = 0;
       uniforms.uAspect.value = aspect; uniforms.uPixelRatio.value = ratio; uniforms.uReduced.value = reduced ? 1 : 0;
       uniforms.uViewport.value.set(width, height);
       const { source, receiver, portrait, contact } = shot.ports;
       // Attachment pixels follow native scrolling immediately. Only the spatial
       // spine and camera are damped, so the stream cannot lag off its photo edge.
       uniforms.uSource.value.set(source.x, source.y, source.side, sourcePresence);
-      uniforms.uReceiver.value.set(receiver.x, receiver.y, 0, receiver.ready);
-      uniforms.uPortrait.value.fromArray(portrait); uniforms.uContact.value.fromArray(contact);
-      protectContent(shot);
+      if (shot !== protectedScene) {
+        uniforms.uReceiver.value.set(receiver.x, receiver.y, 0, receiver.ready);
+        uniforms.uPortrait.value.fromArray(portrait); uniforms.uContact.value.fromArray(contact);
+        uniforms.uPeel.value.fromArray(shot.ports.peel || [source.y, source.y]);
+        protectContent(shot);
+        protectedScene = shot;
+      }
       // Discharge fully before the footer; a finished current does not linger
       // as a second visual behind the final native actions.
       const completion = Math.max(0, Math.min(1, shot.exit || 0));
-      canvas.style.opacity = String(1 - completion);
-      canvas.dataset.continuationAct = shot.act || "method";
-      canvas.dataset.continuationCoordinate = coordinate.toFixed(4);
-      canvas.dataset.continuationTarget = next.toFixed(4);
-      canvas.dataset.continuationCamera = pose.position.map(value => value.toFixed(3)).join(",");
-      canvas.dataset.continuationCompletion = completion.toFixed(3);
-      canvas.dataset.continuationTime = activeTime.toFixed(3);
-      canvas.dataset.continuationSource = [source.x, source.y].map(value => value.toFixed(2)).join(",");
-      canvas.dataset.continuationReceiver = [receiver.x, receiver.y].map(value => value.toFixed(2)).join(",");
-      canvas.dataset.continuationSourceReady = String(source.ready);
-      canvas.dataset.continuationSourceVisibility = sourcePresence.toFixed(3);
-      canvas.dataset.continuationMotion = completion === 1 ? "complete" : reduced ? "reduced" : settling ? "settling" : paused ? "paused" : "flowing";
+      if (opacity !== completion) { canvas.style.opacity = String(1 - completion); opacity = completion; }
+      const state = completion === 1 ? "complete" : reduced ? "reduced" : settling ? "settling" : paused ? "paused" : "flowing";
+      const stateKey = `${state}/${shot.act}/${source.ready}`;
+      if (timestamp - diagnosticAt >= 150 || stateKey !== diagnosticState || (!flowing && !settling)) {
+        const data = {
+          continuationAct: shot.act || "method", continuationCoordinate: coordinate.toFixed(4), continuationTarget: next.toFixed(4),
+          continuationCamera: pose.position.map(value => value.toFixed(3)).join(","), continuationCompletion: completion.toFixed(3),
+          continuationTime: activeTime.toFixed(3), continuationSource: [source.x, source.y].map(value => value.toFixed(2)).join(","),
+          continuationReceiver: [receiver.x, receiver.y].map(value => value.toFixed(2)).join(","), continuationSourceReady: String(source.ready),
+          continuationSourceVisibility: sourcePresence.toFixed(3), continuationRectcount: String(uniforms.uRectCount.value), continuationMotion: state,
+        };
+        for (const [key, value] of Object.entries(data)) if (canvas.dataset[key] !== value) canvas.dataset[key] = value;
+        diagnosticAt = timestamp; diagnosticState = stateKey;
+      }
       renderer.render(scene, camera);
       // Active flow runs only on screen. Paused motion can finish its camera
       // settle, then releases rAF completely; reduced motion is a single still.
@@ -156,7 +173,7 @@ export function ContinuationSignal({ motion }) {
       width = Math.max(1, bounds.width); height = Math.max(1, bounds.height);
       ratio = Math.min(window.devicePixelRatio || 1, 1.35, Math.sqrt(1_200_000 / (width * height)));
       if (renderer) { renderer.setPixelRatio(ratio); renderer.setSize(width, height, false); }
-      signature = ""; invalidate();
+      signature = ""; protectedScene = null; cameraAspect = null; invalidate();
     };
     const contextLost = event => {
       event.preventDefault(); lost = true; cancelAnimationFrame(request); request = 0; lastTimestamp = 0;
@@ -171,6 +188,8 @@ export function ContinuationSignal({ motion }) {
     motion.current.invalidate = invalidate;
     const observer = new ResizeObserver(resize); observer.observe(canvas);
     document.addEventListener("visibilitychange", invalidate);
+    // The director can already be visible before this lazy module mounts. Its
+    // latest ports and masks are ready; resize invalidates that current scene.
     resize();
     return () => {
       disposed = true; cancelAnimationFrame(request); observer.disconnect();

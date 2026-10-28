@@ -18,7 +18,7 @@ export function createSignalSeeds(count) {
     seeds[index * 4 + 3] = random();
   }
   // Two persistent endpoint seeds register the current even between packets.
-  if (size > 0) { seeds[0] = 0; seeds[3] = .01; }
+  if (size > 0) { seeds[0] = 0; seeds[1] = .5; seeds[3] = .01; }
   if (size > 1) { seeds[4] = 0; seeds[7] = .99; }
   return { positions, seeds };
 }
@@ -47,6 +47,7 @@ precision highp float;
 attribute vec4 aSeed;
 uniform float uCoordinate;
 uniform float uTime;
+uniform float uScroll;
 uniform float uAspect;
 uniform float uPixelRatio;
 uniform float uReduced;
@@ -54,6 +55,7 @@ uniform vec4 uSource;
 uniform vec4 uReceiver;
 uniform vec4 uPortrait;
 uniform vec4 uContact;
+uniform vec2 uPeel;
 uniform vec4 uRects[24];
 uniform int uRectCount;
 uniform vec2 uViewport;
@@ -68,8 +70,16 @@ vec3 anchorInView(vec2 css) {
   return vec3(ndc.x * 9.0 / projectionMatrix[0][0], ndc.y * 9.0 / projectionMatrix[1][1], -9.0);
 }
 
-vec3 currentPath(float t, float coordinate, float lane, float depth) {
-  vec3 source = anchorInView(uSource.xy), receiver = anchorInView(uReceiver.xy);
+vec3 currentPath(float t, float coordinate, float time, float lane, float depth, out vec3 tangent) {
+  // Every strand begins on the photograph itself. The fan spans the lower
+  // portrait edge rather than collapsing the whole person into one nozzle.
+  float peelHeight = clamp(uPeel.y - uPeel.x, 0.0, uViewport.y * 1.25);
+  // The center inherits the native port's offscreen bound; otherwise a long
+  // record section could pull the whole fan thousands of pixels out of view.
+  float peelY = uSource.y + (.01 + lane * .18) * peelHeight;
+  if (aSeed.x == 0.0 && aSeed.w < .5) peelY = uSource.y;
+  vec3 source = anchorInView(vec2(uSource.x, peelY));
+  vec3 receiver = anchorInView(uReceiver.xy);
   float phone = 1.0 - smoothstep(.65, 1.4, uAspect);
   float side = uSource.z < 0.0 ? -1.0 : 1.0;
   // The endpoint ports stay in view space. Only the interior receives camera
@@ -78,22 +88,34 @@ vec3 currentPath(float t, float coordinate, float lane, float depth) {
     .45 * sin(coordinate * 1.1), .45 * cos(coordinate * .7),
     1.6 + .8 * sin(coordinate * .85)), 0.0)).xyz;
   sculpture *= clamp(11.0 / max(length(cameraPosition), 1.0), .7, 1.3);
-  vec3 first = source + vec3(side * mix(.95, .38, phone), .32, 0.0) + sculpture;
-  vec3 second = receiver + vec3(-side * mix(.65, .22, phone), 1.05, 0.0) - sculpture * .6;
+  float curl = sin(lane * 2.8 + coordinate * 1.4 + time * .25);
+  vec3 first = source + vec3(side * mix(1.65, .42, phone), .20 + lane * .52, 0.0) + sculpture;
+  first.z += depth * .6;
+  vec3 second = receiver + vec3(-side * mix(1.12, .28, phone), 1.35, 0.0) - sculpture * .6;
   float q = 1.0 - t;
   vec3 spine = q * q * q * source + 3.0 * q * q * t * first +
     3.0 * q * t * t * second + t * t * t * receiver;
+  tangent = 3.0 * q * q * (first - source) + 6.0 * q * t * (second - first) +
+    3.0 * t * t * (receiver - second);
   float envelope = sin(t * 3.14159265359);
-  float filament = lane * mix(.25, .12, phone) * envelope;
-  float helix = t * (10.0 + coordinate * .6) + lane * 1.4;
-  spine += vec3(filament * cos(helix), filament * sin(helix), depth * .42 * envelope);
+  float envelopeDerivative = 3.14159265359 * cos(t * 3.14159265359);
+  float width = mix(.64, .26, phone) * (1.0 + curl * .12);
+  float filament = lane * width * envelope;
+  float filamentDerivative = lane * width * envelopeDerivative;
+  float frequency = 8.0 + coordinate * .55;
+  float helix = t * frequency + lane * 2.2 + time * .12;
+  float c = cos(helix), s = sin(helix);
+  spine += vec3(filament * c, filament * s, depth * .68 * envelope);
+  tangent += vec3(filamentDerivative * c - filament * s * frequency,
+    filamentDerivative * s + filament * c * frequency, depth * .68 * envelopeDerivative);
   // On phones the attached stream follows the photograph's exterior gutter,
   // then releases into the open space below it instead of leaving the screen.
   float viewDepth = max(-spine.z, .01);
   vec2 css = vec2(
     (spine.x * projectionMatrix[0][0] / viewDepth * .5 + .5) * uViewport.x,
     (.5 - spine.y * projectionMatrix[1][1] / viewDepth * .5) * uViewport.y);
-  float sourceRegion = smoothstep(uSource.y - 90.0, uSource.y - 40.0, css.y);
+  float peelTop = uSource.y - peelHeight * .17;
+  float sourceRegion = smoothstep(peelTop - 24.0, peelTop + 12.0, css.y);
   float release = 1.0 - smoothstep(uPortrait.w + 10.0, uPortrait.w + 70.0, css.y);
   float endpointFree = smoothstep(.005, .03, t) * (1.0 - smoothstep(.94, .995, t));
   float gutterRight = uViewport.x - 6.0;
@@ -101,6 +123,8 @@ vec3 currentPath(float t, float coordinate, float lane, float depth) {
   float boundedX = clamp(css.x, gutterLeft, gutterRight);
   css.x = mix(css.x, boundedX, phone * sourceRegion * release * endpointFree);
   spine.x = (css.x / uViewport.x * 2.0 - 1.0) * viewDepth / projectionMatrix[0][0];
+  // The phone gutter is nearly vertical; align its sprites with that rail.
+  tangent.x *= 1.0 - phone * sourceRegion * release * endpointFree;
   return spine;
 }
 
@@ -115,31 +139,37 @@ void main() {
   float reduced = step(.5, uReduced);
   float coordinate = mix(clamp(uCoordinate, 0.0, 4.0), 1.35, reduced);
   float time = uTime * (1.0 - reduced);
-  float lane = (floor(aSeed.y * 19.0) - 9.0) / 9.0;
+  float lane = (floor(aSeed.y * 31.0) - 15.0) / 15.0;
   float depth = aSeed.z * 2.0 - 1.0;
-  float t = fract(aSeed.x + time * .058 + lane * .007);
+  float travel = time * .042 + uScroll * .22 * (1.0 - reduced);
+  float t = fract(aSeed.x + travel + lane * .007);
   float root = 0.0;
-  if (aSeed.w < .028) { t = aSeed.x * .025; root = 1.0; }
+  if (aSeed.w < .07) { t = fract(aSeed.x + travel * 1.6) * .065; root = 1.0; }
   if (aSeed.w > .972) { t = 1.0 - aSeed.x * .025; root = 1.0; }
-  vec4 view = vec4(currentPath(t, coordinate, lane, depth), 1.0);
+  // Preserve two exact registration seeds while the rest continuously peel.
+  if (aSeed.x == 0.0) t = aSeed.w < .5 ? 0.0 : 1.0;
+  vec3 derivative;
+  vec4 view = vec4(currentPath(t, coordinate, time, lane, depth, derivative), 1.0);
   vec4 clip = projectionMatrix * view;
   gl_Position = clip;
 
-  float nextT = t > .997 ? t - .003 : t + .003;
-  vec4 tangentClip = projectionMatrix * vec4(currentPath(nextT, coordinate, lane, depth), 1.0);
-  vec2 tangent = (tangentClip.xy / max(tangentClip.w, .01) - clip.xy / max(clip.w, .01)) * uViewport;
+  // Analytic projected derivative avoids evaluating the entire 3D path twice
+  // per particle, leaving budget for the broader peel and layered volume.
+  float viewDepth = max(-view.z, .01);
+  vec2 tangent = (derivative.xy * viewDepth + view.xy * derivative.z) *
+    vec2(projectionMatrix[0][0], projectionMatrix[1][1]) * uViewport;
   vAngle = atan(tangent.y, tangent.x);
   float distanceToFocus = abs(view.z + 9.0);
   vSoftness = smoothstep(.45, 2.6, distanceToFocus) * .32;
-  float pointSize = mix(4.8, 7.2, aSeed.z) * (9.0 / max(-view.z, 3.0));
-  gl_PointSize = clamp(pointSize * uPixelRatio * (1.0 + vSoftness), 1.0, 10.0 * uPixelRatio);
+  float pointSize = mix(5.2, 8.6, aSeed.z) * (9.0 / max(-view.z, 3.0));
+  gl_PointSize = clamp(pointSize * uPixelRatio * (1.0 + vSoftness), 1.0, 11.0 * uPixelRatio);
 
-  float packet = pow(.5 + .5 * sin(TAU * (t - time * .15 + lane * .08)), 12.0);
+  float packet = pow(.5 + .5 * sin(TAU * (t - travel * 1.7 + lane * .09)), 8.0);
   vec3 gold = vec3(1.0, .66, .21), ivory = vec3(1.0, .97, .78);
   vColor = mix(gold, ivory, smoothstep(.04, .48, t));
   if (aSeed.y > .81) vColor = mix(vColor, vec3(.76, 1.0, .26), .55 + packet * .3);
   vColor = mix(vColor * .8, vColor, packet);
-  vAlpha = mix(.35 + packet * .5, .38, root) * (1.0 - vSoftness * .4);
+  vAlpha = mix(.40 + packet * .4, .48, root) * (1.0 - vSoftness * .4);
   vec2 screen = (clip.xy / max(clip.w, .01) * .5 + .5) * uViewport;
   screen.y = uViewport.y - screen.y;
   float feather = mix(20.0, 30.0, smoothstep(600.0, 1200.0, uViewport.x));
@@ -147,7 +177,9 @@ void main() {
     if (index >= uRectCount) break;
     vAlpha *= smoothstep(6.0, feather, rectDistance(screen, uRects[index]));
   }
-  float sourcePort = (1.0 - smoothstep(5.0, 34.0, distance(screen, uSource.xy))) * uSource.w;
+  float peelHeight = clamp(uPeel.y - uPeel.x, 0.0, uViewport.y * 1.25);
+  vec2 edgePoint = vec2(uSource.x, clamp(screen.y, uSource.y - peelHeight * .17, uSource.y + peelHeight * .19));
+  float sourcePort = (1.0 - smoothstep(3.0, 30.0, distance(screen, edgePoint))) * uSource.w;
   float targetPort = (1.0 - smoothstep(5.0, 34.0, distance(screen, uReceiver.xy))) * uReceiver.w;
   vAlpha *= mix(smoothstep(6.0, feather, rectDistance(screen, uPortrait)), 1.0, sourcePort);
   vAlpha *= mix(smoothstep(6.0, feather, rectDistance(screen, uContact)), 1.0, targetPort);
@@ -178,7 +210,7 @@ void main() {
   vec2 point = gl_PointCoord - .5;
   float c = cos(vAngle), s = sin(vAngle);
   vec2 aligned = mat2(c, -s, s, c) * point;
-  float radius = length(aligned * vec2(1.0, 2.6));
+  float radius = length(aligned * vec2(1.0, 2.05));
   float core = 1.0 - smoothstep(.07, .25, radius);
   float halo = (1.0 - smoothstep(.13, .49 + vSoftness * .06, radius)) * .22;
   float alpha = (core * .78 + halo) * vAlpha;

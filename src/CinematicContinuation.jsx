@@ -1,10 +1,12 @@
-import { useEffect, useRef } from "react";
-import { ContinuationSignal } from "./ContinuationSignal.jsx";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "./useMotionPreference.js";
 import { documentFrame, methodOutputProgress, ownerClipExclusions, readContinuation, viewportFrame } from "./continuation-motion.js";
 import { smoothRange } from "./cinematic-motion.js";
 import { currentFooterExit, readPortraitCurrentPorts } from "./portrait-current-route.js";
 import "./cinematic-continuation.css";
+
+const ContinuationSignal = lazy(() => import("./ContinuationSignal.jsx").then(module => ({ default: module.ContinuationSignal })));
+const endingHash = () => typeof window !== "undefined" && /^#(?:method|about|experience|resume|contact)$/.test(window.location.hash);
 
 const STOPS = [
   [".method-visual", "method"],
@@ -18,14 +20,28 @@ const PROTECTED = ".signal-band,.method-heading,.method-visual,.method-readout,.
 /** Native content supplies a reading clock and occlusion, never sculpture shape. */
 export function CinematicContinuation({ children, continuation, paused = false }) {
   const root = useRef(null);
+  const [signalReady, setSignalReady] = useState(endingHash);
   const reducedMotion = useReducedMotion();
+  useEffect(() => {
+    if (signalReady) return undefined;
+    // Fetch the renderer before the ending arrives, without putting Three.js on
+    // the native page's initial dependency path. Direct ending links start ready.
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setSignalReady(true);
+      observer.disconnect();
+    }, { rootMargin: "900px" });
+    if (root.current) observer.observe(root.current);
+    return () => observer.disconnect();
+  }, [signalReady]);
   useEffect(() => {
     continuation.current.paused = paused;
     continuation.current.invalidate?.();
   }, [continuation, paused]);
   useEffect(() => {
     const node = root.current, shared = continuation.current;
-    let frame = 0, needsMeasure = true, visible = false, disposed = false;
+    let frame = 0, needsMeasure = true, needsSync = true, visible = false, disposed = false;
+    let lastWidth = 0, lastHeight = 0;
     let localStops = [], localExclusions = [], localPortrait, localImage, localContact;
     let measuredOrigin = { left: 0, top: 0 };
     shared.reduced = Boolean(reducedMotion);
@@ -49,12 +65,14 @@ export function CinematicContinuation({ children, continuation, paused = false }
       needsMeasure = false;
     };
     const sync = (notify = true) => {
+      if (disposed) return;
+      const y = window.scrollY, height = window.innerHeight, width = window.innerWidth;
+      if (!needsSync && !needsMeasure && shared.scrollY === y && lastWidth === width && lastHeight === height) return;
       cancelAnimationFrame(frame);
       frame = 0;
-      if (disposed) return;
       if (needsMeasure) measure();
-      const y = window.scrollY, height = window.innerHeight;
-      shared.scrollY = y;
+      needsSync = false; shared.sceneDirty = false;
+      shared.scrollY = y; shared.width = lastWidth = width; shared.height = lastHeight = height;
       const rootBox = node.getBoundingClientRect();
       const origin = { left: rootBox.left, top: rootBox.top + y };
       const stops = localStops.map(rectangle => documentFrame(rectangle, origin));
@@ -107,7 +125,10 @@ export function CinematicContinuation({ children, continuation, paused = false }
     // protection first, without scheduling a second renderer or damping masks.
     const refreshScene = () => sync(false);
     shared.refreshScene = refreshScene;
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(() => sync()); };
+    const schedule = () => {
+      needsSync = true; shared.sceneDirty = true;
+      if (!frame) frame = requestAnimationFrame(() => sync());
+    };
     const refresh = () => { needsMeasure = true; schedule(); };
     const observer = new ResizeObserver(refresh);
     observer.observe(node);
@@ -133,7 +154,7 @@ export function CinematicContinuation({ children, continuation, paused = false }
     };
   }, [continuation, reducedMotion]);
   return <div ref={root} className="cinematic-continuation" data-continuation-act="method">
-    <div className="continuation-stage" aria-hidden="true"><ContinuationSignal motion={continuation} /></div>
+    <div className="continuation-stage" aria-hidden="true">{signalReady && <Suspense fallback={null}><ContinuationSignal motion={continuation} /></Suspense>}</div>
     <div className="continuation-content">{children}</div>
   </div>;
 }

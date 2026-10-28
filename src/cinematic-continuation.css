@@ -1,7 +1,11 @@
 .cinematic-continuation { position: relative; isolation: isolate; background: #050505; --contact-arrival: 1; }
 .continuation-stage { position: sticky; z-index: 2; top: 0; height: 100svh; margin-bottom: -100svh; overflow: hidden; pointer-events: none; }
 .continuation-signal-canvas { display: block; width: 100%; height: 100%; pointer-events: none; }
-.continuation-content { position: relative; z-index: 1; }
+.continuation-content { position: relative; }
+/* Native plates travel with compositor scrolling, so they protect reading even
+   in the interval before WebGL receives a fast scroll's next measured frame. */
+.cinematic-continuation :is(.signal-band,.method-heading,.method-visual,.method-readout,.method-stage-rail,.identity-kernel-frame,.identity-copy,.career-heading,.career-console,.education-signal,.proof-vault-heading,.artifact-preview,.artifact-copy,.contact-intro,.contact-form) { position: relative; z-index: 3; }
+.cinematic-continuation :is(.signal-band,.method-heading,.method-visual,.method-readout,.method-stage-rail,.identity-copy,.career-heading,.career-console,.education-signal,.proof-vault-heading,.artifact-preview,.artifact-copy,.contact-intro) { background-color: #050505; }
 .cinematic-continuation :is(.method-section,.identity-section,.career-section,.proof-vault-section,.contact-section) { background: transparent; border-block: 0; }
 .cinematic-continuation .method-section { color: #f5f5f1; padding-bottom: 86px; }
 .cinematic-continuation .method-heading { border-color: #303732; }
@@ -20,7 +24,7 @@
 .cinematic-continuation .contact-direct > * + * { border-color: #3d483e; }
 .cinematic-continuation .contact-direct :is(a,button):hover { color: #050505; }
 .cinematic-continuation .contact-form { position: relative; margin: 0; padding: clamp(28px,3.5vw,56px); color: #090a0a; background: #efefe9; border: 1px solid #aeb5a8; }
-.portrait-current-seam { position: absolute; z-index: 6; right: 0; top: 62%; height: 14%; width: 2px; pointer-events: none; opacity: var(--portrait-current-strength,0); background: linear-gradient(180deg,transparent,#ffe6a4 30%,#d8ff4f 75%,transparent); }
+.portrait-current-seam { position: absolute; z-index: 6; right: 0; top: 52%; height: 36%; width: 2px; pointer-events: none; opacity: var(--portrait-current-strength,0); background: linear-gradient(180deg,transparent,#e9b95d 12%,#ffe6a4 48%,#d8ff4f 85%,transparent); }
 .contact-current-receiver { position: absolute; left: min(48px,12%); top: -1px; width: 36px; height: 2px; transform: translateX(-50%); pointer-events: none; opacity: var(--contact-current-strength,0); background: linear-gradient(90deg,transparent,#d8ff4f,#f8e3a2,transparent); }
 .cinematic-continuation .contact-submit { position: relative; }
 .cinematic-continuation .contact-submit::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 1px; background: #607800; transform: scaleX(var(--contact-arrival)); transform-origin: left center; pointer-events: none; }

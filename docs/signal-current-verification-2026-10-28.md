@@ -1,38 +1,48 @@
 # Signal Current — delivery verification
 
-28 October 2026. This record describes the **portrait-attached current revision**, its passing local production build and browser checks. Primary references and license findings remain in the [research record](signal-current-research-2026-10-28.md); the [contour/sheet record](cinematic-ending-verification-2026-10-28.md) is historical.
+28 October 2026. This record describes the fuller **portrait-edge peel revision**. Primary inspiration and provenance remain in the [research record](signal-current-research-2026-10-28.md); the [contour/sheet record](cinematic-ending-verification-2026-10-28.md) is historical.
 
-## Implemented attachment
+## Implemented experience
 
-One foreground GPU particle cohort connects the real portrait to the native contact form. `PortraitSignal.jsx` retains the photograph, finite 2.85-second assembly and Person/System/replay controls. A native gold seam spans 62–76% of the image-stage height. `portrait-current-route.js` places the source half a CSS pixel outside the portrait's right edge, centered at 69% of the image height, and the receiver half a pixel above the form at `left + min(48px, 12% width)`. The form has a matching native edge cue. The visible source waits for the portrait assembly to resolve; there is no copied face, photographic dissolve or moving portrait texture.
+One GPU particle cohort peels across 52–88% of the real portrait's right edge, curls into 31 layered strands and converges at the native contact form's measured top receiver. Seven percent of seeded particles maintain a short moving edge cohort; the central source and receiver retain exact registration seeds. The broader body, larger sprites and helical depth use the same 12,000 desktop / 4,000 phone budget. The approved photograph stays fixed and recognizable, with its finite 2.85-second assembly and Person/System/replay controls.
 
-`CinematicContinuation.jsx` measures these ports against the actual sticky stage and observes portrait state changes. Visible endpoints retain their native coordinates; already-far-offscreen ports are bounded to preserve numerical precision. Endpoints and protection update immediately with native scrolling, independently of decorative camera damping. A pre-render refresh prevents a flowing frame from using an outdated scroll position.
+Damped reading position now drives particle advection as well as the continuous camera orbit/dolly. Forward and reverse scrolling move the flow through the route; visible active time supplies gentle transport at rest. Native endpoints update immediately, independently of the decorative camera, with only far-offscreen endpoints bounded. The full measured image span follows the same bound. Phones keep the peel in the photograph's exterior gutter before releasing below it.
 
-`signal-current.js` constructs one 3D Bézier spine between those ports, with helical filament depth, gold/ivory/acid packets and persistent endpoint particles. The interior responds to the stronger authored camera orbit and dolly while endpoints stay registered in view space. `ContinuationSignal.jsx` uses one additive `THREE.Points` draw with 12,000 wider-screen / 4,000 phone points, DPR at most 1.35 and at most 1.2 million backing pixels. Seeds stay static; no CPU vertex rebuild, reflection environment, downloaded asset or new dependency is introduced.
+The foreground stage occupies native gaps. Opaque reading plates, portrait and paper form sit above it in the browser's compositor, so fast native scrolling cannot expose stale particles over content. This closes a race found in the first mobile inspection. Shader portrait/form rejection, soft content guards and hard header/tray/owner clipping remain as additional protection. Contact stays connected at coordinate four; actual footer entry fades the current.
 
-The foreground fragment shader rejects every pixel inside the complete portrait and contact-form rectangles, including sprite halos at their attachment points. Other words, evidence and controls retain six-pixel inner guards with soft exterior attenuation. Header, professional-action tray and owner bounds retain hard clipping. The current stays visible at contact coordinate `4`; fade now follows actual footer entry and completes at document end.
+Pause freezes time and scroll transport while native ports remain registered and the camera can finish settling. Hidden/offscreen stages suspend; reduced motion receives a still. Rendering remains one static-buffer points draw, capped at 1.2 million backing pixels and DPR 1.35. No new dependency, texture, reflection environment or CPU vertex rebuild is introduced.
 
-On phones, the projected stream stays in the photograph's exterior gutter before releasing smoothly into the gap beneath it. This avoids a disconnected offscreen arc. Portrait readiness fades the current gently after assembly or replay; neither endpoint registration nor the protection masks are damped.
+## Loading and runtime work
 
-Visible active time drives flow. Pause freezes that time while allowing finite scroll/camera settling; Method and Signal OS share one pause state. Hidden/offscreen stages suspend, reduced motion receives a settled still, and native content remains independent of WebGL. Shorter native reading gaps, stable form inputs and direct links are retained.
+- The ending renderer is dynamically imported within 900px of the ending, or immediately for a direct ending hash. The native interface can render independently of Three.js. A direct ending link starts with the opening scene disabled until its observer brings it into view. The full portrait is browser-lazy-loaded; the small hero thumbnail remains immediate.
+- The vertex shader computes one path and its analytic tangent rather than evaluating the full path twice per particle.
+- Unchanged native masks and camera matrices are reused. Diagnostics update at most approximately seven times per second, with immediate state changes. Geometry and guard updates remain immediate on real layout/scroll changes.
+- The emitted entry shrank from **1,415,077 to 667,034 bytes (52.9%)**. Python gzip with fixed mtime shrank from **410,220 to 216,724 bytes (47.2%)**. These compare the previous shipped bootstrap with this build; they are not total-transfer, wall-clock loading, FPS or physical-device measurements. Shared 3D chunks still load when needed. The build retains the large-chunk warning.
+
+The split follows [Vite's asynchronous chunk-loading mechanism](https://vite.dev/guide/features.html#async-chunk-loading-optimization); the implementation and emitted files are the evidence for this project's measured entry reduction.
 
 ## Automated evidence
 
-- `npm run test:motion`: **28 passing source/math checks**. Four new helper checks cover portrait/contact registration at 320/390/844/1440px, immediate scroll/sticky translation, offscreen bounds/invalid geometry and footer-based exit. Existing checks cover deterministic seeds, continuous camera, reversal, 30/60/120 Hz damping, long-pause bounds and finite settling.
-- Four Sites checks and fourteen profile checks bring the Node total to **46**. These suites cover hosting and canonical identity/manifest contracts; they do not render the attached current.
-- `npm run build` passes and emits the required client, server and hosting files. The existing shared-chunk warning remains. No FPS, physical-device or on-screen-keyboard result is claimed.
+- `npm run test:motion`: **29 passing source/math checks**. The new coverage check verifies that both phone and desktop seeds populate the complete peel band. Port tests include full-span translation and offscreen bounds. Existing checks cover camera continuity/reversal, frame-rate-independent damping, finite settling, route, capture and opening geometry.
+- `npm run test:profile`: **14 passing checks**. The canonical photo-free résumé and identity assets remain unchanged.
+- `npm run test:sites`: **4 passing checks**, repeated after the final build. The Node total is **47**.
+- `npm run build` passes and emits the required client, server and hosting outputs. The Sites handoff files remain intact.
 
 ## Browser evidence
 
-- At 1440 × 1000, the source is visibly attached to the photo's right border. Its measured point `(548.04, 618.60)` follows the native frame. The contact receiver is `(723.10, 165.48)`, half a pixel above the form's measured top. At contact coordinate `3.9999`, completion remains `0`, so the connection persists.
-- At 390 × 844, the portrait source is `(362.50, 474.55)` beside a frame ending at x=362. The corrected current follows the outside gutter and opens below the frame. Sampled forward states cover portrait, identity copy, career, education, both documents, contact and footer; no state reports horizontal overflow. A second agent's screenshot review found no particle overlap with face, text, controls or inputs and no detached source.
-- The mobile form receiver is `(59.28, 252.02)`, half a pixel above its actual top. A temporary name can be entered, Tab focuses email, and the value is cleared without sending or opening a mail draft. Native links and controls remain usable beneath the pointer-transparent canvas.
-- Replay changes source readiness to `0` and fades presence toward zero; after the finite portrait assembly, readiness/presence return to `1`. Person/System toggling remains functional. Signal OS pause freezes active time at exactly `42.179` across separate observations; the resume command restores flow and closes the dialog.
-- At the phone footer, coordinate `4`, completion `1`, opacity `0` and motion `complete` leave the footer clear. Three rapid reverse PageUp inputs restore the current at coordinate `3.5343`, completion `0`, without horizontal overflow.
-- Fresh 320 × 568 portrait entry keeps the face clear. Direct contact aligns below the 68px header. At 844 × 390, Method and contact direct links remain readable without horizontal overflow; contact aligns at y≈60. The inspected browser consoles contain no errors.
+The first batched inspection found brief particles over the orange career rail and paper form during fast PageDown scrolling. The native compositor-layer correction was applied as one batch and confirmed in the rebuilt production preview.
 
-These are browser viewport checks rather than physical-device, on-screen-keyboard or FPS measurements. Reduced-motion, hidden/offscreen suspension and unavailable-WebGL paths are source-reviewed; camera stills and damping also have automated checks.
+- At **1440 × 1000**, the broad fan visibly leaves the real portrait edge; the central port remains at approximately `(548.04,618.60)`. The continuous camera and transport follow scrolling. At contact, the receiver is `(723.10,165.48)`, half a pixel above the form top; coordinate `3.9999` retains completion `0`.
+- At **390 × 844**, the photograph and nameplate remain clear, with the central source at `(362.50,474.55)`. The confirmation route samples identity copy, career, education, résumé, certificate, contact introduction, inputs and footer. All observed states report no horizontal overflow. The corrected career rail and form remain clear even in mid-scroll captures.
+- A temporary name is entered, Tab focuses the email input, and the value is cleared. No submission or mail draft occurs. The pointer-transparent stage does not block the form or professional controls.
+- Footer entry completes discharge; reverse PageUp restores the current. The final mobile evidence records native content at z-index 3, stage at 2 and the content wrapper at auto, avoiding the previous stacking trap.
+
+- At **320 × 568**, the face and native controls remain clear with 4,000 points and no horizontal overflow. Replay changes the portrait to assembling and source readiness to zero, then restores resolved/readiness one after the finite entrance.
+- At **844 × 390**, direct contact aligns below the header at approximately y=59px, with clear native heading and no horizontal overflow. The inspected consoles contain no errors.
+- The Method pause button freezes active time at exactly **5.986** while navigation moves the route from Method to portrait and the camera finishes settling. Resume restores flow. Portrait and form remain native interaction surfaces throughout.
+
+Browser viewport checks do not establish physical-phone, on-screen-keyboard or measured FPS results. Reduced-motion and context-loss paths are source-reviewed in addition to the camera/damping tests.
 
 ## Release verification
 
-New screenshots and observations are in ignored `artifacts/portrait-current/`. Delivery verifies the pushed commit, CI result, Vercel READY state and canonical alias JavaScript/CSS/PDF bytes against the tested build; release identifiers are stored alongside that evidence and reported in the delivery response. Publication is separate from source/math and local browser checks.
+Screenshots, browser observations and entry comparison are stored in ignored `artifacts/portrait-peel/`. Delivery verifies the pushed commit, CI success, Vercel READY state and canonical alias asset bytes against the tested build. Those release identifiers are stored with the delivery artifacts and reported separately from local checks.

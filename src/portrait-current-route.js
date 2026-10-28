@@ -13,8 +13,13 @@ export function readPortraitCurrentPorts(portrait, image, contact, viewport, rea
   const receiver = { x: contact.left + Math.min(48, contact.width * .12), y: contact.top - .5 };
   const bound = port => ({ x: clamp(port.x, -viewport.width * .5, viewport.width * 1.5),
     y: clamp(port.y, -viewport.height * .75, viewport.height * 1.75) });
-  return { source: { ...bound(source), side: 1, ready: ready ? 1 : 0 },
+  const boundedSource = bound(source);
+  // Keep the measured image span registered to the source, even when its
+  // already-offscreen center is bounded for the long contact approach.
+  const imageTop = image.top + boundedSource.y - source.y;
+  return { source: { ...boundedSource, side: 1, ready: ready ? 1 : 0 },
     receiver: { ...bound(receiver), ready: 1 }, portrait: rectangle(portrait), contact: rectangle(contact),
+    peel: [imageTop, imageTop + image.height],
     sourceActual: source, receiverActual: receiver };
 }
 

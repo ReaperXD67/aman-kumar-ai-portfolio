@@ -139,7 +139,7 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
 
   return (
     <div className={`raster-portrait ${complete ? "is-resolved" : "is-assembling"}`} ref={frameRef}>
-      <img ref={imageRef} src={PORTRAIT} alt="Aman Kumar, AI Engineer and Full-Stack Developer" width="1000" height="1000" decoding="async" />
+      <img ref={imageRef} src={PORTRAIT} alt="Aman Kumar, AI Engineer and Full-Stack Developer" width="1000" height="1000" loading="lazy" decoding="async" />
       <canvas ref={canvasRef} aria-hidden="true" />
       <span className="portrait-current-seam" aria-hidden="true" />
       <div className="portrait-registration" aria-hidden="true"><i /><i /><i /><i /></div>
