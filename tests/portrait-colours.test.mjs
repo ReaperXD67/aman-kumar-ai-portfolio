@@ -39,7 +39,14 @@ test("dark photo grain receives a bounded hue-preserving lift and missing pixels
   const seeds = new Float32Array([.2, .5, .5, .4]);
   const colours = createPortraitColours(seeds, new Uint8ClampedArray([20, 10, 5, 255]), 1, 1);
   close(colours[0] / colours[1], 2); close(colours[1] / colours[2], 2);
-  close(colours[0], 20 / 255 * 2.5);
+  close(colours[0], .62);
+  assert(colours[0] > 20 / 255 * 2.5 * 3, "low-key photo grain must be materially brighter than the previous exposure");
+  const nearBlack = createPortraitColours(seeds, new Uint8ClampedArray([2, 1, 0, 255]), 1, 1);
+  close(nearBlack[0], 2 / 255 * 8);
+  close(nearBlack[0] / nearBlack[1], 2);
+  const highlights = createPortraitColours(seeds, new Uint8ClampedArray([245, 177, 15, 255]), 1, 1);
+  close(highlights[0], 245 / 255); close(highlights[1], 177 / 255); close(highlights[2], 15 / 255);
+  assert(highlights.every(value => value >= 0 && value <= 1), "bright kurta colours are never clipped to white");
   assert(createPortraitColours(seeds, null, 0, 0).every(Number.isFinite));
   assert.deepEqual(createPortraitColours(new Float32Array(), null, 0, 0), new Float32Array());
 });

@@ -1,5 +1,7 @@
 # Signal Current — delivery verification
 
+Historical release record. The brighter current and editorial portrait refinement are documented in [the 3 November record](portrait-current-refinement-2026-11-03.md); measurements below belong to the original photo-colour release.
+
 28 October 2026. This record covers the **photo-colour peel revision**. The [research record](signal-current-research-2026-10-28.md) retains primary references and provenance. Earlier sheet and fixed-palette iterations are historical.
 
 ## Implemented experience

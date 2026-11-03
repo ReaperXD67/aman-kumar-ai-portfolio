@@ -118,6 +118,13 @@ export function CinematicContinuation({ children, continuation, paused = false }
         node.style.setProperty("--contact-arrival", contact ? String(smoothRange(y + height * .72, contact.top, contact.top + Math.min(contact.height, height) * .5)) : "1");
         node.style.setProperty("--portrait-current-strength", ports ? String(ports.source.ready * (1 - exit)) : "0");
         node.style.setProperty("--contact-current-strength", ports ? String(1 - exit) : "0");
+        // Editorial layers travel independently; the actual photograph and its
+        // sampled peel edge remain fixed. Reuse this dirty-scroll clock rather
+        // than adding another listener, animation loop or transformed image.
+        if (reducedMotion || !shared.paused) {
+          const travel = reducedMotion || !image ? 0 : smoothRange(height * .62 - image.top, 0, height * .62 + image.height);
+          node.style.setProperty("--portrait-type-travel", travel.toFixed(4));
+        }
       }
       if (notify) shared.invalidate?.();
     };

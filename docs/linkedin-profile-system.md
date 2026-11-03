@@ -1,6 +1,6 @@
 # Aman Kumar — LinkedIn Profile System
 
-Canonical profile copy, refined 27 October 2026. **Headline and About saved and verified on 2026-10-27.** The seven Featured cards, five top skills, and recruiter-only Open to Work presentation were inspected and retained. Aman chose to keep the current LinkedIn and GitHub account photos; no avatar replacement is pending. The new portrait stays in the portfolio and GitHub README artwork. See [the current delivery record](linkedin-update-2026-10-27.md) for exact scope and research. Earlier complete profile configuration is preserved in the local historical live-update log; it does not imply every underlying field was reverified today.
+Canonical profile copy, refined 3 November 2026. The first three Featured titles and descriptions were saved and re-read on 3 November; see [the current delivery record](portrait-current-refinement-2026-11-03.md). **Headline and About saved and verified on 2026-10-27.** The seven Featured cards, five top skills, and recruiter-only Open to Work presentation were inspected and retained. Aman chose to keep the current LinkedIn and GitHub account photos; no avatar replacement is pending. The new portrait stays in the portfolio and GitHub README artwork. See [the current delivery record](linkedin-update-2026-10-27.md) for exact scope and research. Earlier complete profile configuration is preserved in the local historical live-update log; it does not imply every underlying field was reverified today.
 
 Make Aman's engineering role, actual internship experience, implemented systems, source evidence, and contact path clear within seconds. Use relevant terminology where it is demonstrated. No profile can guarantee inclusion in every recruiter search or a particular ranking.
 
@@ -98,32 +98,32 @@ No verified start month is supplied for this role. Retain an already confirmed m
 
 Use external-link cards. Keep the portfolio first, followed by the specifically requested live KarixMC and Revive experiences. Agent and AtlasLM supply complementary AI evidence. Keep ROLLFORWARD as secondary proof after the canonical résumé. Inspect existing cards before adding anything to avoid duplicates.
 
-### 1. Start Here — Aman Kumar | Portfolio & Engineering Proof
+### 1. Start here — AI systems, built & explained
 
 URL: https://aman-kumar-ai-portfolio.vercel.app
 
 ```text
-Explore my AI and full-stack work: real interfaces, system architecture, source code, experience, and the current résumé. Open the recruiter quick read for a concise view of role fit and engineering evidence.
+Explore three engineering stories: controlled AI agents, evidence-grounded RAG, and a live game-to-web marketplace. Open real interfaces, inspect architecture and failure boundaries, then follow the source. Includes my experience, one-page résumé and recruiter quick read.
 ```
 
 Preview: use the currently versioned portfolio Open Graph image declared in `index.html`. Use dedicated Aman portfolio artwork; never pair this card with Revive artwork. Existing LinkedIn thumbnails may remain cached until the card is refreshed.
 
-### 2. KarixMC — Live Minecraft Marketplace & Reward Network
+### 2. KarixMC — a live game-to-web marketplace
 
 URL: https://karixmc.pl
 
 ```text
-A deployed marketplace linking Minecraft playtime to verified rewards. I built the Next.js application and Java Paper integration, with HMAC-signed requests, replay protection, transactional ledgers, and recoverable delivery on a PostgreSQL/Redis VPS stack. Source: https://github.com/ReaperXD67/MinePulse
+Follow a Minecraft event into a real reward ledger. I built the Next.js marketplace and Java Paper integration, with signed requests, replay protection and recoverable delivery on PostgreSQL, Redis and a Linux VPS. Open the live product; inspect the source: https://github.com/ReaperXD67/MinePulse
 ```
 
 Preview: real KarixMC homepage, `public/assets/karixmc-live.png`.
 
-### 3. Revive — Explainable Payment Recovery | Live Prototype
+### 3. Revive — explainable payment recovery (prototype)
 
 URL: https://revive-revenue.vercel.app
 
 ```text
-An independent Razorpay AI Buildathon prototype that classifies failed payments, proposes recovery actions, and exposes the policy checks behind each decision. Fictional demo data and simulated outcomes; no real charges or customer messages. Source: https://github.com/ReaperXD67/revive-ai
+Explore how failed payments become policy-gated recovery decisions. This independent Razorpay AI Buildathon prototype uses fictional demo data and simulated outcomes. Open the live interface and follow the implementation: https://github.com/ReaperXD67/revive-ai
 ```
 
 Preview: Revive's interface, `public/assets/revive-cinematic-core.png`.

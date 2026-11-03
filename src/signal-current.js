@@ -2,6 +2,10 @@
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 const coordinateOf = value => Number.isFinite(value) ? clamp(value, 0, 4) : 0;
 
+// Redistribute the existing budget toward the two physical handoffs. No extra
+// geometry, draw call, texture or per-frame buffer upload is needed.
+export const signalCurrentCohorts = Object.freeze({ source: .14, receiver: .10 });
+
 export function createSignalSeeds(count) {
   const size = Number.isFinite(count) ? clamp(Math.floor(count), 0, 65536) : 0;
   const positions = new Float32Array(size * 3);
@@ -101,17 +105,23 @@ vec3 currentPath(float t, float coordinate, float time, float lane, float depth,
   float envelope = sin(t * 3.14159265359);
   float envelopeDerivative = 3.14159265359 * cos(t * 3.14159265359);
   // A tightening final turn gathers the same coloured grain at the receiver.
-  float gatherPosition = clamp((t - .68) / .29, 0.0, 1.0);
+  float gatherPosition = clamp((t - .56) / .43, 0.0, 1.0);
   float gather = gatherPosition * gatherPosition * (3.0 - 2.0 * gatherPosition);
-  float gatherDerivative = 6.0 * gatherPosition * (1.0 - gatherPosition) / .29;
-  float baseWidth = mix(.64, .26, phone) * (1.0 + curl * .12);
-  float width = baseWidth * (1.0 - .4 * gather);
-  float widthDerivative = -.4 * baseWidth * gatherDerivative;
-  float filament = lane * width * envelope;
-  float filamentDerivative = lane * (widthDerivative * envelope + width * envelopeDerivative);
+  float gatherDerivative = 6.0 * gatherPosition * (1.0 - gatherPosition) / .43;
+  float baseWidth = mix(.72, .28, phone) * (1.0 + curl * .12);
+  float width = baseWidth * (1.0 - .62 * gather);
+  float widthDerivative = -.62 * baseWidth * gatherDerivative;
+  // A smooth, finite-volume receiver coil grows before it contracts into the
+  // measured form port. Its value AND derivative vanish at both boundaries.
+  float coilPosition = clamp((t - .60) / .40, 0.0, 1.0);
+  float coil = 16.0 * coilPosition * coilPosition * pow(1.0 - coilPosition, 2.0);
+  float coilDerivative = 32.0 * coilPosition * (1.0 - coilPosition) * (1.0 - 2.0 * coilPosition) / .40;
+  float coilWidth = mix(.46, .26, phone);
+  float filament = lane * (width * envelope + coilWidth * coil);
+  float filamentDerivative = lane * (widthDerivative * envelope + width * envelopeDerivative + coilWidth * coilDerivative);
   float frequency = 8.0 + coordinate * .55;
-  float helix = t * frequency + lane * 2.2 + time * .12 + gather * 5.5;
-  float helixDerivative = frequency + gatherDerivative * 5.5;
+  float helix = t * frequency + lane * 2.2 + time * .12 + gather * 10.5;
+  float helixDerivative = frequency + gatherDerivative * 10.5;
   float c = cos(helix), s = sin(helix);
   spine += vec3(filament * c, filament * s, depth * .68 * envelope);
   tangent += vec3(filamentDerivative * c - filament * s * helixDerivative,
@@ -149,13 +159,24 @@ void main() {
   float time = uTime * (1.0 - reduced);
   float lane = aSeed.y * 2.0 - 1.0;
   float depth = aSeed.z * 2.0 - 1.0;
-  float travel = time * .042 + uScroll * .22 * (1.0 - reduced);
+  float travel = time * .042 + uScroll * .32 * (1.0 - reduced);
   float t = fract(aSeed.x + travel + lane * .007);
   float root = 0.0;
-  if (aSeed.w < .07) { t = fract(aSeed.x + travel * 1.6) * .065; root = 1.0; }
-  if (aSeed.w > .972) { t = 1.0 - aSeed.x * .025; root = 1.0; }
+  float lifetime = 1.0;
+  if (aSeed.w < ${signalCurrentCohorts.source}) {
+    float phase = fract(aSeed.x + travel * 1.6);
+    t = phase * .10;
+    root = 1.0;
+    lifetime = smoothstep(0.0, .06, phase) * (1.0 - smoothstep(.82, 1.0, phase));
+  }
+  if (aSeed.w > ${1 - signalCurrentCohorts.receiver}) {
+    float phase = fract(aSeed.x + travel * .85);
+    t = .74 + (1.0 - (1.0 - phase) * (1.0 - phase)) * .26;
+    root = 1.0;
+    lifetime = smoothstep(0.0, .08, phase) * (1.0 - smoothstep(.94, 1.0, phase));
+  }
   // Preserve two exact registration seeds while the rest continuously peel.
-  if (aSeed.x == 0.0) t = aSeed.w < .5 ? 0.0 : 1.0;
+  if (aSeed.x == 0.0) { t = aSeed.w < .5 ? 0.0 : 1.0; lifetime = 1.0; }
   vec3 derivative;
   vec4 view = vec4(currentPath(t, coordinate, time, lane, depth, derivative), 1.0);
   vec4 clip = projectionMatrix * view;
@@ -174,8 +195,8 @@ void main() {
 
   float packet = pow(.5 + .5 * sin(TAU * (t - travel * 1.7 + lane * .09)), 8.0);
   // Birth colour is sampled from the real image and retained to contact.
-  vColor = aPortraitColor * mix(.90, 1.08, packet);
-  vAlpha = mix(.40 + packet * .4, .48, root) * (1.0 - vSoftness * .4);
+  vColor = aPortraitColor * mix(.94, 1.0, packet);
+  vAlpha = mix(.70 + packet * .22, .86, root) * lifetime * (1.0 - vSoftness * .3);
   vec2 screen = (clip.xy / max(clip.w, .01) * .5 + .5) * uViewport;
   screen.y = uViewport.y - screen.y;
   float feather = mix(20.0, 30.0, smoothstep(600.0, 1200.0, uViewport.x));
@@ -216,10 +237,10 @@ void main() {
   vec2 point = gl_PointCoord - .5;
   float c = cos(vAngle), s = sin(vAngle);
   vec2 aligned = mat2(c, -s, s, c) * point;
-  float radius = length(aligned * vec2(1.0, 2.05));
-  float core = 1.0 - smoothstep(.07, .25, radius);
-  float halo = (1.0 - smoothstep(.13, .49 + vSoftness * .06, radius)) * .22;
-  float alpha = (core * .78 + halo) * vAlpha;
+  float radius = length(aligned * vec2(1.0, 1.65));
+  float core = 1.0 - smoothstep(.10, .32, radius);
+  float halo = (1.0 - smoothstep(.18, .49 + vSoftness * .06, radius)) * .28;
+  float alpha = min(1.0, core * .82 + halo) * vAlpha;
   if (alpha < .003) discard;
   gl_FragColor = vec4(vColor, alpha);
 }

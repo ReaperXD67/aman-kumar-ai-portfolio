@@ -145,8 +145,7 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
       <div className="portrait-registration" aria-hidden="true"><i /><i /><i /><i /></div>
       <span className="portrait-edge-label" aria-hidden="true">A.K. / THE PERSON BEHIND THE SYSTEM</span>
       <div className="portrait-nameplate">
-        <span>HELLO, I'M</span>
-        <strong>Aman<span> Kumar.</span></strong>
+        <strong aria-label="Aman Kumar"><span className="portrait-name-line"><b>AMAN</b></span><span className="portrait-name-line"><b>KUMAR.</b></span></strong>
         <p>Engineering is personal.<br />So is the responsibility.</p>
       </div>
     </div>

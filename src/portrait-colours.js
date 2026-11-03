@@ -36,7 +36,11 @@ export function createPortraitColours(seeds, pixels, width, height) {
         return clamp((top * (1 - ty) + bottom * ty) / 255, 0, 1);
       };
       r = sample(0); g = sample(1); b = sample(2);
-      const gain = Math.max(1, Math.min(2.5, .30 / Math.max(r, g, b, .001)));
+      // The native photo is deliberately low key. Grain needs a higher exposure
+      // on the black stage, not a different tint or additive white bloom. A
+      // single bounded gain preserves every nonzero channel ratio and leaves
+      // already-bright kurta highlights unchanged.
+      const gain = Math.max(1, Math.min(8, .62 / Math.max(r, g, b, .001)));
       r *= gain; g *= gain; b *= gain;
     }
     colours.set([r, g, b], index * 3);

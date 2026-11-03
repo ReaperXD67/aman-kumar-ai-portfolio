@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createSignalSeeds, readSignalCamera, dampSignalCoordinate } from "../src/signal-current.js";
+import { createSignalSeeds, readSignalCamera, dampSignalCoordinate, signalCurrentCohorts } from "../src/signal-current.js";
 
 const numbers = camera => [...camera.position, ...camera.target, camera.fov];
 
@@ -28,13 +28,16 @@ test("phone and desktop budgets retain root coverage across the entire portrait 
   for (const count of [4000, 12000]) {
     const { seeds } = createSignalSeeds(count);
     const edgeBands = new Array(8).fill(0);
+    let receivers = 0;
     for (let index = 0; index < count; index++) {
-      if (seeds[index * 4 + 3] < .07) {
+      if (seeds[index * 4 + 3] < signalCurrentCohorts.source) {
         edgeBands[Math.min(7, Math.floor(seeds[index * 4 + 1] * 8))]++;
       }
+      if (seeds[index * 4 + 3] > 1 - signalCurrentCohorts.receiver) receivers++;
     }
-    assert(edgeBands.every(samples => samples >= 20), "each edge band has enough persistent samples on a phone too");
+    assert(edgeBands.every(samples => samples >= 55), "each photo edge band retains a substantial moving peel on a phone too");
     assert(Math.max(...edgeBands) / Math.min(...edgeBands) < 1.6, "roots must not collect into one sparse nozzle");
+    assert(receivers > count * .09 && receivers < count * .11, "roughly one tenth of the unchanged budget forms the moving receiver coil");
   }
 });
 
