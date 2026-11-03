@@ -9,7 +9,7 @@ const rectangle = box => [box.left, box.top, box.left + box.width, box.top + box
  * Only already-offscreen endpoints are bounded to keep the long route precise. */
 export function readPortraitCurrentPorts(portrait, image, contact, viewport, ready = true) {
   if (![portrait, image, contact].every(valid) || !valid({ left: 0, top: 0, ...viewport })) return null;
-  const source = { x: portrait.left + portrait.width + .5, y: image.top + image.height * .69 };
+  const source = { x: image.left + image.width + .5, y: image.top + image.height * .69 };
   const receiver = { x: contact.left + Math.min(48, contact.width * .12), y: contact.top - .5 };
   const bound = port => ({ x: clamp(port.x, -viewport.width * .5, viewport.width * 1.5),
     y: clamp(port.y, -viewport.height * .75, viewport.height * 1.75) });

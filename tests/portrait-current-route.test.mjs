@@ -9,7 +9,7 @@ test("portrait source and contact receiver register to native edges at phone and
     const image = { ...portrait, top: 148, height: 450 };
     const contact = { left: 18, top: 650, width: width - 36, height: 650 };
     const ports = readPortraitCurrentPorts(portrait, image, contact, viewport);
-    assert.equal(ports.source.x, portrait.left + portrait.width + .5);
+    assert.equal(ports.source.x, image.left + image.width + .5);
     assert.equal(ports.source.y, image.top + image.height * .69);
     assert.deepEqual(ports.peel, [image.top, image.top + image.height]);
     assert.equal(ports.receiver.x, contact.left + Math.min(48, contact.width * .12));
@@ -18,6 +18,18 @@ test("portrait source and contact receiver register to native edges at phone and
     assert.equal(ports.source.ready, 1);
     assert.equal(readPortraitCurrentPorts(portrait, image, contact, viewport, false).source.ready, 0);
   }
+});
+
+test("an inset moving photo releases at its own edge rather than the decorative outer frame", () => {
+  const viewport = { width: 1440, height: 1000 };
+  const frame = { left: 60, top: 100, width: 520, height: 740 };
+  const image = { left: 114, top: 230, width: 426, height: 460 };
+  const contact = { left: 800, top: 700, width: 500, height: 600 };
+  const ports = readPortraitCurrentPorts(frame, image, contact, viewport);
+  assert.equal(ports.sourceActual.x, image.left + image.width + .5);
+  assert.notEqual(ports.sourceActual.x, frame.left + frame.width + .5);
+  assert.equal(ports.sourceActual.y, image.top + image.height * .69);
+  assert.deepEqual(ports.peel, [image.top, image.top + image.height]);
 });
 
 test("native scroll and sticky release move endpoints immediately without changing their registration", () => {

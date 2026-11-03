@@ -3,6 +3,7 @@ import { useReducedMotion } from "./useMotionPreference.js";
 import { documentFrame, methodOutputProgress, ownerClipExclusions, readContinuation, viewportFrame } from "./continuation-motion.js";
 import { smoothRange } from "./cinematic-motion.js";
 import { currentFooterExit, readPortraitCurrentPorts } from "./portrait-current-route.js";
+import { portraitDepthPose, projectPortraitPlane } from "./portrait-depth.js";
 import "./cinematic-continuation.css";
 
 const ContinuationSignal = lazy(() => import("./ContinuationSignal.jsx").then(module => ({ default: module.ContinuationSignal })));
@@ -15,7 +16,7 @@ const STOPS = [
   [".resume-artifact .artifact-preview", "record"],
   [".contact-form", "contact"],
 ];
-const PROTECTED = ".signal-band,.method-heading,.method-visual,.method-readout,.method-stage-rail,.identity-copy,.career-heading,.career-console,.education-signal,.proof-vault-heading,.artifact-preview,.artifact-copy,.contact-intro";
+const PROTECTED = ".signal-band,.method-heading,.method-visual,.method-readout,.method-stage-rail,.portrait-instrument-header,.portrait-instrument-footer,.identity-copy,.career-heading,.career-console,.education-signal,.proof-vault-heading,.artifact-preview,.artifact-copy,.contact-intro";
 
 /** Native content supplies a reading clock and occlusion, never sculpture shape. */
 export function CinematicContinuation({ children, continuation, paused = false }) {
@@ -44,6 +45,7 @@ export function CinematicContinuation({ children, continuation, paused = false }
     let lastWidth = 0, lastHeight = 0;
     let localStops = [], localExclusions = [], localPortrait, localImage, localContact;
     let measuredOrigin = { left: 0, top: 0 };
+    let portraitPose = null, poseWidth = 0, poseHeight = 0, nameHeight = 0;
     shared.reduced = Boolean(reducedMotion);
     const box = element => {
       const rect = element.getBoundingClientRect();
@@ -57,11 +59,12 @@ export function CinematicContinuation({ children, continuation, paused = false }
       });
       localExclusions = [...node.querySelectorAll(PROTECTED)].map(box);
       const portrait = node.querySelector(".identity-kernel-frame");
-      const image = node.querySelector(".portrait-instrument-stage");
+      const image = node.querySelector(".portrait-photo-anchor");
       const contact = node.querySelector(".contact-form");
       localPortrait = portrait && box(portrait);
       localImage = image && box(image);
       localContact = contact && box(contact);
+      nameHeight = node.querySelector(".portrait-nameplate")?.offsetHeight || 0;
       needsMeasure = false;
     };
     const sync = (notify = true) => {
@@ -98,10 +101,28 @@ export function CinematicContinuation({ children, continuation, paused = false }
         const protectedFrames = exclusions.map(project).filter(rectangle => rectangle.top < viewport.height + 100
           && rectangle.top + rectangle.height > -100);
         const native = rectangle => rectangle && project(documentFrame(rectangle, origin));
-        const portrait = native(localPortrait), image = native(localImage), form = native(localContact);
+        const portrait = native(localPortrait), anchor = native(localImage), form = native(localContact);
+        // Use the untransformed layout anchor as the camera clock. Read no
+        // animated rectangles: the DOM and GPU share the exact same projection.
+        if (anchor && (!portraitPose || reducedMotion || !shared.paused || poseWidth !== anchor.width || poseHeight !== anchor.height)) {
+          portraitPose = portraitDepthPose(anchor, viewport, Boolean(reducedMotion));
+          poseWidth = anchor.width; poseHeight = anchor.height;
+          if (portraitPose) {
+            for (const [key, value] of Object.entries(portraitPose)) {
+              const unit = key === "scale" || key === "progress" ? "" : key === "frontAngle" ? "deg" : "px";
+              node.style.setProperty(`--portrait-depth-${key}`, `${value.toFixed(4)}${unit}`);
+            }
+          }
+        }
+        const image = projectPortraitPlane(anchor, portraitPose);
+        if (anchor && portraitPose && nameHeight) protectedFrames.push({
+          left: anchor.left - anchor.width * .07 + portraitPose.frontX,
+          top: anchor.top + portraitPose.frontY - 12,
+          width: anchor.width * 1.14, height: nameHeight + 24,
+        });
         const sourceVisible = portrait && portrait.top < viewport.height && portrait.top + portrait.height > 0;
         const sourceReady = !sourceVisible || Boolean(node.querySelector(".raster-portrait.is-resolved,.portrait-instrument.is-system"));
-        const ports = readPortraitCurrentPorts(portrait, image, form, viewport, sourceReady);
+        const ports = readPortraitCurrentPorts(image, image, form, viewport, sourceReady);
         const exit = currentFooterExit(y + height, rootBox.bottom + y, document.documentElement.scrollHeight);
         shared.scene = {
           from: project(route.from), to: project(route.to), progress: route.progress,
@@ -118,13 +139,6 @@ export function CinematicContinuation({ children, continuation, paused = false }
         node.style.setProperty("--contact-arrival", contact ? String(smoothRange(y + height * .72, contact.top, contact.top + Math.min(contact.height, height) * .5)) : "1");
         node.style.setProperty("--portrait-current-strength", ports ? String(ports.source.ready * (1 - exit)) : "0");
         node.style.setProperty("--contact-current-strength", ports ? String(1 - exit) : "0");
-        // Editorial layers travel independently; the actual photograph and its
-        // sampled peel edge remain fixed. Reuse this dirty-scroll clock rather
-        // than adding another listener, animation loop or transformed image.
-        if (reducedMotion || !shared.paused) {
-          const travel = reducedMotion || !image ? 0 : smoothRange(height * .62 - image.top, 0, height * .62 + image.height);
-          node.style.setProperty("--portrait-type-travel", travel.toFixed(4));
-        }
       }
       if (notify) shared.invalidate?.();
     };

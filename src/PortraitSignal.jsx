@@ -48,7 +48,8 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
     if (finished) { onComplete(); return undefined; }
 
     const resize = () => {
-      ({ width, height } = frame.getBoundingClientRect());
+      // Layout size stays stable while the camera scales the composited plane.
+      width = frame.clientWidth; height = frame.clientHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.max(1, Math.round(width * dpr));
       canvas.height = Math.max(1, Math.round(height * dpr));
@@ -142,12 +143,6 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
       <img ref={imageRef} src={PORTRAIT} alt="Aman Kumar, AI Engineer and Full-Stack Developer" width="1000" height="1000" loading="lazy" decoding="async" />
       <canvas ref={canvasRef} aria-hidden="true" />
       <span className="portrait-current-seam" aria-hidden="true" />
-      <div className="portrait-registration" aria-hidden="true"><i /><i /><i /><i /></div>
-      <span className="portrait-edge-label" aria-hidden="true">A.K. / THE PERSON BEHIND THE SYSTEM</span>
-      <div className="portrait-nameplate">
-        <strong aria-label="Aman Kumar"><span className="portrait-name-line"><b>AMAN</b></span><span className="portrait-name-line"><b>KUMAR.</b></span></strong>
-        <p>Engineering is personal.<br />So is the responsibility.</p>
-      </div>
     </div>
   );
 }
@@ -160,28 +155,25 @@ export function PortraitSignal() {
   const frameRef = useRef(null);
   // Stable callback prevents animation restarts when status changes.
   const completeRef = useRef(() => setResolved(true));
-  const move = (event) => {
-    if (reducedMotion || event.pointerType !== "mouse") return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    frameRef.current?.style.setProperty("--portrait-x", `${((event.clientX - rect.left) / rect.width - 0.5) * 5}px`);
-    frameRef.current?.style.setProperty("--portrait-y", `${((event.clientY - rect.top) / rect.height - 0.5) * 5}px`);
-  };
-  const reset = () => {
-    frameRef.current?.style.setProperty("--portrait-x", "0px");
-    frameRef.current?.style.setProperty("--portrait-y", "0px");
-  };
   return (
-    <div className={`portrait-instrument is-${view}`} ref={frameRef} onPointerMove={move} onPointerLeave={reset}>
+    <div className={`portrait-instrument is-${view}${resolved ? " is-resolved" : ""}`} ref={frameRef}>
       <header className="portrait-instrument-header">
-        <span>01 / HUMAN IN THE LOOP</span>
+        <span>THE PERSON BEHIND THE SYSTEMS</span>
         <span className="portrait-state" role="status"><i />{view === "system" ? "SYSTEM VIEW" : resolved ? "AMAN / ONLINE" : "RESOLVING IDENTITY"}</span>
       </header>
-      <div className="portrait-instrument-stage" id="identity-view" role="region" aria-label={view === "person" ? "Meet Aman Kumar" : "Interactive systems kernel"}>
+      <div className="portrait-rear-type" aria-hidden="true">{view === "person" ? "HUMAN" : "SYSTEM"}<span>INTELLIGENCE HAS A HUMAN SIDE.</span></div>
+      <div className="portrait-photo-anchor">
+        <div className="portrait-instrument-stage" id="identity-view" role="region" aria-label={view === "person" ? "Meet Aman Kumar" : "Interactive systems kernel"}>
         {view === "person" ? <RasterPortrait reducedMotion={reducedMotion} replay={replay} onComplete={completeRef.current} /> : (
           <Suspense fallback={<div className="identity-kernel-fallback">INITIALIZING SYSTEMS KERNEL</div>}>
             <Kernel reducedMotion={reducedMotion} />
           </Suspense>
         )}
+        </div>
+        {view === "person" && <div className="portrait-nameplate">
+          <strong aria-label="Aman Kumar"><span className="portrait-name-first">AMAN</span><span className="portrait-name-last">KUMAR.</span></strong>
+          <p>Engineering is personal.<br />So is the responsibility.</p>
+        </div>}
       </div>
       <footer className="portrait-instrument-footer">
         <div role="group" aria-label="Identity view">
