@@ -14,14 +14,11 @@ export function portraitDepthPose(anchor, viewport, reduced = false) {
   const scale = reduced ? 1 : 1 - (phone ? .065 : .12) * sweep * sweep;
   const x = reduced ? 0 : sweep * (phone ? 5 : 16);
   const y = reduced ? 0 : -sweep * (phone ? 18 : 40);
-  // The foreground's top follows the lower shoulder, never the facial region.
-  // Independent lateral travel and perspective create depth without crossing it.
-  const frontY = y + anchor.height * (1 - scale) / 2 + anchor.height * scale * .84;
-  return { progress, scale, x, y, frontY,
-    frontX: reduced ? 0 : -sweep * (phone ? 9 : 32),
-    frontAngle: reduced || phone ? 0 : -sweep * 7,
-    rearY: reduced ? 0 : sweep * (phone ? 24 : 74),
-    rearX: reduced ? 0 : -sweep * (phone ? 8 : 30),
+  // Two rear rows separate in opposite directions; the native caption stays
+  // stationary, outside the photo. The alpha photograph occludes both rows.
+  return { progress, scale, x, y,
+    rearY: reduced ? 0 : sweep * (phone ? 20 : 36),
+    rearX: reduced ? 0 : -sweep * (phone ? 18 : 70),
   };
 }
 

@@ -16,7 +16,7 @@ const STOPS = [
   [".resume-artifact .artifact-preview", "record"],
   [".contact-form", "contact"],
 ];
-const PROTECTED = ".signal-band,.method-heading,.method-visual,.method-readout,.method-stage-rail,.portrait-instrument-header,.portrait-instrument-footer,.identity-copy,.career-heading,.career-console,.education-signal,.proof-vault-heading,.artifact-preview,.artifact-copy,.contact-intro";
+const PROTECTED = ".signal-band,.method-heading,.method-visual,.method-readout,.method-stage-rail,.portrait-instrument-header,.portrait-instrument-footer,.portrait-nameplate,.portrait-authors-note,.identity-copy,.career-heading,.career-console,.education-signal,.proof-vault-heading,.artifact-preview,.artifact-copy,.contact-intro";
 
 /** Native content supplies a reading clock and occlusion, never sculpture shape. */
 export function CinematicContinuation({ children, continuation, paused = false }) {
@@ -45,7 +45,7 @@ export function CinematicContinuation({ children, continuation, paused = false }
     let lastWidth = 0, lastHeight = 0;
     let localStops = [], localExclusions = [], localPortrait, localImage, localContact;
     let measuredOrigin = { left: 0, top: 0 };
-    let portraitPose = null, poseWidth = 0, poseHeight = 0, nameHeight = 0;
+    let portraitPose = null, poseWidth = 0, poseHeight = 0;
     shared.reduced = Boolean(reducedMotion);
     const box = element => {
       const rect = element.getBoundingClientRect();
@@ -64,7 +64,6 @@ export function CinematicContinuation({ children, continuation, paused = false }
       localPortrait = portrait && box(portrait);
       localImage = image && box(image);
       localContact = contact && box(contact);
-      nameHeight = node.querySelector(".portrait-nameplate")?.offsetHeight || 0;
       needsMeasure = false;
     };
     const sync = (notify = true) => {
@@ -109,17 +108,12 @@ export function CinematicContinuation({ children, continuation, paused = false }
           poseWidth = anchor.width; poseHeight = anchor.height;
           if (portraitPose) {
             for (const [key, value] of Object.entries(portraitPose)) {
-              const unit = key === "scale" || key === "progress" ? "" : key === "frontAngle" ? "deg" : "px";
+              const unit = key === "scale" || key === "progress" ? "" : "px";
               node.style.setProperty(`--portrait-depth-${key}`, `${value.toFixed(4)}${unit}`);
             }
           }
         }
         const image = projectPortraitPlane(anchor, portraitPose);
-        if (anchor && portraitPose && nameHeight) protectedFrames.push({
-          left: anchor.left - anchor.width * .07 + portraitPose.frontX,
-          top: anchor.top + portraitPose.frontY - 12,
-          width: anchor.width * 1.14, height: nameHeight + 24,
-        });
         const sourceVisible = portrait && portrait.top < viewport.height && portrait.top + portrait.height > 0;
         const sourceReady = !sourceVisible || Boolean(node.querySelector(".raster-portrait.is-resolved,.portrait-instrument.is-system"));
         const ports = readPortraitCurrentPorts(image, image, form, viewport, sourceReady);

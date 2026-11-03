@@ -162,7 +162,10 @@ export function PortraitSignal() {
         <span>THE PERSON BEHIND THE SYSTEMS</span>
         <span className="portrait-state" role="status"><i />{view === "system" ? "SYSTEM VIEW" : resolved ? "AMAN / ONLINE" : "RESOLVING IDENTITY"}</span>
       </header>
-      <div className="portrait-rear-type" aria-hidden="true">{view === "person" ? "HUMAN" : "SYSTEM"}</div>
+      <div className="portrait-rear-type" aria-hidden="true">
+        <span className="portrait-type-first">{view === "person" ? "AMAN" : "SYSTEM"}</span>
+        <span className="portrait-type-last">{view === "person" ? "KUMAR" : "KERNEL"}</span>
+      </div>
       <div className="portrait-photo-anchor">
         <div className="portrait-instrument-stage" id="identity-view" role="region" aria-label={view === "person" ? "Meet Aman Kumar" : "Interactive systems kernel"}>
         {view === "person" ? <RasterPortrait reducedMotion={reducedMotion} replay={replay} onComplete={completeRef.current} /> : (
@@ -171,11 +174,13 @@ export function PortraitSignal() {
           </Suspense>
         )}
         </div>
-        {view === "person" && <div className="portrait-nameplate">
-          <strong aria-label="Aman Kumar"><span className="portrait-name-first">AMAN</span><span className="portrait-name-last">KUMAR.</span></strong>
-          <p>Engineering is personal.<br />So is the responsibility.</p>
-        </div>}
       </div>
+      {view === "person" && <div className="portrait-nameplate">
+        <strong>Aman Kumar.</strong>
+        <p>AI Engineer &amp; <br />Full-Stack Developer</p>
+        <a href="#contact">Let’s build something <ArrowUpRight size={17} aria-hidden="true" /></a>
+      </div>}
+      <p className="portrait-authors-note">Engineering is personal.<br />So is the responsibility.</p>
       <footer className="portrait-instrument-footer">
         <div role="group" aria-label="Identity view">
           <button type="button" aria-pressed={view === "person"} aria-controls="identity-view" onClick={() => { if (view !== "person") setResolved(false); setView("person"); }}><User size={15} />The person</button>

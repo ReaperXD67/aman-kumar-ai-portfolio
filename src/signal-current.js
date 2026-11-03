@@ -116,9 +116,9 @@ vec3 currentPath(float t, float coordinate, float time, float lane, float depth,
     .45 * sin(coordinate * 1.1), .45 * cos(coordinate * .7),
     1.6 + .8 * sin(coordinate * .85)), 0.0)).xyz;
   sculpture *= clamp(11.0 / max(length(cameraPosition), 1.0), .7, 1.3);
-  float curl = sin(lane * 2.8 + coordinate * 1.4 + time * .25);
-  vec3 first = source + vec3(side * mix(1.65, .42, phone), .20 + lane * .52, 0.0) + sculpture;
-  first.z += depth * .6;
+  float curl = sin(lane * 2.8 + coordinate * 1.4 + time * .08);
+  vec3 first = source + vec3(side * mix(1.42, .38, phone), .12 + lane * .24, 0.0) + sculpture;
+  first.z += depth * .35;
   vec3 second = receiver + vec3(-side * mix(1.12, .28, phone), 1.35, 0.0) - sculpture * .6;
   float q = 1.0 - t;
   vec3 spine = q * q * q * source + 3.0 * q * q * t * first +
@@ -131,7 +131,7 @@ vec3 currentPath(float t, float coordinate, float time, float lane, float depth,
   float gatherPosition = clamp((t - .56) / .43, 0.0, 1.0);
   float gather = gatherPosition * gatherPosition * (3.0 - 2.0 * gatherPosition);
   float gatherDerivative = 6.0 * gatherPosition * (1.0 - gatherPosition) / .43;
-  float baseWidth = mix(.72, .28, phone) * (1.0 + curl * .12);
+  float baseWidth = mix(.46, .18, phone) * (1.0 + curl * .08);
   float width = baseWidth * (1.0 - .62 * gather);
   float widthDerivative = -.62 * baseWidth * gatherDerivative;
   // A smooth, finite-volume receiver coil grows before it contracts into the
@@ -139,16 +139,16 @@ vec3 currentPath(float t, float coordinate, float time, float lane, float depth,
   float coilPosition = clamp((t - .60) / .40, 0.0, 1.0);
   float coil = 16.0 * coilPosition * coilPosition * pow(1.0 - coilPosition, 2.0);
   float coilDerivative = 32.0 * coilPosition * (1.0 - coilPosition) * (1.0 - 2.0 * coilPosition) / .40;
-  float coilWidth = mix(.46, .26, phone);
+  float coilWidth = mix(.28, .16, phone);
   float filament = lane * (width * envelope + coilWidth * coil);
   float filamentDerivative = lane * (widthDerivative * envelope + width * envelopeDerivative + coilWidth * coilDerivative);
-  float frequency = 8.0 + coordinate * .55;
-  float helix = t * frequency + lane * 2.2 + time * .12 + gather * 10.5;
-  float helixDerivative = frequency + gatherDerivative * 10.5;
+  float frequency = 3.4 + coordinate * .22;
+  float helix = t * frequency + lane * 2.2 + time * .035 + gather * 3.6;
+  float helixDerivative = frequency + gatherDerivative * 3.6;
   float c = cos(helix), s = sin(helix);
-  spine += vec3(filament * c, filament * s, depth * .68 * envelope);
+  spine += vec3(filament * c, filament * s, depth * .42 * envelope);
   tangent += vec3(filamentDerivative * c - filament * s * helixDerivative,
-    filamentDerivative * s + filament * c * helixDerivative, depth * .68 * envelopeDerivative);
+    filamentDerivative * s + filament * c * helixDerivative, depth * .42 * envelopeDerivative);
   // On phones the attached stream follows the photograph's exterior gutter,
   // then releases into the open space below it instead of leaving the screen.
   float viewDepth = max(-spine.z, .01);
@@ -180,15 +180,19 @@ void main() {
   float reduced = step(.5, uReduced);
   float coordinate = mix(clamp(uCoordinate, 0.0, 4.0), 1.35, reduced);
   float time = uTime * (1.0 - reduced);
-  float lane = aSeed.y * 2.0 - 1.0;
-  float depth = aSeed.z * 2.0 - 1.0;
-  float travel = time * .042 + uScroll * .32 * (1.0 - reduced);
+  // Twelve coherent fibres carry independently travelling grains. The birth
+  // UV remains continuous across the real contour; only the distant path is
+  // gathered into strands, rather than filling a random cylindrical volume.
+  float fiber = (floor(aSeed.y * 12.0) + .5) / 12.0 * 2.0 - 1.0;
+  float lane = fiber + (fract(aSeed.y * 12.0) - .5) * .035;
+  float depth = sin(fiber * 4.15) * .28 + (aSeed.z * 2.0 - 1.0) * .025;
+  float travel = time * .014 + uScroll * .48 * (1.0 - reduced);
   float t = fract(aSeed.x + travel + lane * .007);
   float root = 0.0;
   float lifetime = 1.0;
   if (aSeed.w < ${signalCurrentCohorts.source}) {
     float phase = fract(aSeed.x + travel * 1.6);
-    t = phase * .10;
+    t = phase * .16;
     root = 1.0;
     lifetime = smoothstep(0.0, .06, phase) * (1.0 - smoothstep(.82, 1.0, phase));
   }
@@ -213,14 +217,14 @@ void main() {
     vec2(projectionMatrix[0][0], projectionMatrix[1][1]) * uViewport;
   vAngle = atan(tangent.y, tangent.x);
   float distanceToFocus = abs(view.z + 9.0);
-  vSoftness = smoothstep(.45, 2.6, distanceToFocus) * .32;
-  float pointSize = mix(5.2, 8.6, aSeed.z) * (9.0 / max(-view.z, 3.0));
-  gl_PointSize = clamp(pointSize * uPixelRatio * (1.0 + vSoftness), 1.0, 11.0 * uPixelRatio);
+  vSoftness = smoothstep(.45, 2.6, distanceToFocus) * .16;
+  float pointSize = mix(4.4, 7.2, aSeed.z) * (9.0 / max(-view.z, 3.0));
+  gl_PointSize = clamp(pointSize * uPixelRatio * (1.0 + vSoftness), 1.0, 9.0 * uPixelRatio);
 
   float packet = pow(.5 + .5 * sin(TAU * (t - travel * 1.7 + lane * .09)), 8.0);
   // Birth colour is sampled from the real image and retained to contact.
   vColor = aPortraitColor * mix(.94, 1.0, packet);
-  vAlpha = mix(.70 + packet * .22, .86, root) * lifetime * (1.0 - vSoftness * .3);
+  vAlpha = mix(.58 + packet * .22, .74, root) * lifetime * (1.0 - vSoftness * .3);
   vec2 screen = (clip.xy / max(clip.w, .01) * .5 + .5) * uViewport;
   screen.y = uViewport.y - screen.y;
   float feather = mix(20.0, 30.0, smoothstep(600.0, 1200.0, uViewport.x));
@@ -274,10 +278,10 @@ void main() {
   vec2 point = gl_PointCoord - .5;
   float c = cos(vAngle), s = sin(vAngle);
   vec2 aligned = mat2(c, -s, s, c) * point;
-  float radius = length(aligned * vec2(1.0, 1.65));
-  float core = 1.0 - smoothstep(.10, .32, radius);
-  float halo = (1.0 - smoothstep(.18, .49 + vSoftness * .06, radius)) * .28;
-  float alpha = min(1.0, core * .82 + halo) * vAlpha;
+  float radius = length(aligned * vec2(.8, 3.4));
+  float core = 1.0 - smoothstep(.12, .34, radius);
+  float halo = (1.0 - smoothstep(.24, .49 + vSoftness * .06, radius)) * .12;
+  float alpha = min(1.0, core * .88 + halo) * vAlpha;
   if (alpha < .003) discard;
   gl_FragColor = vec4(vColor, alpha);
 }

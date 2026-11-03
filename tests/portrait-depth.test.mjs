@@ -87,20 +87,6 @@ test("uniform photo dolly preserves cached normalized cover crop for full image 
   }
 });
 
-test("foreground lettering stays anchored to lower shoulders throughout the dolly", () => {
-  for (const viewport of screens) {
-    const base = anchorFor(viewport);
-    for (let step = 0; step <= 100; step++) {
-      const anchor = { ...base, top: viewport.height - step / 100 * (viewport.height + base.height) };
-      const pose = portraitDepthPose(anchor, viewport);
-      const plane = projectPortraitPlane(anchor, pose);
-      const normalizedTypeTop = (anchor.top + pose.frontY - plane.top) / plane.height;
-      assert(normalizedTypeTop > .8 && normalizedTypeTop < .9);
-      if (viewport.width <= 600) assert.equal(pose.frontAngle, 0);
-    }
-  }
-});
-
 test("reduced motion uses a static photograph and type pose regardless of scroll", () => {
   for (const viewport of screens) {
     const base = anchorFor(viewport);
@@ -110,7 +96,7 @@ test("reduced motion uses a static photograph and type pose regardless of scroll
       const pose = portraitDepthPose(anchor, viewport, true);
       assert.deepEqual(projectPortraitPlane(anchor, pose), anchor);
       assert.equal(pose.scale, 1);
-      for (const key of ["x", "y", "frontX", "frontAngle", "rearX", "rearY"]) assert.equal(pose[key], 0);
+      for (const key of ["x", "y", "rearX", "rearY"]) assert.equal(pose[key], 0);
       if (first) assert.deepEqual(pose, first);
       first = pose;
     }
