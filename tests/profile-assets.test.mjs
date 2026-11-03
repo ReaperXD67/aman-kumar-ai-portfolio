@@ -86,3 +86,15 @@ test("approved portrait and optimized delivery assets are present", async () => 
     assert.equal(webp.toString("ascii", 8, 12), "WEBP");
   }
 });
+
+test("silhouette delivery retains WebP alpha and a bounded full-resolution canvas", async () => {
+  const webp = await readFile(publicFile("/profile/aman-silhouette-v1.webp"));
+  assert.equal(webp.toString("ascii", 0, 4), "RIFF");
+  assert.equal(webp.toString("ascii", 8, 12), "WEBP");
+  assert.equal(webp.toString("ascii", 12, 16), "VP8X");
+  assert.ok(webp[20] & 0x10, "Extended WebP must retain the alpha channel");
+  assert.equal(webp.readUIntLE(24, 3) + 1, 1000);
+  assert.equal(webp.readUIntLE(27, 3) + 1, 1000);
+  assert.ok(webp.byteLength < 200_000, "Single portrait cutout must stay within the asset budget");
+  assert.ok(webp.includes(Buffer.from("ALPH")), "Lossy image needs its lossless alpha chunk");
+});

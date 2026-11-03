@@ -15,15 +15,17 @@
 .portrait-instrument-header { position: absolute; z-index: 6; inset: 0 0 auto; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #adb4a8; background: #050505; font: 8px/1.4 var(--mono); letter-spacing: .06em; }
 .portrait-state { display: flex; align-items: center; gap: 7px; color: #d8ff4f; }
 .portrait-state i { width: 4px; height: 4px; background: currentColor; }
-.portrait-rear-type { position: absolute; z-index: 1; top: 8%; left: 0; right: 0; color: #ff5f38; font-size: 24cqi; font-weight: 750; letter-spacing: -.04em; line-height: .84; text-align: center; pointer-events: none; transform: translate3d(var(--portrait-depth-rearX,0px),var(--portrait-depth-rearY,0px),-55px); transform-origin: center; }
+.portrait-rear-type { position: absolute; z-index: 1; top: 28%; left: 0; right: 0; color: #ff5f38; font-size: 24cqi; font-weight: 750; letter-spacing: -.04em; line-height: .84; text-align: center; pointer-events: none; transform: translate3d(var(--portrait-depth-rearX,0px),var(--portrait-depth-rearY,0px),-55px); transform-origin: center; }
 .portrait-rear-type > span { display: block; margin-top: 18px; font: 8px/1.4 var(--mono); letter-spacing: .16em; color: #b3b6ae; }
 .portrait-photo-anchor { position: absolute; left: 8%; right: 8%; top: 17%; aspect-ratio: 1 / 1.08; }
-.portrait-instrument-stage { position: absolute; z-index: 2; inset: 0; overflow: hidden; isolation: isolate; background: #141817; transform-origin: center; transform: translate3d(var(--portrait-depth-x,0px),var(--portrait-depth-y,0px),0) scale(var(--portrait-depth-scale,1)); }
-.raster-portrait { position: absolute; inset: 0; overflow: hidden; --raster-progress: 0; background: #141817; }
+.portrait-instrument-stage { position: absolute; z-index: 2; inset: 0; overflow: hidden; isolation: isolate; background: transparent; transform-origin: center; transform: translate3d(var(--portrait-depth-x,0px),var(--portrait-depth-y,0px),0) scale(var(--portrait-depth-scale,1)); }
+.raster-portrait { position: absolute; inset: 0; overflow: hidden; --raster-progress: 0; background: transparent; mask-image: linear-gradient(#000 0%,#000 88%,transparent 100%); }
 .raster-portrait > img, .raster-portrait > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 32%; }
+.raster-portrait.is-assembling > img { opacity: 0; }
+.raster-portrait.is-resolved > img { opacity: 1; }
 .raster-portrait > canvas { z-index: 2; transition: opacity 320ms ease; }
 .raster-portrait.is-resolved > canvas { opacity: 0; visibility: hidden; transition: opacity 320ms ease, visibility 0s 350ms; }
-.raster-portrait::after { content: ""; position: absolute; z-index: 3; inset: 0; pointer-events: none; background: linear-gradient(180deg,transparent 65%,rgba(5,5,5,.65)); }
+.portrait-instrument.is-system .portrait-instrument-stage { background: #050505; }
 .portrait-nameplate { position: absolute; z-index: 5; left: -4%; right: -4%; top: 0; transform-origin: center top; transform: translate3d(var(--portrait-depth-frontX,0px),var(--portrait-depth-frontY,380px),40px) rotateY(var(--portrait-depth-frontAngle,0deg)); pointer-events: none; }
 .portrait-nameplate strong { display: block; color: #f5f5ef; letter-spacing: -.04em; font-weight: 700; text-shadow: 0 2px 16px #050505; }
 .portrait-name-first { display: block; font-size: clamp(24px,5.8cqi,38px); line-height: 1; margin-left: 5px; }
@@ -52,7 +54,7 @@
   .cinematic-continuation .identity-section .identity-kernel-frame { min-height: 620px; aspect-ratio: 3/5.1; }
   .portrait-instrument-header { font-size: 7px; gap: 6px; }
   .portrait-instrument-header > span:first-child { max-width: 130px; }
-  .portrait-rear-type { top: 10%; font-size: 24cqi; }
+  .portrait-rear-type { top: 30%; font-size: 24cqi; }
   .portrait-rear-type > span { font-size: 6px; margin-top: 10px; letter-spacing: .1em; }
   .portrait-photo-anchor { top: 22%; left: 6%; right: 6%; }
   .portrait-nameplate { transform: translate3d(var(--portrait-depth-frontX,0px),var(--portrait-depth-frontY,260px),0); }

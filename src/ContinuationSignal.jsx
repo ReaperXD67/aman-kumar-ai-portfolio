@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { captureClipPath } from "./cinematic-motion.js";
 import { createSignalSeeds, dampSignalCoordinate, readSignalCamera, signalCurrentFragment, signalCurrentVertex } from "./signal-current.js";
-import { createPortraitColours, portraitCoverCrop } from "./portrait-colours.js";
+import { createPortraitBirths, createPortraitColours, createPortraitContour, portraitContourRows, portraitCoverCrop } from "./portrait-colours.js";
 
 /** A single GPU current follows the reading route. Native content is protected
  * immediately; only the decorative camera and current settle behind scrolling. */
@@ -16,7 +16,8 @@ export function ContinuationSignal({ motion }) {
     let narrow, signature = "", coordinate = null, sourcePresence = null, lastTimestamp = 0, activeTime = 0;
     let protectedScene = null, cameraCoordinate = null, cameraAspect = null, cameraReduced = null, pose;
     let diagnosticAt = -Infinity, diagnosticState = "", opacity = null;
-    let seedValues, palette = null, sampleCanvas, sampler, failedPaletteKey = "";
+    let seedValues, birthValues, palette = null, sampleCanvas, sampler, failedPaletteKey = "", systemView = false;
+    const sampleSize = 128;
     const owner = canvas.closest(".cinematic-continuation");
     const watchedImages = new Set();
     const target = new THREE.Vector3();
@@ -29,15 +30,35 @@ export function ContinuationSignal({ motion }) {
       uSource: { value: new THREE.Vector4() }, uReceiver: { value: new THREE.Vector4() },
       uPortrait: { value: new THREE.Vector4() }, uContact: { value: new THREE.Vector4() },
       uPeel: { value: new THREE.Vector2() }, uScroll: { value: 0 },
+      uSilhouette: { value: 0 }, uPortraitRight: { value: new Float32Array(portraitContourRows).fill(1) },
     };
 
+    const applyContourMode = () => {
+      uniforms.uSilhouette.value = !systemView && palette?.kind === "portrait" && palette?.contour?.enabled ? 1 : 0;
+      canvas.dataset.continuationContour = uniforms.uSilhouette.value ? `alpha-${portraitContourRows}` : "rectangle";
+    };
     const applyPalette = () => {
+      applyContourMode();
       if (!geometry || !seedValues) return;
-      const colours = createPortraitColours(seedValues, palette?.pixels, palette ? 64 : 0, palette ? 64 : 0);
+      const colours = createPortraitColours(seedValues, palette?.pixels, palette ? sampleSize : 0, palette ? sampleSize : 0, palette?.contour);
       const attribute = geometry.getAttribute("aPortraitColor");
       if (attribute?.array.length === colours.length) {
         attribute.array.set(colours); attribute.needsUpdate = true;
       } else geometry.setAttribute("aPortraitColor", new THREE.BufferAttribute(colours, 3));
+      birthValues = createPortraitBirths(seedValues, palette?.contour);
+      const birthAttribute = geometry.getAttribute("aPortraitBirth");
+      if (birthAttribute?.array.length === birthValues.length) {
+        birthAttribute.array.set(birthValues); birthAttribute.needsUpdate = true;
+      } else geometry.setAttribute("aPortraitBirth", new THREE.BufferAttribute(birthValues, 2));
+      uniforms.uPortraitRight.value.set(palette?.contour?.right || new Float32Array(portraitContourRows).fill(1));
+      let minU = 1, maxU = 0;
+      for (let index = 0; index < birthValues.length; index += 2) {
+        minU = Math.min(minU, birthValues[index]); maxU = Math.max(maxU, birthValues[index]);
+      }
+      canvas.dataset.continuationBirthSpan = [minU, maxU].map(value => value.toFixed(4)).join(",");
+      canvas.dataset.continuationBirthUv = Array.from(birthValues.subarray(0, 2), value => value.toFixed(4)).join(",");
+      canvas.dataset.continuationBirthColour = Array.from(colours.subarray(0, 3), value => value.toFixed(4)).join(",");
+      canvas.dataset.continuationAlphaCoverage = palette?.contour?.enabled ? palette.contour.coverage.toFixed(4) : "opaque-fallback";
       canvas.dataset.continuationPalette = palette?.kind || "fallback";
     };
     const imageLoaded = () => {
@@ -47,6 +68,8 @@ export function ContinuationSignal({ motion }) {
       invalidate();
     };
     const refreshPalette = () => {
+      systemView = Boolean(owner?.querySelector(".portrait-instrument.is-system"));
+      applyContourMode();
       const full = owner?.querySelector(".raster-portrait > img");
       const thumbnail = document.querySelector(".portrait-signature-image img");
       const candidates = [full, thumbnail].filter(Boolean);
@@ -64,7 +87,7 @@ export function ContinuationSignal({ motion }) {
       const frameKey = `${Math.round(frameWidth)}/${Math.round(frameHeight)}`;
       const ready = image => image?.complete && image.naturalWidth > 0 && image.naturalHeight > 0;
       // Retain the full-photo palette when System temporarily removes its IMG.
-      if (!ready(full) && palette?.kind === "portrait" && palette.frameKey === frameKey) return;
+      if (!ready(full) && palette?.kind === "portrait" && palette.frameKey === frameKey && (!full || full.src === palette.src)) return;
       const image = ready(full) ? full : ready(thumbnail) ? thumbnail : null;
       if (!image) return;
       const kind = image === full ? "portrait" : "portrait-thumbnail";
@@ -74,15 +97,17 @@ export function ContinuationSignal({ motion }) {
       if (!crop) return;
       try {
         if (!sampleCanvas) {
-          sampleCanvas = document.createElement("canvas"); sampleCanvas.width = 64; sampleCanvas.height = 64;
+          sampleCanvas = document.createElement("canvas"); sampleCanvas.width = sampleSize; sampleCanvas.height = sampleSize;
           sampler = sampleCanvas.getContext("2d", { willReadFrequently: true });
         }
         if (!sampler) { failedPaletteKey = key; return; }
         // Read only the already-decoded source image. No texture, fetch, decode
         // request, assembly pixels, editorial overlay or per-frame readback.
-        sampler.clearRect(0, 0, 64, 64);
-        sampler.drawImage(image, ...crop, 0, 0, 64, 64);
-        palette = { key, kind, frameKey, pixels: sampler.getImageData(0, 0, 64, 64).data };
+        sampler.clearRect(0, 0, sampleSize, sampleSize);
+        sampler.drawImage(image, ...crop, 0, 0, sampleSize, sampleSize);
+        const pixels = sampler.getImageData(0, 0, sampleSize, sampleSize).data;
+        const contour = createPortraitContour(pixels, sampleSize, sampleSize);
+        palette = { key, kind, frameKey, src: image.src, pixels, contour };
         failedPaletteKey = "";
         applyPalette();
       } catch {
@@ -220,6 +245,7 @@ export function ContinuationSignal({ motion }) {
           continuationTime: activeTime.toFixed(3), continuationSource: [source.x, source.y].map(value => value.toFixed(2)).join(","),
           continuationReceiver: [receiver.x, receiver.y].map(value => value.toFixed(2)).join(","), continuationSourceReady: String(source.ready),
           continuationSourceVisibility: sourcePresence.toFixed(3), continuationRectcount: String(uniforms.uRectCount.value), continuationMotion: state,
+          continuationSilhouetteSource: [source.x + (uniforms.uSilhouette.value ? (birthValues?.[0] - 1) * (portrait[2] - portrait[0]) + 1 : 0), source.y].map(value => value.toFixed(2)).join(","),
         };
         for (const [key, value] of Object.entries(data)) if (canvas.dataset[key] !== value) canvas.dataset[key] = value;
         diagnosticAt = timestamp; diagnosticState = stateKey;

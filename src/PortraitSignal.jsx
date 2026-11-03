@@ -3,7 +3,8 @@ import { ArrowCounterClockwise, ArrowUpRight, Cpu, User } from "@phosphor-icons/
 import { useReducedMotion } from "./useMotionPreference.js";
 import "./portrait-signal.css";
 
-const PORTRAIT = "/profile/aman-portrait.webp?v=20261027";
+const PORTRAIT = "/profile/aman-silhouette-v1.webp";
+const PORTRAIT_FALLBACK = "/profile/aman-portrait.webp?v=20261027";
 const Kernel = lazy(() => import("./IdentityKernel.jsx").then((module) => ({ default: module.IdentityKernel })));
 const clamp = (value) => Math.min(1, Math.max(0, value));
 const noise = (index) => ((index * 7919 + 104729) % 65521) / 65521;
@@ -14,13 +15,14 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
   const [complete, setComplete] = useState(Boolean(reducedMotion));
+  const [fallback, setFallback] = useState(false);
 
   useEffect(() => {
     const frame = frameRef.current;
     const canvas = canvasRef.current;
     const photo = imageRef.current;
     if (!frame || !canvas || !photo) return undefined;
-    const context = canvas.getContext("2d", { alpha: false });
+    const context = canvas.getContext("2d", { alpha: true });
     let disposed = false;
     let raf = 0;
     let visible = false;
@@ -59,6 +61,7 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
         const sw = width / scale;
         const sh = height / scale;
         crop = [(photo.naturalWidth - sw) / 2, (photo.naturalHeight - sh) * 0.32, sw, sh];
+        sampler.clearRect(0, 0, cols, rows);
         sampler.drawImage(photo, ...crop, 0, 0, cols, rows);
         pixels = sampler.getImageData(0, 0, cols, rows).data;
       }
@@ -68,29 +71,26 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
     const draw = (progress) => {
       if (!width || !height || !pixels) return;
       context.globalAlpha = 1;
-      context.fillStyle = "#080b0b";
-      context.fillRect(0, 0, width, height);
+      context.clearRect(0, 0, width, height);
       const cw = width / cols;
       const ch = height / rows;
       const [sx, sy, sw, sh] = crop;
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
           const index = row * cols + col;
+          const pixel = index * 4;
+          const alpha = pixels[pixel + 3] / 255;
+          if (alpha < .03) continue;
           const n = noise(index);
           const phase = clamp((progress - row / rows * 0.52 - n * 0.13) / 0.31);
           const x = col * cw;
           const y = row * ch;
-          if (!phase) {
-            context.fillStyle = n > 0.94 ? "#374128" : "#101616";
-            context.fillRect(x + cw / 2, y + ch / 2, 1, 1);
-            continue;
-          }
+          if (!phase) continue;
           const settle = 1 - Math.pow(1 - phase, 3);
           const dx = x + (n - 0.5) * width * 0.55 * (1 - settle);
           const dy = y - (1 - settle) * height * (0.14 + n * 0.23);
           const size = 0.15 + 0.85 * settle;
-          const pixel = index * 4;
-          context.globalAlpha = Math.min(1, phase * 2.5);
+          context.globalAlpha = Math.min(1, phase * 2.5) * alpha;
           context.fillStyle = `rgb(${pixels[pixel]} ${pixels[pixel + 1]} ${pixels[pixel + 2]})`;
           context.fillRect(dx, dy, cw * size + 0.5, ch * size + 0.5);
           if (phase > 0.35) {
@@ -101,8 +101,10 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
         }
       }
       context.globalAlpha = Math.sin(clamp(progress / 0.87) * Math.PI) * 0.65;
+      context.globalCompositeOperation = "source-atop";
       context.fillStyle = "#d8ff4f";
       context.fillRect(0, height * clamp((progress - 0.05) / 0.73), width, 1);
+      context.globalCompositeOperation = "source-over";
       context.globalAlpha = 1;
       frame.style.setProperty("--raster-progress", clamp(progress).toFixed(3));
     };
@@ -136,13 +138,12 @@ function RasterPortrait({ reducedMotion, replay, onComplete }) {
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", start);
     };
-  }, [reducedMotion, replay, onComplete]);
+  }, [reducedMotion, replay, onComplete, fallback]);
 
   return (
-    <div className={`raster-portrait ${complete ? "is-resolved" : "is-assembling"}`} ref={frameRef}>
-      <img ref={imageRef} src={PORTRAIT} alt="Aman Kumar, AI Engineer and Full-Stack Developer" width="1000" height="1000" loading="lazy" decoding="async" />
+    <div className={`raster-portrait ${complete ? "is-resolved" : "is-assembling"}${fallback ? " is-fallback" : ""}`} ref={frameRef}>
+      <img ref={imageRef} src={fallback ? PORTRAIT_FALLBACK : PORTRAIT} onError={() => { if (!fallback) setFallback(true); }} alt="Aman Kumar, AI Engineer and Full-Stack Developer" width="1000" height="1000" loading="lazy" decoding="async" />
       <canvas ref={canvasRef} aria-hidden="true" />
-      <span className="portrait-current-seam" aria-hidden="true" />
     </div>
   );
 }
@@ -161,7 +162,7 @@ export function PortraitSignal() {
         <span>THE PERSON BEHIND THE SYSTEMS</span>
         <span className="portrait-state" role="status"><i />{view === "system" ? "SYSTEM VIEW" : resolved ? "AMAN / ONLINE" : "RESOLVING IDENTITY"}</span>
       </header>
-      <div className="portrait-rear-type" aria-hidden="true">{view === "person" ? "HUMAN" : "SYSTEM"}<span>INTELLIGENCE HAS A HUMAN SIDE.</span></div>
+      <div className="portrait-rear-type" aria-hidden="true">{view === "person" ? "HUMAN" : "SYSTEM"}</div>
       <div className="portrait-photo-anchor">
         <div className="portrait-instrument-stage" id="identity-view" role="region" aria-label={view === "person" ? "Meet Aman Kumar" : "Interactive systems kernel"}>
         {view === "person" ? <RasterPortrait reducedMotion={reducedMotion} replay={replay} onComplete={completeRef.current} /> : (

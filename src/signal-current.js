@@ -1,4 +1,5 @@
 // Original analytical particle current: immutable seeds, shader-only travel and morphs.
+import { portraitContourRows } from "./portrait-colours.js";
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 const coordinateOf = value => Number.isFinite(value) ? clamp(value, 0, 4) : 0;
 
@@ -46,10 +47,23 @@ export function dampSignalCoordinate(current, target, dt) {
   return Math.abs(to - next) <= .00001 ? to : next;
 }
 
+const silhouetteShader = /* glsl */ `
+uniform float uSilhouette;
+uniform float uPortraitRight[${portraitContourRows}];
+float portraitRightAt(float screenY) {
+  float row = clamp((screenY - uPortrait.y) / max(uPortrait.w - uPortrait.y, 1.0), 0.0, 1.0) * ${portraitContourRows - 1}.0;
+  int low = int(floor(row));
+  int high = min(low + 1, ${portraitContourRows - 1});
+  float edge = mix(uPortraitRight[low], uPortraitRight[high], fract(row));
+  return mix(uPortrait.z, mix(uPortrait.x, uPortrait.z, edge), uSilhouette);
+}
+`;
+
 export const signalCurrentVertex = /* glsl */ `
 precision highp float;
 attribute vec4 aSeed;
 attribute vec3 aPortraitColor;
+attribute vec2 aPortraitBirth;
 uniform float uCoordinate;
 uniform float uTime;
 uniform float uScroll;
@@ -68,7 +82,18 @@ varying vec3 vColor;
 varying float vAlpha;
 varying float vAngle;
 varying float vSoftness;
+varying vec2 vBirth;
 const float TAU = 6.28318530718;
+${silhouetteShader}
+
+vec2 birthPoint() {
+  float height = max(uPeel.y - uPeel.x, 0.0);
+  float edge = mix(1.0, aPortraitBirth.x, uSilhouette);
+  // uSource retains its bounded rectangle registration. The static UV adds
+  // the actual silhouette offset, then releases just outside its native alpha.
+  return vec2(uSource.x + (edge - 1.0) * (uPortrait.z - uPortrait.x) + uSilhouette,
+    uPeel.x + aPortraitBirth.y * height);
+}
 
 vec3 anchorInView(vec2 css) {
   vec2 ndc = vec2(css.x / uViewport.x * 2.0 - 1.0, 1.0 - css.y / uViewport.y * 2.0);
@@ -81,9 +106,7 @@ vec3 currentPath(float t, float coordinate, float time, float lane, float depth,
   float peelHeight = max(uPeel.y - uPeel.x, 0.0);
   // The center inherits the native port's offscreen bound; otherwise a long
   // record section could pull the whole fan thousands of pixels out of view.
-  float peelY = uSource.y + (.01 + lane * .18) * peelHeight;
-  if (aSeed.x == 0.0 && aSeed.w < .5) peelY = uSource.y;
-  vec3 source = anchorInView(vec2(uSource.x, peelY));
+  vec3 source = anchorInView(birthPoint());
   vec3 receiver = anchorInView(uReceiver.xy);
   float phone = 1.0 - smoothstep(.65, 1.4, uAspect);
   float side = uSource.z < 0.0 ? -1.0 : 1.0;
@@ -137,7 +160,7 @@ vec3 currentPath(float t, float coordinate, float time, float lane, float depth,
   float release = 1.0 - smoothstep(uPortrait.w + 10.0, uPortrait.w + 70.0, css.y);
   float endpointFree = smoothstep(.005, .03, t) * (1.0 - smoothstep(.94, .995, t));
   float gutterRight = uViewport.x - 6.0;
-  float gutterLeft = min(uPortrait.z + 3.0, gutterRight);
+  float gutterLeft = min(portraitRightAt(css.y) + 3.0, gutterRight);
   float boundedX = clamp(css.x, gutterLeft, gutterRight);
   css.x = mix(css.x, boundedX, phone * sourceRegion * release * endpointFree);
   spine.x = (css.x / uViewport.x * 2.0 - 1.0) * viewDepth / projectionMatrix[0][0];
@@ -177,6 +200,7 @@ void main() {
   }
   // Preserve two exact registration seeds while the rest continuously peel.
   if (aSeed.x == 0.0) { t = aSeed.w < .5 ? 0.0 : 1.0; lifetime = 1.0; }
+  vBirth = birthPoint();
   vec3 derivative;
   vec4 view = vec4(currentPath(t, coordinate, time, lane, depth, derivative), 1.0);
   vec4 clip = projectionMatrix * view;
@@ -205,10 +229,13 @@ void main() {
     vAlpha *= smoothstep(6.0, feather, rectDistance(screen, uRects[index]));
   }
   float peelHeight = max(uPeel.y - uPeel.x, 0.0);
-  vec2 edgePoint = vec2(uSource.x, clamp(screen.y, uSource.y - peelHeight * .17, uSource.y + peelHeight * .19));
+  float edgeY = clamp(screen.y, uSource.y - peelHeight * .17, uSource.y + peelHeight * .19);
+  vec2 edgePoint = vec2(portraitRightAt(edgeY), edgeY);
   float sourcePort = (1.0 - smoothstep(3.0, 30.0, distance(screen, edgePoint))) * uSource.w;
   float targetPort = (1.0 - smoothstep(5.0, 34.0, distance(screen, uReceiver.xy))) * uReceiver.w;
-  vAlpha *= mix(smoothstep(6.0, feather, rectDistance(screen, uPortrait)), 1.0, sourcePort);
+  float portraitDistance = rectDistance(screen, uPortrait);
+  if (uSilhouette > .5 && screen.y >= uPortrait.y && screen.y <= uPortrait.w) portraitDistance = screen.x - portraitRightAt(screen.y);
+  vAlpha *= mix(smoothstep(6.0, feather, portraitDistance), 1.0, sourcePort);
   vAlpha *= mix(smoothstep(6.0, feather, rectDistance(screen, uContact)), 1.0, targetPort);
   vAlpha *= step(.01, clip.w) * smoothstep(0.0, 1.0, uSource.w) * step(.5, uReceiver.w);
 }
@@ -224,6 +251,8 @@ varying vec3 vColor;
 varying float vAlpha;
 varying float vAngle;
 varying float vSoftness;
+varying vec2 vBirth;
+${silhouetteShader}
 bool inside(vec2 point, vec4 rectangle) {
   return rectangle.z > rectangle.x && rectangle.w > rectangle.y &&
     point.x >= rectangle.x && point.x <= rectangle.z &&
@@ -232,8 +261,16 @@ bool inside(vec2 point, vec4 rectangle) {
 void main() {
   vec2 screen = gl_FragCoord.xy / max(uPixelRatio, .1);
   screen.y = uViewport.y - screen.y;
-  // Per-pixel protection remains exact even where a soft sprite touches a port.
-  if (inside(screen, uPortrait) || inside(screen, uContact)) discard;
+  if (inside(screen, uContact)) discard;
+  if (inside(screen, uPortrait)) {
+    if (uSilhouette < .5) discard;
+    // The native alpha image is the exact foreground mask. This coarse guard
+    // also shields its interior. A small birth corridor avoids severing roots
+    // where a 32-row outline undersamples a curved shoulder; the image itself
+    // still occludes every occupied face/body pixel through compositor scroll.
+    bool birthCorridor = distance(screen, vBirth) < 14.0 && screen.x >= vBirth.x - .5;
+    if (screen.x <= portraitRightAt(screen.y) && !birthCorridor) discard;
+  }
   vec2 point = gl_PointCoord - .5;
   float c = cos(vAngle), s = sin(vAngle);
   vec2 aligned = mat2(c, -s, s, c) * point;
