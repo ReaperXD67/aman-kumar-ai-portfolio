@@ -101,7 +101,7 @@ export function createPortraitColours(seeds, pixels, width, height, contour = nu
       // on the black stage, not a different tint or additive white bloom. A
       // single bounded gain preserves every nonzero channel ratio and leaves
       // already-bright kurta highlights unchanged.
-      const gain = Math.max(1, Math.min(8, .62 / Math.max(r, g, b, .001)));
+      const gain = Math.max(1, Math.min(12, .86 / Math.max(r, g, b, .001)));
       r *= gain; g *= gain; b *= gain;
     }
     colours.set([r, g, b], index * 3);

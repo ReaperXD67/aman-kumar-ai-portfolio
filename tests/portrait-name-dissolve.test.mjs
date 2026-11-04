@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { portraitNameDissolve, sharedNameRelease, projectNamePoint, createNameOrigins } from "../src/portrait-name-dissolve.js";
-import { createSignalSeeds } from "../src/signal-current.js";
+import { createSignalSeeds, signalCurrentCohorts } from "../src/signal-current.js";
 import { portraitDepthPose } from "../src/portrait-depth.js";
 
 const close = (actual, expected, tolerance = 1e-7) => assert(Math.abs(actual - expected) <= tolerance, `${actual} ≈ ${expected}`);
@@ -111,11 +111,11 @@ test("static glyph origins preserve sampled ink and distribute both rows within 
       const row = origins[index * 3 + 2];
       assert.equal(row, index % 2);
       assert(samples[row].some(point => Math.abs(point.u - origins[index * 3]) < 1e-6 && Math.abs(point.v - origins[index * 3 + 1]) < 1e-6));
-      if (seeds[index * 4 + 3] >= .14 && seeds[index * 4 + 3] < .5) {
+      if (seeds[index * 4 + 3] >= signalCurrentCohorts.source && seeds[index * 4 + 3] < signalCurrentCohorts.source + signalCurrentCohorts.name) {
         rows[row]++; covered[row].add(origins[index * 3]);
       }
     }
-    assert(rows.every(amount => amount > count * .15 && amount < count * .21));
+    assert(rows.every(amount => amount > count * .21 && amount < count * .27), "each name receives roughly a quarter of the unchanged total budget");
     covered.forEach((points, row) => assert.equal(points.size, samples[row].length));
   }
   assert.equal(createNameOrigins(null, samples).length, 0);

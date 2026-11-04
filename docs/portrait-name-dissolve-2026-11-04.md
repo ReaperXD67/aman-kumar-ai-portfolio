@@ -2,6 +2,8 @@
 
 Aman requested that the moving AMAN and KUMAR lettering dissolve into portrait-coloured particles, then gather into contact as one fluid scroll transition. The existing composition, clear face, mobile reading route and authorized GitHub workflow remain the constraints. This extends the [name-motion refinement](portrait-name-motion-2026-11-04.md).
 
+This record describes the original dissolve release. The subsequent [particle-presence refinement](portrait-current-presence-2026-11-04.md) updates its density, exposure, swirl and contact coil, with separate validation.
+
 ## Source comparison
 
 Sources were inspected on 4 November 2026. No upstream implementation was copied and no dependency was added.

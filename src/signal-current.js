@@ -5,7 +5,7 @@ const coordinateOf = value => Number.isFinite(value) ? clamp(value, 0, 4) : 0;
 
 // Redistribute the existing budget toward the two physical handoffs. No extra
 // geometry, draw call, texture or per-frame buffer upload is needed.
-export const signalCurrentCohorts = Object.freeze({ source: .14, receiver: .10 });
+export const signalCurrentCohorts = Object.freeze({ source: .14, receiver: .10, name: .48 });
 
 export function createSignalSeeds(count) {
   const size = Number.isFinite(count) ? clamp(Math.floor(count), 0, 65536) : 0;
@@ -156,12 +156,12 @@ vec3 currentPath(float t, float coordinate, float time, float lane, float depth,
   float coilPosition = clamp((t - .60) / .40, 0.0, 1.0);
   float coil = 16.0 * coilPosition * coilPosition * pow(1.0 - coilPosition, 2.0);
   float coilDerivative = 32.0 * coilPosition * (1.0 - coilPosition) * (1.0 - 2.0 * coilPosition) / .40;
-  float coilWidth = mix(.28, .16, phone);
+  float coilWidth = mix(.50, .22, phone);
   float filament = lane * (width * envelope + coilWidth * coil);
   float filamentDerivative = lane * (widthDerivative * envelope + width * envelopeDerivative + coilWidth * coilDerivative);
   float frequency = 3.4 + coordinate * .22;
-  float helix = t * frequency + lane * 2.2 + time * .035 + gather * 3.6;
-  float helixDerivative = frequency + gatherDerivative * 3.6;
+  float helix = t * frequency + lane * 2.2 + time * .08 + gather * 6.3;
+  float helixDerivative = frequency + gatherDerivative * 6.3;
   float c = cos(helix), s = sin(helix);
   spine += vec3(filament * c, filament * s, depth * .42 * envelope);
   tangent += vec3(filamentDerivative * c - filament * s * helixDerivative,
@@ -223,9 +223,9 @@ void main() {
   }
   // Preserve two exact registration seeds while the rest continuously peel.
   if (aSeed.x == 0.0) { t = aSeed.w < .5 ? 0.0 : 1.0; lifetime = 1.0; }
-  // Borrow 36% from the travelling cohort; the contour roots and receiver
+  // Borrow 48% from the travelling cohort; the contour roots and receiver
   // remain intact. These are actual glyph pixels, not an unrelated emitter.
-  float name = uTypeEnabled * step(.14,aSeed.w) * (1.0 - step(.50,aSeed.w));
+  float name = uTypeEnabled * step(${signalCurrentCohorts.source},aSeed.w) * (1.0 - step(${signalCurrentCohorts.source + signalCurrentCohorts.name},aSeed.w));
   float release = 0.0;
   if (name > .5) {
     float row = aTypeOrigin.z;
@@ -233,7 +233,9 @@ void main() {
     float edge = mix(aTypeOrigin.x,1.0-aTypeOrigin.x,row);
     release = clamp((phase - (.04 + .60 * clamp(edge,0.0,1.0) + .025 * aSeed.z)) / .335,0.0,1.0);
     float gather = smoothstep(1.15,4.0,uScroll);
-    t = mix(release * (.15 + .45 * aSeed.x), .995,gather);
+    // Keep the gathered letters distributed around the receiver coil. Exact
+    // arrivals still belong to the dedicated moving receiver cohort/sentinel.
+    t = mix(release * (.15 + .45 * aSeed.x), .74 + .255 * aSeed.x,gather);
     lifetime = smoothstep(0.0,.06,release);
   }
   vBirth = birthPoint();
@@ -254,6 +256,19 @@ void main() {
     float q = 1.0 - join;
     vec3 handoffTangent = 3.0*q*q*(first-origin) + 6.0*q*join*(second-first) + 3.0*join*join*(view.xyz-second);
     view.xyz = q*q*q*origin + 3.0*q*q*join*first + 3.0*q*join*join*second + join*join*join*view.xyz;
+    // A full spatial turn grows out of the letter and settles into the current.
+    // The envelope and derivative vanish at both ends, preserving registration
+    // and avoiding a kink when native scrolling reverses the handoff.
+    float envelope = 16.0 * join * join * q * q;
+    float envelopeDerivative = 32.0 * join * q * (1.0 - 2.0 * join);
+    float radius = mix(.58,.18,1.0 - smoothstep(.65,1.4,uAspect));
+    float turn = TAU * 1.15;
+    float angle = join * turn + fiber * .9 + time * .12;
+    float c = cos(angle), s = sin(angle);
+    vec3 orbit = vec3(side * (.35 + c),s * .8,c * .7);
+    vec3 orbitDerivative = vec3(-side * s,c * .8,-s * .7) * turn;
+    view.xyz += orbit * radius * envelope;
+    handoffTangent += radius * (orbit * envelopeDerivative + orbitDerivative * envelope);
     derivative = mix(handoffTangent,derivative,smoothstep(.8,1.0,join));
   }
   vec4 clip = projectionMatrix * view;
@@ -267,13 +282,13 @@ void main() {
   vAngle = atan(tangent.y, tangent.x);
   float distanceToFocus = abs(view.z + 9.0);
   vSoftness = smoothstep(.45, 2.6, distanceToFocus) * .16;
-  float pointSize = mix(4.4, 7.2, aSeed.z) * mix(1.0,.88,name * (1.0-release)) * (9.0 / max(-view.z, 3.0));
+  float pointSize = mix(5.2, 8.4, aSeed.z) * mix(1.0,.92,name * (1.0-release)) * (9.0 / max(-view.z, 3.0));
   gl_PointSize = clamp(pointSize * uPixelRatio * (1.0 + vSoftness), 1.0, 9.0 * uPixelRatio);
 
   float packet = pow(.5 + .5 * sin(TAU * (t - travel * 1.7 + lane * .09)), 8.0);
   // Birth colour is sampled from the real image and retained to contact.
   vColor = aPortraitColor * mix(.94, 1.0, packet);
-  vAlpha = mix(mix(.58 + packet * .22, .74, root),.94,name) * lifetime * (1.0 - vSoftness * .3);
+  vAlpha = mix(mix(.64 + packet * .22, .80, root),.98 - .14 * smoothstep(.65,.98,t),name) * lifetime * (1.0 - vSoftness * .3);
   vec2 screen = (clip.xy / max(clip.w, .01) * .5 + .5) * uViewport;
   screen.y = uViewport.y - screen.y;
   float feather = mix(20.0, 30.0, smoothstep(600.0, 1200.0, uViewport.x));
@@ -331,10 +346,10 @@ void main() {
   vec2 point = gl_PointCoord - .5;
   float c = cos(vAngle), s = sin(vAngle);
   vec2 aligned = mat2(c, -s, s, c) * point;
-  float radius = length(aligned * vec2(.8, 3.4));
-  float core = 1.0 - smoothstep(.12, .34, radius);
-  float halo = (1.0 - smoothstep(.24, .49 + vSoftness * .06, radius)) * .12;
-  float alpha = min(1.0, core * .88 + halo) * vAlpha;
+  float radius = length(aligned * vec2(.8, 2.3));
+  float core = 1.0 - smoothstep(.14, .39, radius);
+  float halo = (1.0 - smoothstep(.28, .49 + vSoftness * .06, radius)) * .16;
+  float alpha = min(1.0, core * .94 + halo) * vAlpha;
   if (alpha < .003) discard;
   gl_FragColor = vec4(vColor, alpha);
 }
