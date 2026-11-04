@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { captureClipPath } from "./cinematic-motion.js";
 import { createSignalSeeds, dampSignalCoordinate, readSignalCamera, signalCurrentFragment, signalCurrentVertex } from "./signal-current.js";
 import { createPortraitBirths, createPortraitColours, createPortraitContour, portraitContourRows, portraitCoverCrop } from "./portrait-colours.js";
+import { createNameOrigins } from "./portrait-name-dissolve.js";
 
 /** A single GPU current follows the reading route. Native content is protected
  * immediately; only the decorative camera and current settle behind scrolling. */
@@ -17,6 +18,7 @@ export function ContinuationSignal({ motion }) {
     let protectedScene = null, cameraCoordinate = null, cameraAspect = null, cameraReduced = null, pose;
     let diagnosticAt = -Infinity, diagnosticState = "", opacity = null;
     let seedValues, birthValues, palette = null, sampleCanvas, sampler, failedPaletteKey = "", systemView = false;
+    let glyphKey = "", glyphSamples = null, glyphGeometry = null;
     const sampleSize = 128;
     const owner = canvas.closest(".cinematic-continuation");
     const watchedImages = new Set();
@@ -31,6 +33,63 @@ export function ContinuationSignal({ motion }) {
       uPortrait: { value: new THREE.Vector4() }, uContact: { value: new THREE.Vector4() },
       uPeel: { value: new THREE.Vector2() }, uScroll: { value: 0 },
       uSilhouette: { value: 0 }, uPortraitRight: { value: new Float32Array(portraitContourRows).fill(1) },
+      uTypeEnabled: { value: 0 }, uTypeProgress: { value: new THREE.Vector2() },
+      uTypeOrigin: { value: new THREE.Vector2() },
+      uTypeFrames: { value: [new THREE.Vector4(), new THREE.Vector4()] },
+      uTypePoses: { value: [new THREE.Vector4(), new THREE.Vector4()] },
+    };
+
+    const restoreNames = () => { if (owner) delete owner.dataset.nameDissolve; uniforms.uTypeEnabled.value = 0; };
+    const updateNames = shot => {
+      const type = shot.type;
+      if (!type?.enabled || !geometry) { restoreNames(); return; }
+      const key = type.rows.map(row => [row.text,row.width,row.height,row.font,row.spacing,row.stroke].join("/")).join("|");
+      if (glyphKey !== key) {
+        glyphKey = key; glyphSamples = null;
+        // Two small CPU masks, sampled only after font/layout changes. No atlas,
+        // image request, GPU texture or per-frame text/pixel readback.
+        const mask = document.createElement("canvas");
+        const context = mask.getContext("2d", { willReadFrequently: true });
+        if (context && "letterSpacing" in context) {
+          glyphSamples = type.rows.map(row => {
+            const padding = Math.ceil(row.fontSize * .18);
+            const scale = Math.min(1, 1024 / (row.width + padding * 2));
+            mask.width = Math.ceil((row.width + padding * 2) * scale);
+            mask.height = Math.ceil((row.height + padding * 2) * scale);
+            context.setTransform(scale,0,0,scale,padding * scale,padding * scale);
+            context.font = row.font; context.letterSpacing = `${row.spacing}px`;
+            context.textBaseline = "alphabetic"; context.fillStyle = "#fff"; context.strokeStyle = "#fff";
+            const metrics = context.measureText(row.text);
+            if (![metrics.fontBoundingBoxAscent, metrics.fontBoundingBoxDescent].every(Number.isFinite)) return [];
+            const baseline = (row.height + metrics.fontBoundingBoxAscent - metrics.fontBoundingBoxDescent) / 2;
+            if (row.stroke > 0) { context.lineWidth = row.stroke; context.strokeText(row.text,0,baseline); }
+            else context.fillText(row.text,0,baseline);
+            const pixels = context.getImageData(0,0,mask.width,mask.height).data;
+            const samples = [];
+            for (let y = 0; y < mask.height; y++) for (let x = 0; x < mask.width; x++) {
+              if (pixels[(y * mask.width + x) * 4 + 3] > 32) samples.push({
+                u: ((x + .5) / scale - padding) / row.width,
+                v: ((y + .5) / scale - padding) / row.height });
+            }
+            return samples;
+          });
+        }
+        glyphGeometry = null;
+      }
+      if (!glyphSamples?.every(samples => samples.length > 0)) { restoreNames(); return; }
+      if (glyphGeometry !== geometry) {
+        geometry.setAttribute("aTypeOrigin", new THREE.BufferAttribute(createNameOrigins(seedValues,glyphSamples),3));
+        glyphGeometry = geometry;
+        canvas.dataset.continuationGlyphSamples = glyphSamples.map(row => row.length).join(",");
+      }
+      type.rows.forEach((row,index) => {
+        uniforms.uTypeFrames.value[index].set(row.left,row.top,row.width,row.height);
+        const prefix = index ? "last" : "first", pose = type.pose;
+        uniforms.uTypePoses.value[index].set(pose[`${prefix}X`],pose[`${prefix}Y`],pose[`${prefix}Z`],pose[`${prefix}Angle`] * Math.PI / 180);
+      });
+      uniforms.uTypeOrigin.value.set(type.parent.left + type.parent.width / 2,type.parent.top + type.parent.height / 2);
+      uniforms.uTypeProgress.value.set(type.dissolve.first,type.dissolve.last);
+      uniforms.uTypeEnabled.value = 1;
     };
 
     const applyContourMode = () => {
@@ -127,6 +186,7 @@ export function ContinuationSignal({ motion }) {
       geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(seeds.positions, 3));
       geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds.seeds, 4));
+      geometry.setAttribute("aTypeOrigin", new THREE.BufferAttribute(new Float32Array(count * 3), 3));
       applyPalette();
       if (points) points.geometry = geometry;
       canvas.dataset.continuationPointcount = String(count);
@@ -135,6 +195,7 @@ export function ContinuationSignal({ motion }) {
       if (renderer || unavailable || disposed) return Boolean(renderer);
       try {
         renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: "default" });
+        renderer.debug.onShaderError = () => { unavailable = true; restoreNames(); canvas.dataset.continuationRenderer = "unavailable"; };
         renderer.setClearColor(0x000000, 0);
         renderer.setPixelRatio(ratio); renderer.setSize(width, height, false);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -180,7 +241,7 @@ export function ContinuationSignal({ motion }) {
     };
     const draw = timestamp => {
       request = 0;
-      if (disposed || lost) return;
+      if (disposed || lost || unavailable) return;
       const current = motion.current;
       // A flowing rAF can precede the director's scroll callback. Refresh its
       // native measurements first so masks never paint a frame behind scrolling.
@@ -191,6 +252,7 @@ export function ContinuationSignal({ motion }) {
       if (!initialize()) return;
       makeGeometry();
       if (!shot.ports) { renderer.clear(); return; }
+      if (shot !== protectedScene || glyphGeometry !== geometry) updateNames(shot);
       const next = Math.max(0, Math.min(4, Number.isFinite(shot.coordinate) ? shot.coordinate : 0));
       const reduced = Boolean(current.reduced), paused = Boolean(current.paused);
       const delta = lastTimestamp ? Math.min(.05, Math.max(0, (timestamp - lastTimestamp) / 1_000)) : 0;
@@ -245,12 +307,14 @@ export function ContinuationSignal({ motion }) {
           continuationTime: activeTime.toFixed(3), continuationSource: [source.x, source.y].map(value => value.toFixed(2)).join(","),
           continuationReceiver: [receiver.x, receiver.y].map(value => value.toFixed(2)).join(","), continuationSourceReady: String(source.ready),
           continuationSourceVisibility: sourcePresence.toFixed(3), continuationRectcount: String(uniforms.uRectCount.value), continuationMotion: state,
+          continuationNameDissolve: `${uniforms.uTypeProgress.value.x.toFixed(3)},${uniforms.uTypeProgress.value.y.toFixed(3)}`,
           continuationSilhouetteSource: [source.x + (uniforms.uSilhouette.value ? (birthValues?.[0] - 1) * (portrait[2] - portrait[0]) + 1 : 0), source.y].map(value => value.toFixed(2)).join(","),
         };
         for (const [key, value] of Object.entries(data)) if (canvas.dataset[key] !== value) canvas.dataset[key] = value;
         diagnosticAt = timestamp; diagnosticState = stateKey;
       }
       renderer.render(scene, camera);
+      if (!unavailable && uniforms.uTypeEnabled.value && owner.dataset.nameDissolve !== "ready") owner.dataset.nameDissolve = "ready";
       // Active flow runs only on screen. Paused motion can finish its camera
       // settle, then releases rAF completely; reduced motion is a single still.
       if (settling || (flowing && completion < 1)) request = requestAnimationFrame(draw);
@@ -270,10 +334,11 @@ export function ContinuationSignal({ motion }) {
     };
     const contextLost = event => {
       event.preventDefault(); lost = true; cancelAnimationFrame(request); request = 0; lastTimestamp = 0;
+      restoreNames();
       canvas.dataset.continuationRenderer = "suspended";
     };
     const contextRestored = () => {
-      lost = false; lastTimestamp = 0;
+      lost = false; lastTimestamp = 0; protectedScene = null;
       canvas.dataset.continuationRenderer = "webgl"; invalidate();
     };
     canvas.addEventListener("webglcontextlost", contextLost);
@@ -286,6 +351,7 @@ export function ContinuationSignal({ motion }) {
     resize();
     return () => {
       disposed = true; cancelAnimationFrame(request); observer.disconnect();
+      restoreNames(); glyphSamples = null;
       for (const image of watchedImages) image.removeEventListener("load", imageLoaded);
       watchedImages.clear(); palette = null; sampleCanvas = null; sampler = null;
       document.removeEventListener("visibilitychange", invalidate);

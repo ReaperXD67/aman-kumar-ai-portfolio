@@ -64,6 +64,7 @@ precision highp float;
 attribute vec4 aSeed;
 attribute vec3 aPortraitColor;
 attribute vec2 aPortraitBirth;
+attribute vec3 aTypeOrigin;
 uniform float uCoordinate;
 uniform float uTime;
 uniform float uScroll;
@@ -78,6 +79,11 @@ uniform vec2 uPeel;
 uniform vec4 uRects[24];
 uniform int uRectCount;
 uniform vec2 uViewport;
+uniform float uTypeEnabled;
+uniform vec2 uTypeProgress;
+uniform vec2 uTypeOrigin;
+uniform vec4 uTypeFrames[2];
+uniform vec4 uTypePoses[2];
 varying vec3 vColor;
 varying float vAlpha;
 varying float vAngle;
@@ -98,6 +104,17 @@ vec2 birthPoint() {
 vec3 anchorInView(vec2 css) {
   vec2 ndc = vec2(css.x / uViewport.x * 2.0 - 1.0, 1.0 - css.y / uViewport.y * 2.0);
   return vec3(ndc.x * 9.0 / projectionMatrix[0][0], ndc.y * 9.0 / projectionMatrix[1][1], -9.0);
+}
+
+vec2 nameBirthPoint() {
+  int row = int(aTypeOrigin.z + .5);
+  vec4 frame = uTypeFrames[row], pose = uTypePoses[row];
+  vec2 local = (aTypeOrigin.xy - .5) * frame.zw;
+  // Same centered rotateY, translation and 1200px rear perspective as CSS.
+  float z = pose.z - sin(pose.w) * local.x;
+  vec2 rotated = vec2(cos(pose.w) * local.x,local.y);
+  vec2 point = frame.xy + frame.zw * .5 + pose.xy + rotated;
+  return uTypeOrigin + (point - uTypeOrigin) * (1200.0 / (1200.0 - z));
 }
 
 vec3 currentPath(float t, float coordinate, float time, float lane, float depth, out vec3 tangent) {
@@ -206,9 +223,39 @@ void main() {
   }
   // Preserve two exact registration seeds while the rest continuously peel.
   if (aSeed.x == 0.0) { t = aSeed.w < .5 ? 0.0 : 1.0; lifetime = 1.0; }
+  // Borrow 36% from the travelling cohort; the contour roots and receiver
+  // remain intact. These are actual glyph pixels, not an unrelated emitter.
+  float name = uTypeEnabled * step(.14,aSeed.w) * (1.0 - step(.50,aSeed.w));
+  float release = 0.0;
+  if (name > .5) {
+    float row = aTypeOrigin.z;
+    float phase = mix(uTypeProgress.x,uTypeProgress.y,row);
+    float edge = mix(aTypeOrigin.x,1.0-aTypeOrigin.x,row);
+    release = clamp((phase - (.04 + .60 * clamp(edge,0.0,1.0) + .025 * aSeed.z)) / .335,0.0,1.0);
+    float gather = smoothstep(1.15,4.0,uScroll);
+    t = mix(release * (.15 + .45 * aSeed.x), .995,gather);
+    lifetime = smoothstep(0.0,.06,release);
+  }
   vBirth = birthPoint();
   vec3 derivative;
   vec4 view = vec4(currentPath(t, coordinate, time, lane, depth, derivative), 1.0);
+  if (name > .5) {
+    vec2 birth = nameBirthPoint();
+    // Outside the portrait passage the cohort is fully inside the shared
+    // spine, so distant native text coordinates cannot drag the current away.
+    float join = smoothstep(0.0,1.0,release);
+    vec3 origin = anchorInView(birth);
+    float side = birth.x < (uPortrait.x + uPortrait.z) * .5 ? -1.0 : 1.0;
+    vec3 first = origin + vec3(side * .65,-.24,-.35);
+    vec3 second = anchorInView(vec2(side < 0.0 ? uPortrait.x - 28.0 : uPortrait.z + 28.0,uPortrait.w + 28.0));
+    second.z -= .35 + aSeed.z * .3;
+    // Curl around the person's outside edge before entering the shared spine;
+    // a straight crossfade would send the left letters invisibly through him.
+    float q = 1.0 - join;
+    vec3 handoffTangent = 3.0*q*q*(first-origin) + 6.0*q*join*(second-first) + 3.0*join*join*(view.xyz-second);
+    view.xyz = q*q*q*origin + 3.0*q*q*join*first + 3.0*q*join*join*second + join*join*join*view.xyz;
+    derivative = mix(handoffTangent,derivative,smoothstep(.8,1.0,join));
+  }
   vec4 clip = projectionMatrix * view;
   gl_Position = clip;
 
@@ -220,13 +267,13 @@ void main() {
   vAngle = atan(tangent.y, tangent.x);
   float distanceToFocus = abs(view.z + 9.0);
   vSoftness = smoothstep(.45, 2.6, distanceToFocus) * .16;
-  float pointSize = mix(4.4, 7.2, aSeed.z) * (9.0 / max(-view.z, 3.0));
+  float pointSize = mix(4.4, 7.2, aSeed.z) * mix(1.0,.88,name * (1.0-release)) * (9.0 / max(-view.z, 3.0));
   gl_PointSize = clamp(pointSize * uPixelRatio * (1.0 + vSoftness), 1.0, 9.0 * uPixelRatio);
 
   float packet = pow(.5 + .5 * sin(TAU * (t - travel * 1.7 + lane * .09)), 8.0);
   // Birth colour is sampled from the real image and retained to contact.
   vColor = aPortraitColor * mix(.94, 1.0, packet);
-  vAlpha = mix(.58 + packet * .22, .74, root) * lifetime * (1.0 - vSoftness * .3);
+  vAlpha = mix(mix(.58 + packet * .22, .74, root),.94,name) * lifetime * (1.0 - vSoftness * .3);
   vec2 screen = (clip.xy / max(clip.w, .01) * .5 + .5) * uViewport;
   screen.y = uViewport.y - screen.y;
   float feather = mix(20.0, 30.0, smoothstep(600.0, 1200.0, uViewport.x));
@@ -240,7 +287,11 @@ void main() {
   float sourcePort = (1.0 - smoothstep(3.0, 30.0, distance(screen, edgePoint))) * uSource.w;
   float targetPort = (1.0 - smoothstep(5.0, 34.0, distance(screen, uReceiver.xy))) * uReceiver.w;
   float portraitDistance = rectDistance(screen, uPortrait);
-  if (uSilhouette > .5 && screen.y >= uPortrait.y && screen.y <= uPortrait.w) portraitDistance = screen.x - portraitRightAt(screen.y);
+  if (uSilhouette > .5 && screen.y >= uPortrait.y && screen.y <= uPortrait.w) {
+    // Protect the interior, not the entire half-plane left of the contour:
+    // glyph grains peeling outside the photo's left edge must remain visible.
+    portraitDistance = max(uPortrait.x - screen.x,screen.x - portraitRightAt(screen.y));
+  }
   vAlpha *= mix(smoothstep(6.0, feather, portraitDistance), 1.0, sourcePort);
   vAlpha *= mix(smoothstep(6.0, feather, rectDistance(screen, uContact)), 1.0, targetPort);
   vAlpha *= step(.01, clip.w) * smoothstep(0.0, 1.0, uSource.w) * step(.5, uReceiver.w);

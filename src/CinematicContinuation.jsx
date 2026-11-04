@@ -4,6 +4,7 @@ import { documentFrame, methodOutputProgress, ownerClipExclusions, readContinuat
 import { smoothRange } from "./cinematic-motion.js";
 import { currentFooterExit, readPortraitCurrentPorts } from "./portrait-current-route.js";
 import { portraitDepthPose, projectPortraitPlane } from "./portrait-depth.js";
+import { portraitNameDissolve } from "./portrait-name-dissolve.js";
 import "./cinematic-continuation.css";
 
 const ContinuationSignal = lazy(() => import("./ContinuationSignal.jsx").then(module => ({ default: module.ContinuationSignal })));
@@ -44,8 +45,10 @@ export function CinematicContinuation({ children, continuation, paused = false }
     let frame = 0, needsMeasure = true, needsSync = true, visible = false, disposed = false;
     let lastWidth = 0, lastHeight = 0;
     let localStops = [], localExclusions = [], localPortrait, localImage, localContact;
+    let localType = null;
     let measuredOrigin = { left: 0, top: 0 };
     let portraitPose = null, poseWidth = 0, poseHeight = 0;
+    let dissolve = { first: 0, last: 0 };
     shared.reduced = Boolean(reducedMotion);
     const box = element => {
       const rect = element.getBoundingClientRect();
@@ -64,6 +67,19 @@ export function CinematicContinuation({ children, continuation, paused = false }
       localPortrait = portrait && box(portrait);
       localImage = image && box(image);
       localContact = contact && box(contact);
+      const rear = node.querySelector(".portrait-rear-type");
+      if (rear) {
+        const parent = box(rear);
+        const rows = [...rear.children].map(element => {
+          const style = getComputedStyle(element);
+          return { left: parent.left + element.offsetLeft, top: parent.top + element.offsetTop,
+            width: element.offsetWidth, height: element.offsetHeight, text: element.textContent,
+            font: `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`,
+            fontSize: parseFloat(style.fontSize), spacing: parseFloat(style.letterSpacing) || 0,
+            stroke: parseFloat(style.webkitTextStrokeWidth) || 0 };
+        });
+        localType = { parent, rows };
+      }
       needsMeasure = false;
     };
     const sync = (notify = true) => {
@@ -105,6 +121,9 @@ export function CinematicContinuation({ children, continuation, paused = false }
         // animated rectangles: the DOM and GPU share the exact same projection.
         if (anchor && (!portraitPose || reducedMotion || !shared.paused || poseWidth !== anchor.width || poseHeight !== anchor.height)) {
           portraitPose = portraitDepthPose(anchor, viewport, Boolean(reducedMotion));
+          // The dissolve starts on the stage's exit, independently of the
+          // viewport-dependent photo depth clock. Freeze it with shared pause.
+          dissolve = portraitNameDissolve(portrait ? (viewport.height * .2 - portrait.top) / Math.min(portrait.height,viewport.height) : 0, Boolean(reducedMotion));
           poseWidth = anchor.width; poseHeight = anchor.height;
           if (portraitPose) {
             for (const [key, value] of Object.entries(portraitPose)) {
@@ -116,13 +135,18 @@ export function CinematicContinuation({ children, continuation, paused = false }
         const image = projectPortraitPlane(anchor, portraitPose);
         const sourceVisible = portrait && portrait.top < viewport.height && portrait.top + portrait.height > 0;
         const sourceReady = !sourceVisible || Boolean(node.querySelector(".raster-portrait.is-resolved,.portrait-instrument.is-system"));
+        const person = !node.querySelector(".portrait-instrument.is-system");
+        for (const key of ["first", "last"]) node.style.setProperty(`--name-${key}-edge`, `${((dissolve[key] - .04) / .60 * 100).toFixed(3)}%`);
+        const type = localType && portraitPose ? { rows: localType.rows.map(row => ({ ...row, ...native(row) })),
+          parent: native(localType.parent), pose: portraitPose, dissolve,
+          enabled: person && sourceReady && !reducedMotion && document.fonts?.status === "loaded" } : null;
         const ports = readPortraitCurrentPorts(image, image, form, viewport, sourceReady);
         const exit = currentFooterExit(y + height, rootBox.bottom + y, document.documentElement.scrollHeight);
         shared.scene = {
           from: project(route.from), to: project(route.to), progress: route.progress,
           coordinate: route.coordinate, viewport,
           act: route.act, phase: route.phase, points: shared.points, accent: shared.accent || "#d8ff4f",
-          exclusions: protectedFrames, hardExclusions, ports, exit,
+          exclusions: protectedFrames, hardExclusions, ports, exit, type,
         };
         const method = stops.find(stop => stop.act === "method");
         const contact = stops.find(stop => stop.act === "contact");
