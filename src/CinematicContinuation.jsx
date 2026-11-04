@@ -108,7 +108,7 @@ export function CinematicContinuation({ children, continuation, paused = false }
           poseWidth = anchor.width; poseHeight = anchor.height;
           if (portraitPose) {
             for (const [key, value] of Object.entries(portraitPose)) {
-              const unit = key === "scale" || key === "progress" ? "" : "px";
+              const unit = key === "scale" || key === "progress" ? "" : key.endsWith("Angle") ? "deg" : "px";
               node.style.setProperty(`--portrait-depth-${key}`, `${value.toFixed(4)}${unit}`);
             }
           }

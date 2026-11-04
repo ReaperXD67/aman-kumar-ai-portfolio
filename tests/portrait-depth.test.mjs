@@ -73,6 +73,26 @@ test("a paused camera pose still registers immediately to native forward and rev
   assert.deepEqual(frozenPose, snapshot, "projection must not mutate the frozen pose");
 });
 
+test("rear name planes cross in opposite directions without moving in front of the photo", () => {
+  for (const viewport of screens) {
+    const base = anchorFor(viewport);
+    const entry = portraitDepthPose({ ...base, top: viewport.height }, viewport);
+    const exit = portraitDepthPose({ ...base, top: -base.height }, viewport);
+    assert(entry.firstX > exit.firstX && entry.lastX < exit.lastX);
+    assert(entry.firstX - exit.firstX > viewport.width * .3, "travel must read at viewport scale");
+    for (let step = 0; step <= 100; step++) {
+      const top = viewport.height - step / 100 * (viewport.height + base.height);
+      const pose = portraitDepthPose({ ...base, top }, viewport);
+      assert(pose.firstX * pose.lastX <= 0);
+      assert(pose.firstZ < 0 && pose.lastZ < 0, "both type planes stay behind the native photo");
+      const next = portraitDepthPose({ ...base, top: top - .01 }, viewport);
+      for (const key of ["firstX", "firstY", "firstZ", "firstAngle", "lastX", "lastY", "lastZ", "lastAngle"]) {
+        assert(Math.abs(next[key] - pose[key]) < .025, `${key} has no section jump`);
+      }
+    }
+  }
+});
+
 test("uniform photo dolly preserves cached normalized cover crop for full image and thumbnail", () => {
   for (const viewport of screens) {
     const anchor = anchorFor(viewport);
@@ -96,7 +116,7 @@ test("reduced motion uses a static photograph and type pose regardless of scroll
       const pose = portraitDepthPose(anchor, viewport, true);
       assert.deepEqual(projectPortraitPlane(anchor, pose), anchor);
       assert.equal(pose.scale, 1);
-      for (const key of ["x", "y", "rearX", "rearY"]) assert.equal(pose[key], 0);
+      for (const key of ["x", "y", "firstX", "firstY", "firstZ", "firstAngle", "lastX", "lastY", "lastZ", "lastAngle"]) assert.equal(pose[key], 0);
       if (first) assert.deepEqual(pose, first);
       first = pose;
     }

@@ -15,10 +15,10 @@
 .portrait-instrument-header { position: absolute; z-index: 6; inset: 0 0 auto; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #adb4a8; background: #050505; font: 9px/1.4 var(--mono); letter-spacing: .06em; }
 .portrait-state { display: flex; align-items: center; gap: 7px; color: #d8ff4f; }
 .portrait-state i { width: 4px; height: 4px; background: currentColor; }
-.portrait-rear-type { position: absolute; z-index: 1; inset: 0; pointer-events: none; overflow: clip; }
+.portrait-rear-type { position: absolute; z-index: 1; inset: 0; pointer-events: none; overflow: clip; perspective: 1200px; }
 .portrait-rear-type > span { position: absolute; display: block; line-height: .8; font-weight: 650; letter-spacing: -.04em; white-space: nowrap; transform-origin: center; }
-.portrait-type-first { top: 13%; left: 1%; color: #e7e8dd; font-size: 28cqi; transform: translate3d(var(--portrait-depth-rearX,0px),var(--portrait-depth-rearY,0px),-55px); }
-.portrait-type-last { top: 49%; right: 1%; font-size: 23cqi; color: transparent; -webkit-text-stroke: 1px #8b937a; transform: translate3d(calc(var(--portrait-depth-rearX,0px) * -1),calc(var(--portrait-depth-rearY,0px) * -.6),-100px); }
+.portrait-type-first { top: 13%; left: 1%; color: #e7e8dd; font-size: 28cqi; transform: translate3d(var(--portrait-depth-firstX,0px),var(--portrait-depth-firstY,0px),var(--portrait-depth-firstZ,-100px)) rotateY(var(--portrait-depth-firstAngle,0deg)); }
+.portrait-type-last { top: 49%; right: 1%; font-size: 23cqi; color: transparent; -webkit-text-stroke: 1px #8b937a; transform: translate3d(var(--portrait-depth-lastX,0px),var(--portrait-depth-lastY,0px),var(--portrait-depth-lastZ,-110px)) rotateY(var(--portrait-depth-lastAngle,0deg)); }
 .portrait-photo-anchor { position: absolute; width: min(46%,620px); left: 30%; top: 8%; aspect-ratio: 1 / 1.08; }
 .portrait-instrument-stage { position: absolute; z-index: 2; inset: 0; overflow: hidden; isolation: isolate; background: transparent; transform-origin: center; transform: translate3d(var(--portrait-depth-x,0px),var(--portrait-depth-y,0px),0) scale(var(--portrait-depth-scale,1)); }
 .raster-portrait { position: absolute; inset: 0; overflow: hidden; --raster-progress: 0; background: transparent; mask-image: linear-gradient(#000 0%,#000 76%,transparent 100%); }

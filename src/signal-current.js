@@ -189,7 +189,9 @@ void main() {
   float travel = time * .014 + uScroll * .48 * (1.0 - reduced);
   float t = fract(aSeed.x + travel + lane * .007);
   float root = 0.0;
-  float lifetime = 1.0;
+  // Recycle the travelling cohort invisibly. Dedicated endpoint cohorts below
+  // keep the contour peel and contact gather full through each periodic wrap.
+  float lifetime = smoothstep(0.0, .018, t) * (1.0 - smoothstep(.975, 1.0, t));
   if (aSeed.w < ${signalCurrentCohorts.source}) {
     float phase = fract(aSeed.x + travel * 1.6);
     t = phase * .16;

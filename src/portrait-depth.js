@@ -14,11 +14,18 @@ export function portraitDepthPose(anchor, viewport, reduced = false) {
   const scale = reduced ? 1 : 1 - (phone ? .065 : .12) * sweep * sweep;
   const x = reduced ? 0 : sweep * (phone ? 5 : 16);
   const y = reduced ? 0 : -sweep * (phone ? 18 : 40);
-  // Two rear rows separate in opposite directions; the native caption stays
-  // stationary, outside the photo. The alpha photograph occludes both rows.
+  // The name crosses behind the person in counter-moving perspective planes.
+  // Its wider travel never alters the measured photo or particle attachment.
+  const travel = phone ? Math.min(viewport.width * .23, 120) : Math.min(viewport.width * .22, 340);
   return { progress, scale, x, y,
-    rearY: reduced ? 0 : sweep * (phone ? 20 : 36),
-    rearX: reduced ? 0 : -sweep * (phone ? 18 : 70),
+    firstX: reduced ? 0 : -sweep * travel,
+    firstY: reduced ? 0 : sweep * (phone ? 24 : 66),
+    firstZ: reduced ? 0 : -100 + sweep * (phone ? 35 : 75),
+    firstAngle: reduced ? 0 : sweep * (phone ? -4 : -10),
+    lastX: reduced ? 0 : sweep * travel * .86,
+    lastY: reduced ? 0 : -sweep * (phone ? 18 : 44),
+    lastZ: reduced ? 0 : -110 - sweep * (phone ? 35 : 75),
+    lastAngle: reduced ? 0 : sweep * (phone ? 4 : 9),
   };
 }
 
